@@ -17,9 +17,9 @@ public class PlayerStretch : MonoBehaviour
     private Vector2 moveInput;
     Vector3 stretchDirection;
 
-    private CharacterController headSegment;
-    private CharacterController bodySegment;
-    private CharacterController tailSegment;
+    private Rigidbody headSegment;
+    private Rigidbody bodySegment;
+    private Rigidbody tailSegment;
 
     private float currentStretchTime;
     Vector3 cachedHeadPosition;
@@ -48,57 +48,55 @@ public class PlayerStretch : MonoBehaviour
     
     private float currentStretchDistance;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void OnEnable()
-    {
-
-        stretchButton.action.started += OnPlayerStretched;
-        stretchButton.action.canceled += OnPlayerRetracted;
-    }
-
-    void OnDisable()
-    {
-        stretchButton.action.started -= OnPlayerStretched;
-        stretchButton.action.canceled -= OnPlayerRetracted;
-    }
+   
 
     void Start()
     {
         camera = Camera.main.transform;
         segments = PlayerStateReference.instance.segments.ToArray();
-        headSegment = segments[0].characterController;
-        bodySegment = segments[1].characterController;
-        tailSegment = segments[2].characterController;
+        headSegment = segments[0].rb;
+        bodySegment = segments[1].rb;
+        tailSegment = segments[2].rb;
         bodyOffset = Mathf.Abs(segments[1].spacingToNextSegment);
         tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
         maxDistanceHead = bodyOffset + stretchDistanceHead;
         minDistanceHead = bodyOffset;
     }
 
-    // Update is called once per frame
     void Update()
     {
         moveInput = stretchInput.action.ReadValue<Vector2>();
         isStretching = stretchButton.action.IsPressed();
-        
-        if (isStretching)
-        {
-            if (isRetracting)
-                return;
+        Debug.Log("PlayerState: " + PlayerStateReference.instance.state.ToString());
+        Debug.Log("moveInput: " + moveInput);
 
+        
+       
+    }
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+        if (isStretching && PlayerStateReference.instance.state != PlayerState.Stretching)
+        {
+            OnPlayerStretched();
+        }
+        
+        else if (isStretching && PlayerStateReference.instance.state == PlayerState.Stretching)
+        {
             StretchEvent();
         }
-
-        else
+        
+        else if (!isStretching && PlayerStateReference.instance.state == PlayerState.Stretching)
         {
-            if (PlayerStateReference.instance.state == PlayerState.Stretching)
-            {
-                isRetracting = true;
-            }
+            OnPlayerRetracted();
         }
+        
+       
+        
     }
     
    
-    void OnPlayerStretched(InputAction.CallbackContext context)
+    void OnPlayerStretched()
     {
         cachedHeadPosition = headSegment.transform.position;
         cachedBodyPosition = bodySegment.transform.position;
@@ -127,7 +125,7 @@ public class PlayerStretch : MonoBehaviour
     void StretchEvent()
     {
         
-        
+        Debug.Log("Event Called");
         //take stretching position
         SteerEvent();
         
@@ -135,27 +133,34 @@ public class PlayerStretch : MonoBehaviour
 
       if (moveInput.magnitude > 0.01f)
       {
-          currentStretchTime += Time.deltaTime;
+          Debug.Log("Moving");
+          currentStretchTime += Time.fixedDeltaTime;
           Vector3 targetInitialPosition =
               bodySegment.transform.position + maxDistanceHead * headSegment.transform.forward;
-          Vector3 targetStretchPosition = Vector3.Lerp(headSegment.transform.position, targetInitialPosition,
+          Vector3 targetStretchPosition = Vector3.Lerp(headSegment.position, targetInitialPosition,
               currentStretchTime / stretchTime);
           
 
-          Vector3 direction = headSegment.transform.position - bodySegment.transform.position;
+          Vector3 direction = targetStretchPosition - bodySegment.transform.position;
           float distance = direction.magnitude;
 
           if (distance > maxDistanceHead)
           {
+              //clamp stretch position
+              targetStretchPosition = bodySegment.transform.position + maxDistanceHead * direction.normalized;
               Debug.Log($"Can't move \n Current Distance is {distance} \n Max Distance is {maxDistanceHead}");
           }
 
-          else
+          //collision check here
+          
+          Vector3 finalVelocity = segments[0].collisionDetection.CollideAndSlide(targetStretchPosition, headSegment.position, 0, true, targetStretchPosition);
+          if (finalVelocity == Vector3.zero)
           {
-              Vector3 moveDelta = targetStretchPosition - headSegment.transform.position;
-              // headSegment.MovePosition(currentStretchDistance * stretchSpeed * Time.deltaTime);
-              headSegment.Move(moveDelta * Time.deltaTime);
+              finalVelocity = headSegment.position;
           }
+          headSegment.MovePosition(finalVelocity);
+          
+        //  headSegment.MovePosition(targetStretchPosition);
       }
 
 
@@ -185,7 +190,7 @@ public class PlayerStretch : MonoBehaviour
         {
             
             Quaternion targetRotation = Quaternion.LookRotation(stretchDirection.normalized, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, stretchTurnSpeed * Time.deltaTime);
+            headSegment.MoveRotation(Quaternion.Slerp(transform.rotation, targetRotation, stretchTurnSpeed * Time.fixedDeltaTime));
             //var axis = Quaternion.AngleAxis(stretchTurnSpeed * Time.deltaTime, Vector3.up);
 
             //move in range of a circle around the bodyPosition
@@ -205,10 +210,12 @@ public class PlayerStretch : MonoBehaviour
     
 
 
-    void OnPlayerRetracted(InputAction.CallbackContext context)
+    void OnPlayerRetracted()
     {
+        isStretching  = false;
+        isRetracting = false;
         PlayerStateReference.instance.SetState(PlayerState.Locomotion);
-        StartCoroutine(PlayerRetractEvent());
+       // StartCoroutine(PlayerRetractEvent());
     }
 
     IEnumerator PlayerRetractEvent()

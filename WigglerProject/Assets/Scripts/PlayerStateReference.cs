@@ -25,12 +25,14 @@ public class Segment
     public float reactTime;
     public SegmentType type;
     public float spacingToNextSegment;
-    public CharacterController characterController;
-    
+    public Rigidbody rb;
+    [HideInInspector] public bool isGrounded;
+    [HideInInspector] public CollisionDetection collisionDetection;
 
     public void Initialise()
     {
-        characterController= t.GetComponent<CharacterController>();
+        rb = t.GetComponent<Rigidbody>();
+        collisionDetection = t.GetComponent<CollisionDetection>();
        
     }
 
@@ -57,7 +59,7 @@ public class PlayerStateReference : MonoBehaviour
     }
     
     public List<Segment> segments = new List<Segment>();
-    public PlayerState state { get; private set; }
+    public PlayerState state;
 
     public void SetState(PlayerState newState)
     {
