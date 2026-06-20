@@ -47,6 +47,16 @@ public class PlayerStretch : MonoBehaviour
     private float tailOffset;
     
     private float currentStretchDistance;
+    
+    //spherecast detection
+    [Header("Collision Detection")]
+    public float collisionDetectionDistance = 2f;
+    
+
+    public float collisionDetectionRadius;
+  
+    //public 
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
    
 
@@ -61,6 +71,9 @@ public class PlayerStretch : MonoBehaviour
         tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
         maxDistanceHead = bodyOffset + stretchDistanceHead;
         minDistanceHead = bodyOffset;
+        
+        
+        //sphere collision
     }
 
     void Update()
@@ -146,24 +159,31 @@ public class PlayerStretch : MonoBehaviour
 
           //collision check here
           
-          Vector3 finalVelocity = segments[0].collisionDetection.CollideAndSlide(targetStretchPosition, headSegment.position, 0, true, targetStretchPosition);
-          if (finalVelocity == Vector3.zero)
-          {
-              finalVelocity = headSegment.position;
-          }
-          headSegment.MovePosition(finalVelocity);
-          
+          //Vector3 finalVelocity = segments[0].collisionDetection.CollideAndSlide(targetStretchPosition, headSegment.position, 0, true, targetStretchPosition);
+        //  if (finalVelocity == Vector3.zero)
+          //{
+         //     finalVelocity = headSegment.position;
+        //  }
+         // headSegment.MovePosition(finalVelocity);
+       //   
         //  headSegment.MovePosition(targetStretchPosition);
       }
 
-
       CollisionCheckEvent();
+      
 
     }
 
     void CollisionCheckEvent()
     {
-        
+        if (Physics.SphereCast(headSegment.position, collisionDetectionRadius, transform.forward, out RaycastHit hit,
+                collisionDetectionDistance, PlayerStateReference.instance.GetMask(gameObject.layer)))
+        {
+            if (hit.transform.TryGetComponent(out EnvironmentTest test))
+            {
+                test.Hit();
+            }
+        }
     }
    
     

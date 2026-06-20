@@ -27,12 +27,12 @@ public class Segment
     public float spacingToNextSegment;
     public Rigidbody rb;
     [HideInInspector] public bool isGrounded;
-    [HideInInspector] public CollisionDetection collisionDetection;
 
+    public PlayerSpringConnector springConnector;
     public void Initialise()
     {
         rb = t.GetComponent<Rigidbody>();
-        collisionDetection = t.GetComponent<CollisionDetection>();
+       
        
     }
 
@@ -74,6 +74,15 @@ public class PlayerStateReference : MonoBehaviour
         }
         state = newState;
     }
+
+    public LayerMask GetMask ( int againstLayer ) {
+        LayerMask result = new LayerMask();
+        for ( int i = 0; i < 32; i++ ) {
+            result = result ^ ( ( Physics.GetIgnoreLayerCollision( i, againstLayer ) ? 0 : 1 ) << i );
+        }
+        return result;
+    }
+
 
     
 }

@@ -4,12 +4,18 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 
+/*public class MovementStep
+{
+    public Vector3 position;
+    public Vector3 direction;
+    public float distance;
+}*/
 public class PlayerMovement : MonoBehaviour
 {
     public float speed;
     public float turnSpeed;
     
-    private CollisionDetection collisionDetection;
+    
     private List<Segment> segments = new List<Segment>();
 
     private Rigidbody _rigidbody;
@@ -46,6 +52,8 @@ public class PlayerMovement : MonoBehaviour
     public float airDrag = 0.3f;
 
     public float groundDrag = 6f;
+
+ 
     /*Vector3 targetBodyPosition;
     Vector3 targetTailPosition;*/
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -60,7 +68,7 @@ public class PlayerMovement : MonoBehaviour
         _rigidbody = segments[0].rb;
         camera = Camera.main.transform;
         
-        collisionDetection = _rigidbody.transform.GetComponent<CollisionDetection>();
+        //collisionDetection = _rigidbody.transform.GetComponent<CollisionDetection>();
     }
 
     private void Update()
@@ -131,7 +139,7 @@ public class PlayerMovement : MonoBehaviour
 
        
 
-        if (isGrounded)
+        /*if (isGrounded)
         {
             if (verticalVelocity < 0)
             {
@@ -144,18 +152,28 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             verticalVelocity += gravity * Time.fixedDeltaTime;
-        }
-       // _rigidbody.AddForce(gravity * movementMultiplier * Time.fixedDeltaTime  * Vector3.up, ForceMode.Acceleration);
+        }*/
+        
+        //gravity
+        _rigidbody.AddForce(gravity  * Vector3.up, ForceMode.Acceleration);
        
         
         
-        Vector3 moveVel = moveDir * (speed * Time.fixedDeltaTime) + (verticalVelocity * Time.fixedDeltaTime * Vector3.up);
-
-
-        Vector3 finalVel = collisionDetection.CollideAndSlide(moveVel, _rigidbody.position, 0, true, moveVel);
-        _rigidbody.MovePosition(_rigidbody.position + finalVel);
+        
+        //movement
+        
+        //Vector3 moveVel = moveDir * (speed * Time.fixedDeltaTime) + (verticalVelocity * Time.fixedDeltaTime * Vector3.up);
+        
+        //Vector3 finalVel = collisionDetection.CollideAndSlide(moveVel, _rigidbody.position, 0, true, moveVel);
         
         
+       // _rigidbody.MovePosition(_rigidbody.position + finalVel);
+        
+       Vector3 _moveDir = moveDir * speed;
+       Vector3 _velocity = new Vector3(_moveDir.x, _rigidbody.linearVelocity.y, _moveDir.z) - _rigidbody.linearVelocity;
+        
+       
+       _rigidbody.AddForce(_velocity, ForceMode.VelocityChange);
         UpdateSegments();
         /*body.position = Vector3.Lerp(body.position, transform.position - (bodyHeadSpacing * transform.forward), bodyReactTime * Time.deltaTime);
         tail.position = Vector3.Lerp(tail.position, body.position - (tailBodySpacing * transform.forward), tailReactTime * Time.deltaTime);*/
@@ -182,7 +200,7 @@ public class PlayerMovement : MonoBehaviour
         if (input != Vector2.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
-            _rigidbody.MoveRotation(Quaternion.Slerp(_rigidbody.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime));
+            transform.rotation = (Quaternion.Slerp(_rigidbody.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime));
             /*body.rotation =  Quaternion.Slerp(body.rotation, transform.rotation, bodyReactTime * Time.deltaTime);
             tail.rotation =  Quaternion.Slerp(tail.rotation, transform.rotation, tailReactTime * Time.deltaTime);*/
         }
@@ -195,24 +213,62 @@ public class PlayerMovement : MonoBehaviour
     {
         for (int i = 1; i < segments.Count; i++)
         {
-            
             Vector3 pos = segments[i].rb.position;
             Vector3 prevPos = segments[i - 1].rb.position;
+            //Vector3 forward = segments[i - 1].t.forward;
+            
             
             var spacing = Mathf.Abs(segments[i].spacingToNextSegment);
             
-            Vector3 targetPos = prevPos - (segments[i - 1].t.forward) * spacing;
-            Vector3 direction = (targetPos - pos).normalized;
+            Vector3 currentDir = prevPos - pos;
+            
+            
+            
+            Vector3 desiredPos = prevPos + (-currentDir.normalized * spacing);
+           
+
+
+            Vector3 targetPos = desiredPos - pos;
+            
+           
+            
+            Vector3 direction = targetPos.normalized;
             direction.y = 0;
+            
+            
+            //segments[i].rb.AddForce(direction * Mathf.Lerp() , ForceMode.Acceleration);
+
+           
+            //check if overshooting
+            Vector3 velocity = segments[i].rb.linearVelocity;
+            segments[i].springConnector.UpdateSpringVector(Time.fixedDeltaTime, ref pos, ref velocity, desiredPos);
+            
+            // segments[i].rb.MovePosition(pos);
+            segments[i].rb.linearVelocity = velocity;
+            
+            
+            
+            
+            //
+            
+            //segments[i].rb.MovePosition(smoothedPosition);
             //var scaledDirection = Vector3.Scale();
             
             
-            Vector3 finalVelocity = segments[i].collisionDetection.CollideAndSlide(targetPos, pos, 0, true, targetPos);
-            if (finalVelocity == Vector3.zero)
-            {
-                finalVelocity = pos;
-            }
-            segments[i].rb.MovePosition(finalVelocity);
+            //Vector3 finalVelocity = segments[i].collisionDetection.CollideAndSlide(targetPos, pos, 0, true, targetPos);
+            //if (finalVelocity == Vector3.zero)
+          //  {
+          //      finalVelocity = pos;
+          //  }
+         //   segments[i].rb.MovePosition(finalVelocity);
+         
+         
+         
+            
+         
+            //calculate spring physics
+            
+            
           
             //rotation
             if (direction.magnitude > 0.001f)
@@ -220,7 +276,7 @@ public class PlayerMovement : MonoBehaviour
                 Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
                 
                 
-                segments[i].rb.MoveRotation(Quaternion.Slerp(segments[i].rb.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime));
+                segments[i].rb.transform.rotation = (Quaternion.Slerp(segments[i].rb.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime));
                 
             }
 
@@ -233,5 +289,3 @@ public class PlayerMovement : MonoBehaviour
         Gizmos.DrawWireSphere(groundCheck.position, groundDistance);
     }
 }
-
-
