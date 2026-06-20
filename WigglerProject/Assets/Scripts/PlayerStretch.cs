@@ -106,21 +106,7 @@ public class PlayerStretch : MonoBehaviour
         
 
     }
-
-
-  
-
-    void ClampSegmentPosition()
-    {
-        /*var currentHeadPos = headSegment.transform.position;
-       
-        Debug.Log($"Desired Head Position: {currentHeadPos}");
-        var boundingPos = bodySegment.transform.position + new Vector3(stretchDistanceHead + bodyOffset, 0, stretchDistanceHead + bodyOffset);
-        Debug.Log($"Desired Body Position: {boundingPos}");
-        float posX =Mathf.Clamp(transform.position.x, -boundingPos.x, boundingPos.x);
-        float posZ = Mathf.Clamp(transform.position.z, -boundingPos.z, boundingPos.z);
-        headSegment.position = new Vector3(posX, transform.position.y, posZ);*/
-    }
+    
     
     void StretchEvent()
     {
@@ -134,14 +120,21 @@ public class PlayerStretch : MonoBehaviour
       if (moveInput.magnitude > 0.01f)
       {
           Debug.Log("Moving");
-          currentStretchTime += Time.fixedDeltaTime;
-          Vector3 targetInitialPosition =
+          //currentStretchTime += Time.fixedDeltaTime;
+          Vector3 initialTargetPosition =
               bodySegment.transform.position + maxDistanceHead * headSegment.transform.forward;
-          Vector3 targetStretchPosition = Vector3.Lerp(headSegment.position, targetInitialPosition,
-              currentStretchTime / stretchTime);
+         // Vector3 targetStretchPosition = Vector3.Lerp(headSegment.position, targetInitialPosition,
+              //currentStretchTime / stretchTime);
+          
+              
+              
+              
+          //move player
+          Vector3 targetStretchPosition = headSegment.position + stretchDirection * (stretchSpeed * Time.fixedDeltaTime);
+          
           
 
-          Vector3 direction = targetStretchPosition - bodySegment.transform.position;
+          Vector3 direction = headSegment.position - bodySegment.transform.position;
           float distance = direction.magnitude;
 
           if (distance > maxDistanceHead)
@@ -164,9 +157,14 @@ public class PlayerStretch : MonoBehaviour
       }
 
 
+      CollisionCheckEvent();
 
     }
 
+    void CollisionCheckEvent()
+    {
+        
+    }
    
     
 
@@ -183,6 +181,7 @@ public class PlayerStretch : MonoBehaviour
         //float stretchValue = 1;
         
         stretchDirection = moveInput.x * right + moveInput.y * forward;
+        stretchDirection.y = 0;
         
         
         //rotate around middle segment position

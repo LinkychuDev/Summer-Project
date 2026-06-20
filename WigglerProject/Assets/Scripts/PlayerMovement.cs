@@ -38,8 +38,10 @@ public class PlayerMovement : MonoBehaviour
     
     public LayerMask groundMask;
     public float groundDistance = 0.4f;
+    public float groundRadius = 0.2f;
     public Transform groundCheck;
 
+    public float GroundAngleLimit = 45;
 
     public float airDrag = 0.3f;
 
@@ -84,7 +86,28 @@ public class PlayerMovement : MonoBehaviour
 
     void GroundCheck()
     {
-        
+        if (Physics.SphereCast(groundCheck.position, groundRadius, Vector3.down, out RaycastHit hit, groundDistance,
+                groundMask))
+        {
+            if (Vector3.Angle(hit.normal, Vector3.up) < GroundAngleLimit)
+            {
+                float distance = _rigidbody.position.y - hit.point.y;
+                
+                //_rigidbody.MovePosition(new Vector3(_rigidbody.position.x, _rigidbody.position.y + distance, _rigidbody.position.z));
+                isGrounded = true;
+            }
+
+            else
+            {
+                isGrounded = false;
+            }
+            
+        }
+
+        else
+        {
+            isGrounded = false;
+        }
     }
 
     void HandleDrag()
@@ -106,18 +129,27 @@ public class PlayerMovement : MonoBehaviour
         HandleRotation();
 
 
-        verticalVelocity += gravity * Time.fixedDeltaTime;
+       
 
         if (isGrounded)
         {
-            verticalVelocity = 0;
+            if (verticalVelocity < 0)
+            {
+                verticalVelocity = -2f;
+            }
+           
+            
         }
-       
+        
+        else
+        {
+            verticalVelocity += gravity * Time.fixedDeltaTime;
+        }
        // _rigidbody.AddForce(gravity * movementMultiplier * Time.fixedDeltaTime  * Vector3.up, ForceMode.Acceleration);
        
         
         
-        Vector3 moveVel = moveDir * (speed * Time.fixedDeltaTime);
+        Vector3 moveVel = moveDir * (speed * Time.fixedDeltaTime) + (verticalVelocity * Time.fixedDeltaTime * Vector3.up);
 
 
         Vector3 finalVel = collisionDetection.CollideAndSlide(moveVel, _rigidbody.position, 0, true, moveVel);
