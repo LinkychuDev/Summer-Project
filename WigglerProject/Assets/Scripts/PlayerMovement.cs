@@ -34,11 +34,11 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] private float movementMultiplier = 50f;
     public bool isGrounded;
-    /*
-    public float bodyHeadSpacing = -1.5f;
-    public float tailBodySpacing = -1f;
-    public float tailReactTime = 0.5f;
-    public float bodyReactTime = 0.25f;*/
+  
+    
+    [SerializeField] private float acceleration = 10;
+    [SerializeField] private float deceleration = 10;
+   
     public InputActionReference moveInput;
     
     
@@ -53,6 +53,8 @@ public class PlayerMovement : MonoBehaviour
 
     public float groundDrag = 6f;
 
+    private PIDController _pidController;
+    
  
     /*Vector3 targetBodyPosition;
     Vector3 targetTailPosition;*/
@@ -66,6 +68,7 @@ public class PlayerMovement : MonoBehaviour
         segments.Add(PlayerStateReference.instance.segments[2]);
 
         _rigidbody = segments[0].rb;
+        _pidController = GetComponent<PIDController>();
         camera = Camera.main.transform;
         
         //collisionDetection = _rigidbody.transform.GetComponent<CollisionDetection>();
@@ -168,17 +171,23 @@ public class PlayerMovement : MonoBehaviour
         
         
        // _rigidbody.MovePosition(_rigidbody.position + finalVel);
-        
-       Vector3 _moveDir = moveDir * speed;
-       Vector3 _velocity = new Vector3(_moveDir.x, _rigidbody.linearVelocity.y, _moveDir.z) - _rigidbody.linearVelocity;
-        
-       
-       _rigidbody.AddForce(_velocity, ForceMode.VelocityChange);
-        UpdateSegments();
-        /*body.position = Vector3.Lerp(body.position, transform.position - (bodyHeadSpacing * transform.forward), bodyReactTime * Time.deltaTime);
-        tail.position = Vector3.Lerp(tail.position, body.position - (tailBodySpacing * transform.forward), tailReactTime * Time.deltaTime);*/
 
-        //rotation
+
+       Vector3 currentVelocity = _rigidbody.linearVelocity;
+       currentVelocity.y = 0;
+
+       Vector3 targetVelocity = moveDir.normalized * speed;
+       Vector3 velocityChange = targetVelocity - currentVelocity;
+           
+           
+       // float input = PIDController.Update(Time.fixedDeltaTime, currentVelocity * moveDir,  )
+       _rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
+          
+       /*body.position = Vector3.Lerp(body.position, transform.position - (bodyHeadSpacing * transform.forward), bodyReactTime * Time.deltaTime);
+       tail.position = Vector3.Lerp(tail.position, body.position - (tailBodySpacing * transform.forward), tailReactTime * Time.deltaTime);*/
+       
+       UpdateSegments();
+       //rotation
 
     }
 

@@ -54,10 +54,15 @@ public class PlayerStretch : MonoBehaviour
     public float collisionDetectionDistance = 2f;
     
 
-    public float collisionDetectionRadius;
+    public float collisionDetectionOffset = 0.2f;
+    private float collisionDetectionRadius;
 
     public float correctionOffset = 0.3f;
     //public 
+    
+    Collider[] hitColliders = new Collider[1];
+    
+    
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
@@ -85,7 +90,7 @@ public class PlayerStretch : MonoBehaviour
         maxDistanceHead = bodyOffset + stretchDistanceHead;
         minDistanceHead = bodyOffset;
         
-        
+        //headSegment.GetComponent<SphereCollider>().radius
         //sphere collision
     }
 
@@ -93,7 +98,11 @@ public class PlayerStretch : MonoBehaviour
     {
         moveInput = stretchInput.action.ReadValue<Vector2>();
         isStretching = stretchButton.action.IsPressed();
-
+        if(isRetracting)
+            return;
+        if(PlayerStateReference.instance.state != PlayerState.Stretching)
+            return;
+        SteerEvent();
 
 
         
@@ -107,7 +116,9 @@ public class PlayerStretch : MonoBehaviour
        
         if(isRetracting)
             return;
-        SteerEvent();
+        if(PlayerStateReference.instance.state != PlayerState.Stretching)
+            return;
+       
         StretchEvent();
         
         /*
@@ -169,6 +180,7 @@ public class PlayerStretch : MonoBehaviour
             finalPosition = bodySegment.transform.position + maxDistanceHead * -direction.normalized;
         }
 
+        
         headSegment.MovePosition(finalPosition);
         
       
@@ -176,39 +188,55 @@ public class PlayerStretch : MonoBehaviour
     }
 
 
+   
+    /*
     private void OnCollisionEnter(Collision other)
     {
         
         if(PlayerStateReference.instance.state != PlayerState.Stretching)
             return;
+        
         if (isStretching)
         {
-            if (other.transform.TryGetComponent(out EnvironmentTest test))
+            if (other.transform.TryGetComponent(out IStretchInteractable stretchHit))
             {
-                test.Hit();
+                stretchHit.OnStretchEvent(headSegment);
             }
         }
         
         else if (isRetracting)
         {
-            
-        }
-    }
-
-    void CollisionCheckEvent()
-    {
-        if (Physics.SphereCast(headSegment.position, collisionDetectionRadius, transform.forward, out RaycastHit hit,
-                collisionDetectionDistance, PlayerStateReference.instance.GetMask(gameObject.layer)))
-        {
-            if (hit.transform.TryGetComponent(out EnvironmentTest test))
+            if (other.transform.TryGetComponent(out IRetractInteractable retractHit))
             {
-                test.Hit();
+                retractHit.OnRetractEvent(headSegment);
             }
         }
     }
-   
     
-
+    private void OnTriggerEnter(Collider other)
+    {
+        
+        if(PlayerStateReference.instance.state != PlayerState.Stretching)
+            return;
+        
+        if (isStretching)
+        {
+            if (other.transform.TryGetComponent(out IStretchInteractable stretchHit))
+            {
+                stretchHit.OnStretchEvent(headSegment);
+            }
+        }
+        
+        else if (isRetracting)
+        {
+            if (other.transform.TryGetComponent(out IRetractInteractable stretchHit))
+            {
+                stretchHit.OnRetractEvent(headSegment);
+            }
+        }
+    }
+    */
+    
     void SteerEvent()
     {
        
@@ -232,47 +260,12 @@ public class PlayerStretch : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(stretchDirection.normalized, Vector3.up);
             headSegment.transform.rotation =(Quaternion.Slerp(headSegment.transform.rotation, targetRotation, stretchTurnSpeed * Time.fixedDeltaTime));
             
-            
-            
-            //var axis = Quaternion.AngleAxis(stretchTurnSpeed * Time.deltaTime, Vector3.up);
-
-            //move in range of a circle around the bodyPosition
-
-            
-            //targetRotation.ToAngleAxis(out float angle, out var axis);
-            //Debug.Log("Axis Angle: " + angle);
-            //Debug.Log("Axis Axis: " + axis);
-            //transform.RotateAround(bodySegment.position, axis, Mathf.Min(angle * stretchTurnSpeed * Time.deltaTime));
         }
 
         
         
     }
-
-    private void LateUpdate()
-    {
-        if (PlayerStateReference.instance.state == PlayerState.Stretching && isStretching)
-        {
-           // UpdateSegmentsRotation();
-        }
-       
-    }
-
-    void UpdateSegmentsRotation()
-    {
-        Vector3 direction = headSegment.transform.position - bodySegment.transform.position ;
-
-        Quaternion bodyRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
-            
-        bodySegment.transform.rotation = Quaternion.Slerp(bodySegment.transform.rotation, bodyRotation, Mathf.Lerp(1, stretchTurnSpeed, 0.8f )* Time.deltaTime);
-
-
-        Vector3 tailDirection = (bodySegment.transform.position - tailSegment.transform.position).normalized;
-        tailSegment.transform.rotation = Quaternion.Slerp(tailSegment.transform.rotation, Quaternion.LookRotation(tailDirection, Vector3.up), stretchTurnSpeed * Time.deltaTime);
-        tailSegment.transform.position = bodySegment.transform.position - tailSegment.transform.forward *  Mathf.Abs(segments[2].spacingToNextSegment) ;
-        
-    }
-
+    
     void OnPlayerRetracted()
     {
         isStretching  = false;
@@ -339,3 +332,17 @@ public class PlayerStretch : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position + transform.forward * collisionDetectionDistance, collisionDetectionRadius);
     }
 }
+
+public interface IStretchInteractable
+{
+    public void OnStretchEvent(Rigidbody segment);
+    
+}
+
+
+public interface IRetractInteractable
+{
+    public void OnRetractEvent(Rigidbody segment);
+}
+
+
