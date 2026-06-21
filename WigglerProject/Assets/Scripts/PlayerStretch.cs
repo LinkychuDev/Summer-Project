@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,7 +8,7 @@ public class PlayerStretch : MonoBehaviour
 {
     public float stretchDistanceHead;
     public float stretchDistanceTail;
-    public float stretchTime = 4f;
+    public float stretchRetractTime = 4f;
 
     //public float stretchTime = 3f;
     //public bool isStretching;
@@ -99,27 +100,13 @@ public class PlayerStretch : MonoBehaviour
         
        
     }
-
-
-
-    void ClampPosition()
-    {
-        Vector3 direction = headSegment.position - bodySegment.transform.position;
-        float distance = direction.magnitude;
-
-        if (distance > maxDistanceHead)
-        {
-            headSegment.transform.position =(bodySegment.transform.position + maxDistanceHead * direction.normalized);
-            
-            //clamp stretch position
-            // targetStretchPosition = bodySegment.transform.position + maxDistanceHead * direction.normalized;
-             
-        }
-    }
+    
     // Update is called once per frame
     void FixedUpdate()
     {
        
+        if(isRetracting)
+            return;
         SteerEvent();
         StretchEvent();
         
@@ -140,18 +127,22 @@ public class PlayerStretch : MonoBehaviour
 
         
         //headSegment.isKinematic = true;
+        
         bodySegment.isKinematic = true;
         tailSegment.isKinematic = true;
         Debug.Log("OnPlayerStretchedEvent");
         yield return null;
-        bodySegment.MovePosition(headSegment.position - (headSegment.transform.forward *bodyOffset));
-        tailSegment.MovePosition(bodySegment.position - (bodySegment.transform.forward * tailOffset));
+        //bodySegment.MovePosition(headSegment.position - (headSegment.transform.forward *bodyOffset));
+       // tailSegment.MovePosition(bodySegment.position - (bodySegment.transform.forward * tailOffset));
         
         cachedHeadPosition = headSegment.transform.position;
         cachedBodyPosition = bodySegment.transform.position;
         cachedTailPosition = tailSegment.transform.position;
         currentStretchTime = 0;
         
+        
+       // bodySegment.transform.LookAt(cachedHeadPosition);
+       // tailSegment.transform.LookAt(cachedBodyPosition);
         PlayerStateReference.instance.SetState(PlayerState.Stretching);
 
 
@@ -242,17 +233,12 @@ public class PlayerStretch : MonoBehaviour
             headSegment.transform.rotation =(Quaternion.Slerp(headSegment.transform.rotation, targetRotation, stretchTurnSpeed * Time.fixedDeltaTime));
             
             
-            Vector3 direction = bodySegment.transform.position - headSegment.transform.position;
-
-            Quaternion bodyRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
             
-            bodySegment.rotation = Quaternion.Slerp(bodySegment.transform.rotation, bodyRotation, stretchTurnSpeed * Time.fixedDeltaTime);
             //var axis = Quaternion.AngleAxis(stretchTurnSpeed * Time.deltaTime, Vector3.up);
 
             //move in range of a circle around the bodyPosition
 
-
-
+            
             //targetRotation.ToAngleAxis(out float angle, out var axis);
             //Debug.Log("Axis Angle: " + angle);
             //Debug.Log("Axis Axis: " + axis);
@@ -262,53 +248,88 @@ public class PlayerStretch : MonoBehaviour
         
         
     }
-    
-    
 
+    private void LateUpdate()
+    {
+        if (PlayerStateReference.instance.state == PlayerState.Stretching && isStretching)
+        {
+           // UpdateSegmentsRotation();
+        }
+       
+    }
+
+    void UpdateSegmentsRotation()
+    {
+        Vector3 direction = headSegment.transform.position - bodySegment.transform.position ;
+
+        Quaternion bodyRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+            
+        bodySegment.transform.rotation = Quaternion.Slerp(bodySegment.transform.rotation, bodyRotation, Mathf.Lerp(1, stretchTurnSpeed, 0.8f )* Time.deltaTime);
+
+
+        Vector3 tailDirection = (bodySegment.transform.position - tailSegment.transform.position).normalized;
+        tailSegment.transform.rotation = Quaternion.Slerp(tailSegment.transform.rotation, Quaternion.LookRotation(tailDirection, Vector3.up), stretchTurnSpeed * Time.deltaTime);
+        tailSegment.transform.position = bodySegment.transform.position - tailSegment.transform.forward *  Mathf.Abs(segments[2].spacingToNextSegment) ;
+        
+    }
 
     void OnPlayerRetracted()
     {
         isStretching  = false;
         isRetracting = false;
-        headSegment.isKinematic = false;
-        bodySegment.isKinematic = false;
-        tailSegment.isKinematic = false;
+        
+        
         PlayerStateReference.instance.SetState(PlayerState.Locomotion);
        // StartCoroutine(PlayerRetractEvent());
     }
 
     IEnumerator OnPlayerRetractedEvent()
     {
-        /*
         if (PlayerStateReference.instance.state != PlayerState.Stretching)
             yield break;
         isRetracting = true;
         currentStretchTime = 0;
-        cachedHeadPosition = headSegment.transform.position;
-        Vector3 distanceToHead = (cachedBodyPosition - cachedHeadPosition).normalized;
-        Vector3 distanceToBody = (cachedTailPosition - cachedBodyPosition).normalized;
-        Vector3 targetBodyBodyPos = cachedHeadPosition - segments[1].spacingToNextSegment * (distanceToHead);
-        Vector3 targetTailPosition = targetBodyBodyPos - segments[2].spacingToNextSegment * (distanceToBody);
-        /*while (currentStretchTime < stretchTime)
-        {
-            currentStretchTime += Time.deltaTime;
-            float percent = currentStretchTime / stretchTime;
-            bodySegment.MovePosition(Vector3.Lerp(cachedBodyPosition, targetBodyBodyPos, percent));
-            tailSegment.MovePosition(Vector3.Lerp(cachedTailPosition, targetTailPosition, percent));
-            yield return null;
-
-        }#1#
+     
+        tailSegment.transform.LookAt(bodySegment.transform.position + bodySegment.transform.forward);
+        bodySegment.isKinematic = false;
+        tailSegment.isKinematic = false;
+        yield return new WaitForFixedUpdate();
         
-        isRetracting = false;
-        atMaxStretchHeight = false;
-        isStretching = false;
-        PlayerStateReference.instance.SetState(PlayerState.Locomotion);
-        */
+        
+        cachedHeadPosition = headSegment.transform.position;
+        Vector3 distanceToHead = (cachedHeadPosition - cachedBodyPosition).normalized;
+        Vector3 distanceToBody = (cachedBodyPosition - cachedTailPosition).normalized;
+        Vector3 targetBodyBodyPos = cachedHeadPosition - Mathf.Abs(segments[1].spacingToNextSegment) * (distanceToHead);
+       
+        
+        //Quaternion cachedBodyRotation = bodySegment.transform.rotation;
 
-        yield return null;
+
+
+        
+        Vector3 targetTailPosition = targetBodyBodyPos - Mathf.Abs(segments[2].spacingToNextSegment) * bodySegment.transform.forward;
+        
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(bodySegment.DOMove(targetBodyBodyPos, stretchRetractTime).OnUpdate(() => 
+            bodySegment.transform.LookAt(headSegment.transform.position + headSegment.transform.forward))).SetEase(Ease.OutBounce);
+        sequence.Insert(0.1f, tailSegment.DOMove(targetTailPosition, stretchRetractTime)
+            .OnUpdate(() => tailSegment.transform.LookAt(bodySegment.transform.position + bodySegment.transform.forward))).SetEase(Ease.OutBounce);
+        
+        
+       
+        yield return sequence.WaitForCompletion();
+        
+        yield return new WaitForFixedUpdate();
         OnPlayerRetracted();
+        
+        //yield return null;
 
+    }
 
+    void UpdateTargetRotation(Transform segment, Vector3 distanceToSegment)
+    {
+        Debug.Log("Called");
+        segment.rotation = Quaternion.Slerp(segment.rotation, Quaternion.LookRotation(distanceToSegment, Vector3.up), stretchTurnSpeed * Time.fixedDeltaTime);
     }
 
     private void OnDrawGizmos()

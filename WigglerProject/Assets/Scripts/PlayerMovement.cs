@@ -230,12 +230,7 @@ public class PlayerMovement : MonoBehaviour
            
 
 
-            Vector3 targetPos = desiredPos - pos;
             
-           
-            
-            Vector3 direction = targetPos.normalized;
-            direction.y = 0;
             
             
             //segments[i].rb.AddForce(direction * Mathf.Lerp() , ForceMode.Acceleration);
@@ -270,15 +265,20 @@ public class PlayerMovement : MonoBehaviour
          
             //calculate spring physics
             
+            Vector3 targetPos = desiredPos - pos;
             
+           
+            
+            Vector3 direction = targetPos.normalized;
+            direction.y = 0;
           
             //rotation
-            if (direction.magnitude > 0.001f)
+            if (moveDir.magnitude > 0.001f)
             {
-                Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+                Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
                 
                 
-                segments[i].rb.transform.rotation = (Quaternion.Slerp(segments[i].rb.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime));
+                segments[i].t.transform.rotation = (Quaternion.Slerp(segments[i].t.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime));
                 
             }
 
