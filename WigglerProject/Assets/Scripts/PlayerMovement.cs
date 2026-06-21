@@ -211,6 +211,8 @@ public class PlayerMovement : MonoBehaviour
 
     void UpdateSegments()
     {
+        if(PlayerStateReference.instance.state == PlayerState.Stretching)
+            return;
         for (int i = 1; i < segments.Count; i++)
         {
             Vector3 pos = segments[i].rb.position;
@@ -220,11 +222,11 @@ public class PlayerMovement : MonoBehaviour
             
             var spacing = Mathf.Abs(segments[i].spacingToNextSegment);
             
-            Vector3 currentDir = prevPos - pos;
+            Vector3 currentDir = pos - prevPos;
+            currentDir.y = 0;
             
             
-            
-            Vector3 desiredPos = prevPos + (-currentDir.normalized * spacing);
+            Vector3 desiredPos = prevPos + (currentDir.normalized * spacing);
            
 
 
