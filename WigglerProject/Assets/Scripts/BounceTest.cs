@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BounceTest : MonoBehaviour, IStretchInteractable
+public class BounceTest : MonoBehaviour
 {
     public float bounceHeight;
-    public void OnStretchEvent(Rigidbody segment)
+
+    private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("OnStretchEvent");
-        segment.AddForce(Vector3.up * bounceHeight, ForceMode.Impulse);
+        if(!(other.TryGetComponent(out PlayerController player)))
+            return;
+        Debug.Log("Bounce");
+        player.Bounce(bounceHeight);
     }
-    
 }

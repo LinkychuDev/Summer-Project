@@ -15,10 +15,12 @@ public class WireTestManager : MonoBehaviour
 
     public int cornerVertices = 5;
     int segmentCount;
+    
+    PlayerController controller;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        controller = GameObject.FindFirstObjectByType<PlayerController>();
         segmentCount = segments + 1;
         HeadandBody.positionCount = segmentCount;
         BodyandTail.positionCount = segmentCount;
@@ -32,9 +34,9 @@ public class WireTestManager : MonoBehaviour
         HeadandBody.numCornerVertices = cornerVertices;
         BodyandTail.numCornerVertices = cornerVertices;
 
-        headSegment = PlayerStateReference.instance.segments[0].t;
-        bodySegment = PlayerStateReference.instance.segments[1].t;
-        tailSegment = PlayerStateReference.instance.segments[2].t;
+        headSegment = controller.segments[0].t;
+        bodySegment = controller.segments[1].t;
+        tailSegment = controller.segments[2].t;
     }
 
     // Update is called once per frame

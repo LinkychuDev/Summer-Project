@@ -13,6 +13,7 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     public float speed;
+    public float maxSpeed;
     public float turnSpeed;
     
     
@@ -53,7 +54,7 @@ public class PlayerMovement : MonoBehaviour
 
     public float groundDrag = 6f;
 
-    private PIDController _pidController;
+    private PlayerController _controller;
     
  
     /*Vector3 targetBodyPosition;
@@ -62,13 +63,12 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         
-        
-        segments.Add(PlayerStateReference.instance.segments[0]);
-        segments.Add(PlayerStateReference.instance.segments[1]);
-        segments.Add(PlayerStateReference.instance.segments[2]);
+        _controller = GetComponent<PlayerController>();
+        segments.Add(_controller.segments[0]);
+        segments.Add(_controller.segments[1]);
+        segments.Add(_controller.segments[2]);
 
         _rigidbody = segments[0].rb;
-        _pidController = GetComponent<PIDController>();
         camera = Camera.main.transform;
         
         //collisionDetection = _rigidbody.transform.GetComponent<CollisionDetection>();
@@ -77,7 +77,7 @@ public class PlayerMovement : MonoBehaviour
     private void Update()
     {
         
-        if(PlayerStateReference.instance.state == PlayerState.Stretching)
+        if(_controller.state != PlayerState.Locomotion)
             return;
         input = moveInput.action.ReadValue<Vector2>();
       
@@ -89,7 +89,7 @@ public class PlayerMovement : MonoBehaviour
         //isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
         GroundCheck();
         HandleDrag(); 
-        if(PlayerStateReference.instance.state == PlayerState.Stretching)
+        if(_controller.state != PlayerState.Locomotion)
             return;
         Movement();
     }
@@ -179,7 +179,7 @@ public class PlayerMovement : MonoBehaviour
        Vector3 targetVelocity = moveDir.normalized * speed;
        Vector3 velocityChange = targetVelocity - currentVelocity;
            
-           
+       velocityChange = Vector3.ClampMagnitude(velocityChange, maxSpeed);
        // float input = PIDController.Update(Time.fixedDeltaTime, currentVelocity * moveDir,  )
        _rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
           
@@ -193,7 +193,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleRotation()
     {
-        if(PlayerStateReference.instance.state == PlayerState.Stretching)
+        if(_controller.state == PlayerState.Stretching)
             return;
         Vector3 forward = camera.transform.forward;
         Vector3 right = camera.transform.right;
@@ -220,7 +220,7 @@ public class PlayerMovement : MonoBehaviour
 
     void UpdateSegments()
     {
-        if(PlayerStateReference.instance.state == PlayerState.Stretching)
+        if(_controller.state != PlayerState.Locomotion)
             return;
         for (int i = 1; i < segments.Count; i++)
         {

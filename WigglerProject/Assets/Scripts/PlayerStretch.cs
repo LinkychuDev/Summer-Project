@@ -4,12 +4,22 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+
+
 public class PlayerStretch : MonoBehaviour
 {
+    public enum StretchState
+    {
+        None,
+        Stretching,
+        Retracting
+    }
     public float stretchDistanceHead;
     public float stretchDistanceTail;
     public float stretchRetractTime = 4f;
 
+
+    public bool Honey;
     //public float stretchTime = 3f;
     //public bool isStretching;
     public InputActionReference stretchButton;
@@ -32,14 +42,10 @@ public class PlayerStretch : MonoBehaviour
     public float stretchTurnSpeed = 15f;
     //public float stretchSpeed = 2f;
     private float maxDistanceHead;
-    float minDistanceHead;
-    public bool isStretching;
     private Segment[] segments;
-
-    private bool atMaxStretchHeight = false;
-    public bool isRetracting;
     private Transform camera;
     [SerializeField] private float stretchSpeed = 10f;
+    [SerializeField] private float maxStretchSpeed = 10f;
 
     [SerializeField] private float desiredPointsPerLine = 6;
 
@@ -50,20 +56,24 @@ public class PlayerStretch : MonoBehaviour
     private float currentStretchDistance;
     
     //spherecast detection
-    [Header("Collision Detection")]
-    public float collisionDetectionDistance = 2f;
-    
-
-    public float collisionDetectionOffset = 0.2f;
-    private float collisionDetectionRadius;
-
+    [Header("Collision Detection")] 
+    public float collisionRadiusOffset = 0.05f;
+    private float collisionRadius;
     public float correctionOffset = 0.3f;
+
+    public int maxColliders = 1;
+    
+    private Collider[] colliders;
+    
+    private LayerMask collisionMask;
     //public 
     
-    Collider[] hitColliders = new Collider[1];
-    
-    
-    
+    public StretchState stretchState = StretchState.None;
+
+    PlayerController controller;
+
+    //spring joint values
+    //private SpringJoint headJoint;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
 
@@ -81,15 +91,22 @@ public class PlayerStretch : MonoBehaviour
     void Start()
     {
         camera = Camera.main.transform;
-        segments = PlayerStateReference.instance.segments.ToArray();
+        controller = GetComponent<PlayerController>();
+        
+        
+        
+        segments = controller.segments.ToArray();
         headSegment = segments[0].rb;
         bodySegment = segments[1].rb;
         tailSegment = segments[2].rb;
         bodyOffset = Mathf.Abs(segments[1].spacingToNextSegment);
         tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
         maxDistanceHead = bodyOffset + stretchDistanceHead;
-        minDistanceHead = bodyOffset;
         
+        collisionRadius = collisionRadiusOffset + headSegment.GetComponent<SphereCollider>().radius;
+        colliders = new Collider[maxColliders];
+        collisionMask = controller.playerCollisionMask;
+        //CreateJoint();
         //headSegment.GetComponent<SphereCollider>().radius
         //sphere collision
     }
@@ -97,12 +114,12 @@ public class PlayerStretch : MonoBehaviour
     void Update()
     {
         moveInput = stretchInput.action.ReadValue<Vector2>();
-        isStretching = stretchButton.action.IsPressed();
-        if(isRetracting)
+        //isStretching = stretchButton.action.IsPressed();
+        if(stretchState == StretchState.Retracting)
             return;
-        if(PlayerStateReference.instance.state != PlayerState.Stretching)
+        if(controller.state != PlayerState.Stretching)
             return;
-        SteerEvent();
+        
 
 
         
@@ -114,15 +131,17 @@ public class PlayerStretch : MonoBehaviour
     void FixedUpdate()
     {
        
-        if(isRetracting)
+      
+        if(controller.state != PlayerState.Stretching)
             return;
-        if(PlayerStateReference.instance.state != PlayerState.Stretching)
+        CollisionCheck();
+        if(stretchState == StretchState.Retracting)
             return;
-       
+        SteerEvent();
         StretchEvent();
         
         /*
-        else if (!isStretching && PlayerStateReference.instance.state == PlayerState.Stretching)
+        else if (!isStretching && controller.state == PlayerState.Stretching)
         {
             OnPlayerRetracted();
         }
@@ -131,8 +150,32 @@ public class PlayerStretch : MonoBehaviour
        
         
     }
-    
-   
+
+    void CollisionCheck()
+    {
+        
+        int numberOfColliders = Physics.OverlapSphereNonAlloc(headSegment.position, collisionRadius, colliders, collisionMask,
+            QueryTriggerInteraction.Collide);
+
+        for (int i = 0; i < numberOfColliders; i++)
+        {
+            if (stretchState == StretchState.Stretching)
+            {
+                if (colliders[i].transform.TryGetComponent(out IStretchInteractable stretchHit))
+                {
+                    stretchHit.OnStretchEvent(headSegment);
+                }
+            }
+        
+            else if (stretchState == StretchState.Retracting)
+            {
+                if (colliders[i].transform.TryGetComponent(out IRetractInteractable stretchHit))
+                {
+                    stretchHit.OnRetractEvent(headSegment);
+                }
+            }
+        }
+    }
     IEnumerator OnPlayerStretchedEvent()
     {
 
@@ -150,14 +193,16 @@ public class PlayerStretch : MonoBehaviour
         cachedBodyPosition = bodySegment.transform.position;
         cachedTailPosition = tailSegment.transform.position;
         currentStretchTime = 0;
-        
-        
+
+       // CreateJoint();
        // bodySegment.transform.LookAt(cachedHeadPosition);
        // tailSegment.transform.LookAt(cachedBodyPosition);
-        PlayerStateReference.instance.SetState(PlayerState.Stretching);
+        controller.SetState(PlayerState.Stretching);
 
 
     }
+
+
     
     
     void StretchEvent()
@@ -169,21 +214,49 @@ public class PlayerStretch : MonoBehaviour
         
       //  currentStretchDistance = Mathf.Lerp(minDistanceHead, maxDistanceHead, currentStretchTime );
 
-        Vector3 finalPosition = headSegment.transform.position + stretchDirection * (stretchSpeed * Time.deltaTime);
+        Vector3 targetDirection = stretchDirection.normalized;
         
-        Vector3 direction = bodySegment.transform.position - finalPosition;
+        Vector3 targetVelocity = targetDirection * stretchSpeed;
+      
+       
+        Vector3 currentOffset = (headSegment.position + targetDirection) - bodySegment.transform.position;
         
-        float distance = direction.magnitude;
+        
+        Vector3 currentVelocity = headSegment.linearVelocity;
+            
 
-        if (distance > maxDistanceHead)
+        currentVelocity.y = 0;
+        Vector3 velocityChange = targetVelocity - currentVelocity;
+
+        velocityChange = Vector3.ClampMagnitude(velocityChange, maxStretchSpeed);
+        headSegment.AddForce(velocityChange, ForceMode.VelocityChange);
+        
+        
+        Vector3 constrainedOffset = headSegment.position - bodySegment.transform.position;
+        
+        if (constrainedOffset.magnitude > maxDistanceHead)
         {
-            finalPosition = bodySegment.transform.position + maxDistanceHead * -direction.normalized;
+           Debug.Log("Potentially Over board");
+            
+           float outwardForce = Vector3.Dot(headSegment.linearVelocity, constrainedOffset.normalized);
+           if (outwardForce > 0)
+           {
+               headSegment.AddForce(-constrainedOffset.normalized * (outwardForce * correctionOffset), ForceMode.VelocityChange);
+               
+               Debug.Log("Constrained");
+           }
+           
+           
+           headSegment.position = bodySegment.position + constrainedOffset.normalized * maxDistanceHead;
+
+           
+          
         }
 
         
-        headSegment.MovePosition(finalPosition);
         
-      
+   
+
 
     }
 
@@ -193,7 +266,7 @@ public class PlayerStretch : MonoBehaviour
     private void OnCollisionEnter(Collision other)
     {
         
-        if(PlayerStateReference.instance.state != PlayerState.Stretching)
+        if(controller.state != PlayerState.Stretching)
             return;
         
         if (isStretching)
@@ -216,7 +289,7 @@ public class PlayerStretch : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         
-        if(PlayerStateReference.instance.state != PlayerState.Stretching)
+        if(controller.state != PlayerState.Stretching)
             return;
         
         if (isStretching)
@@ -268,19 +341,22 @@ public class PlayerStretch : MonoBehaviour
     
     void OnPlayerRetracted()
     {
-        isStretching  = false;
-        isRetracting = false;
+        stretchState =  StretchState.None;
+        Honey = false;
         
-        
-        PlayerStateReference.instance.SetState(PlayerState.Locomotion);
+        controller.SetState(PlayerState.Locomotion);
        // StartCoroutine(PlayerRetractEvent());
     }
 
-    IEnumerator OnPlayerRetractedEvent()
+    public IEnumerator OnPlayerRetractedEvent()
     {
-        if (PlayerStateReference.instance.state != PlayerState.Stretching)
+        
+        if (controller.state == PlayerState.Locomotion)
             yield break;
-        isRetracting = true;
+        yield return new WaitUntil(() => controller.state == PlayerState.Stretching);
+        stretchState = StretchState.Retracting;
+       
+            
         currentStretchTime = 0;
      
         tailSegment.transform.LookAt(bodySegment.transform.position + bodySegment.transform.forward);
@@ -288,32 +364,52 @@ public class PlayerStretch : MonoBehaviour
         tailSegment.isKinematic = false;
         yield return new WaitForFixedUpdate();
         
-        
-        cachedHeadPosition = headSegment.transform.position;
-        Vector3 distanceToHead = (cachedHeadPosition - cachedBodyPosition).normalized;
-        Vector3 distanceToBody = (cachedBodyPosition - cachedTailPosition).normalized;
-        Vector3 targetBodyBodyPos = cachedHeadPosition - Mathf.Abs(segments[1].spacingToNextSegment) * (distanceToHead);
+
+        if (!Honey)
+        {
+            Vector3 targetHeadDir = (bodySegment.transform.position + bodySegment.transform.forward) -headSegment.transform.position;
+            Vector3 targetHeadPosition = bodySegment.transform.position + (bodySegment.transform.forward * bodyOffset);
+
+            Sequence stretchSequence = DOTween.Sequence();
+            stretchSequence.Append(headSegment.DOMove(targetHeadPosition, stretchRetractTime)).SetEase(Ease.OutBounce);
+            yield return stretchSequence.WaitForCompletion();
+            yield return new WaitForFixedUpdate();
+            OnPlayerRetracted();
+        }
+
+        else
+        {
+            
+            Sequence stretchSequence = DOTween.Sequence();
+            cachedHeadPosition = headSegment.transform.position;
+            Vector3 distanceToHead = (cachedHeadPosition - cachedBodyPosition).normalized;
+            Vector3 distanceToBody = (cachedBodyPosition - cachedTailPosition).normalized;
+            Vector3 targetBodyBodyPos = cachedHeadPosition - Mathf.Abs(segments[1].spacingToNextSegment) * (distanceToHead);
        
         
-        //Quaternion cachedBodyRotation = bodySegment.transform.rotation;
+            //Quaternion cachedBodyRotation = bodySegment.transform.rotation;
 
 
 
         
-        Vector3 targetTailPosition = targetBodyBodyPos - Mathf.Abs(segments[2].spacingToNextSegment) * bodySegment.transform.forward;
+            Vector3 targetTailPosition = targetBodyBodyPos - Mathf.Abs(segments[2].spacingToNextSegment) * bodySegment.transform.forward;
+
         
-        Sequence sequence = DOTween.Sequence();
-        sequence.Append(bodySegment.DOMove(targetBodyBodyPos, stretchRetractTime).OnUpdate(() => 
-            bodySegment.transform.LookAt(headSegment.transform.position + headSegment.transform.forward))).SetEase(Ease.OutBounce);
-        sequence.Insert(0.1f, tailSegment.DOMove(targetTailPosition, stretchRetractTime)
-            .OnUpdate(() => tailSegment.transform.LookAt(bodySegment.transform.position + bodySegment.transform.forward))).SetEase(Ease.OutBounce);
+            stretchSequence.Append(bodySegment.DOMove(targetBodyBodyPos, stretchRetractTime).OnUpdate(() => 
+                bodySegment.transform.LookAt(headSegment.transform.position + headSegment.transform.forward))).SetEase(Ease.OutBounce);
+            stretchSequence.Insert(0.1f, tailSegment.DOMove(targetTailPosition, stretchRetractTime)
+                .OnUpdate(() => tailSegment.transform.LookAt(bodySegment.transform.position + bodySegment.transform.forward))).SetEase(Ease.OutBounce);
+            yield return stretchSequence.WaitForCompletion();
+            yield return new WaitForFixedUpdate();
+            OnPlayerRetracted();
+
+        }
         
         
        
-        yield return sequence.WaitForCompletion();
+       
         
-        yield return new WaitForFixedUpdate();
-        OnPlayerRetracted();
+       
         
         //yield return null;
 
@@ -325,12 +421,7 @@ public class PlayerStretch : MonoBehaviour
         segment.rotation = Quaternion.Slerp(segment.rotation, Quaternion.LookRotation(distanceToSegment, Vector3.up), stretchTurnSpeed * Time.fixedDeltaTime);
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, transform.position + transform.forward * collisionDetectionDistance);
-        Gizmos.DrawWireSphere(transform.position + transform.forward * collisionDetectionDistance, collisionDetectionRadius);
-    }
+  
 }
 
 public interface IStretchInteractable

@@ -1,9 +1,143 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerController : MonoBehaviour
+
+public enum PlayerState
 {
+    Locomotion,
+    Stretching,
+    Stuck
+}
+
+[System.Serializable]
+public class Segment
+{
+    public enum SegmentType
+    {
+        Head,
+        Body,
+        Tail
+    }
+
+    public Transform t;
+    public Transform visual;
+     public SegmentType type;
+    public float spacingToNextSegment;
+    [HideInInspector] public Rigidbody rb;
+    [HideInInspector] public bool isGrounded;
+
+    [HideInInspector] public PlayerSpringConnector springConnector;
+    public void Initialise()
+    {
+        rb = t.GetComponent<Rigidbody>();
+        
+        if (this.type != SegmentType.Head)
+        {
+            springConnector = t.GetComponent<PlayerSpringConnector>();
+        }
+        
+        
+       
+       
+    }
+
     
+    
+  
+    
+    
+}
+public class PlayerController : MonoBehaviour, IStickable
+{
+
+    
+    public List<Segment> segments = new List<Segment>();
+    public PlayerState state;
+    public PlayerState lastState;
+
+    public Sequence sequence;
+    [HideInInspector] public Rigidbody headSegment, bodySegment, tailSegment;
+    [SerializeField] private float bounceMultiplier = 200f;
+    public LayerMask playerCollisionMask;
+    public float honeyOffsetDown = 1;
+    private PlayerStretch _stretch;
+    
+    
+    private void Awake()
+    {
+        foreach (Segment segment in segments)
+        {
+            segment.Initialise();
+        }
+
+        headSegment = segments[0].rb;
+        bodySegment = segments[1].rb;
+        tailSegment = segments[2].rb;
+        _stretch = GetComponent<PlayerStretch>();
+    }
+
+
+    public void SetState(PlayerState newState)
+    {
+        switch (newState)
+        {
+            case PlayerState.Stretching:
+                headSegment.isKinematic = false;
+                
+                //segments[0].rb.useGravity = false;
+                break;
+            case PlayerState.Locomotion:
+                headSegment.isKinematic = false;
+                //segments[0].rb.useGravity = true;
+                break;
+            case PlayerState.Stuck:
+                headSegment.linearVelocity = Vector3.zero;
+                _stretch.Honey = true;
+                headSegment.isKinematic = true;
+                break;
+        }
+        lastState = state;
+        state = newState;
+    }
+
+    public PlayerState GetLastState()
+    {
+        return lastState;
+    }
+
+
+    public void Bounce(float bounceHeight)
+    {
+        foreach (Segment segment in segments)
+        {
+            segment.rb.AddForce(Vector3.up * bounceHeight * bounceMultiplier * Time.deltaTime, ForceMode.VelocityChange);
+            Debug.Log("Supposed to bounce");
+        }
+    }
+
+    public void Stick(float duration, Vector3 position)
+    {
+        float timer = duration;
+        
+        headSegment.isKinematic = true;
+        headSegment.position = position;
+        //automatically retract?
+
+        if (_stretch.stretchState == PlayerStretch.StretchState.Stretching)
+        {
+            StartCoroutine(_stretch.OnPlayerRetractedEvent());
+        }
+
+        
+        sequence = DOTween.Sequence();
+        
+        sequence.Append(headSegment.transform.DOMoveY(position.y - honeyOffsetDown, timer).OnComplete(() => headSegment.isKinematic = false));
+        //yield return new WaitForSeconds(duration);
+        //headSegment.isKinematic = false;
+        
+    }
 }
