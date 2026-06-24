@@ -88,9 +88,11 @@ public class PlayerMovement : MonoBehaviour
     {
         //isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
         GroundCheck();
-        HandleDrag(); 
+        
         if(_controller.state != PlayerState.Locomotion)
             return;
+        HandleDrag(); 
+       
         Movement();
     }
 
@@ -138,26 +140,7 @@ public class PlayerMovement : MonoBehaviour
     void Movement()
     {
         HandleRotation();
-
-
-       
-
-        /*if (isGrounded)
-        {
-            if (verticalVelocity < 0)
-            {
-                verticalVelocity = -2f;
-            }
-           
-            
-        }
         
-        else
-        {
-            verticalVelocity += gravity * Time.fixedDeltaTime;
-        }*/
-        
-        //gravity
         _rigidbody.AddForce(gravity  * Vector3.up, ForceMode.Acceleration);
        
         

@@ -5,7 +5,10 @@ using UnityEngine;
 
 public interface IStickable
 {
-    
+    public bool CanStick()
+    {
+        return true;
+    }
 }
 public class HoneyTest : MonoBehaviour
 {
@@ -38,6 +41,8 @@ public class HoneyTest : MonoBehaviour
             return;
         if(currentStuckObject != null)
             return;
+        if(!stickable.CanStick())
+            return;
         currentStuckObject = other.attachedRigidbody;
         directionHit = transform.position - currentStuckObject.position;
         directionHit.y = 0;
@@ -53,19 +58,20 @@ public class HoneyTest : MonoBehaviour
         if (currentStuckObject.TryGetComponent(out PlayerController controller))
         {
             controller.SetState(PlayerState.Stuck);
-            currentStuckObject.position = transform.position;
+            //currentStuckObject.position = transform.position;
             yield return new WaitForSeconds(stickDuration);
             controller.SetState(controller.GetLastState());
-            StartCoroutine(CoolDown());
+            
+            //StartCoroutine(CoolDown());
         }
 
         else
         {
             currentStuckObject.isKinematic = true;
-            currentStuckObject.position = transform.position;
+            //currentStuckObject.position = transform.position;
             yield return new WaitForSeconds(stickDuration);
             currentStuckObject.isKinematic = false;
-            StartCoroutine(CoolDown());
+            //StartCoroutine(CoolDown());
         }
         
         
@@ -74,16 +80,19 @@ public class HoneyTest : MonoBehaviour
     IEnumerator CoolDown()
     {
         isActive = false;
-        currentStuckObject.AddForce(directionHit* bounceForce * Time.deltaTime, ForceMode.VelocityChange);
-        yield return new WaitForSeconds(coolDuration);
+        //currentStuckObject.AddForce(directionHit* bounceForce * Time.deltaTime, ForceMode.VelocityChange);
         currentStuckObject = null;
+        yield return new WaitForSeconds(coolDuration);
         isActive = true;
         
     }
 
     private void OnTriggerExit(Collider other)
     {
-        
+        if (other.attachedRigidbody == currentStuckObject)
+        {
+            StartCoroutine(CoolDown());
+        }
     }
 
     Vector3 DirectionToVector()

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -12,7 +13,8 @@ public class PlayerStretch : MonoBehaviour
     {
         None,
         Stretching,
-        Retracting
+        Retracting,
+        Swinging
     }
     public float stretchDistanceHead;
     public float stretchDistanceTail;
@@ -72,6 +74,28 @@ public class PlayerStretch : MonoBehaviour
 
     PlayerController controller;
 
+    private HingeJoint headJoint;
+    private HingeJoint bodyJoint;
+    private HingeJoint tailJoint;
+
+    private Transform hookPoint;
+
+    [SerializeField] private float swingLimit = 75;
+
+    [SerializeField] private float swingSpeed;
+
+    [SerializeField] private float swingSetUpDuration = 0.2f;
+
+    [SerializeField] private float swingLength = 3f;
+    
+    [SerializeField] private AnimationCurve swingCurve;
+    
+    private bool isSwingingSetUp;
+
+    private float currentSwingAngle;
+    float currentSwingTime;
+  
+    
     //spring joint values
     //private SpringJoint headJoint;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -80,13 +104,14 @@ public class PlayerStretch : MonoBehaviour
     private void OnEnable()
     {
         stretchButton.action.started += ctx => StartCoroutine(OnPlayerStretchedEvent());
-        stretchButton.action.canceled += ctx => StartCoroutine(OnPlayerRetractedEvent());
+        stretchButton.action.canceled += ctx => OnPlayerRetracted();
     }
 
 
     void OnDisable()
     {
-        
+        stretchButton.action.started -= ctx => StartCoroutine(OnPlayerStretchedEvent());
+        stretchButton.action.canceled -= ctx => OnPlayerRetracted();
     }
     void Start()
     {
@@ -103,9 +128,9 @@ public class PlayerStretch : MonoBehaviour
         tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
         maxDistanceHead = bodyOffset + stretchDistanceHead;
         
-        collisionRadius = collisionRadiusOffset + headSegment.GetComponent<SphereCollider>().radius;
+        /*collisionRadius = collisionRadiusOffset + headSegment.GetComponent<SphereCollider>().radius;
         colliders = new Collider[maxColliders];
-        collisionMask = controller.playerCollisionMask;
+        collisionMask = controller.playerCollisionMask;*/
         //CreateJoint();
         //headSegment.GetComponent<SphereCollider>().radius
         //sphere collision
@@ -130,60 +155,276 @@ public class PlayerStretch : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-       
+
       
         if(controller.state != PlayerState.Stretching)
             return;
-        CollisionCheck();
-        if(stretchState == StretchState.Retracting)
-            return;
-        SteerEvent();
-        StretchEvent();
-        
-        /*
-        else if (!isStretching && controller.state == PlayerState.Stretching)
-        {
-            OnPlayerRetracted();
-        }
-        */
-        
        
+        switch (stretchState)
+        {
+            case StretchState.Swinging:
+                if(!isSwingingSetUp)
+                    return;
+                SwingEvent();
+                break;
+            case StretchState.Retracting:
+                break;
+            default:
+                SteerEvent();
+                StretchEvent();
+                break;
+                
+        }
+    }
+    
+    
+
+    private void OnCollisionEnter(Collision other)
+    {
+        if(controller.state == PlayerState.Locomotion)
+            return;
+        if(stretchState == StretchState.Swinging)
+            return;
+        switch (stretchState)
+        {
+            case StretchState.Stretching:
+                if (other.gameObject.TryGetComponent(out HoneySwingTest honeyTest))
+                {
+                    honeyTest.DisableCollisions();
+                    StartSwing(honeyTest);
+                     
+                }
+                break;
+            case StretchState.Retracting:
+                break;
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
         
     }
 
-    void CollisionCheck()
+    void StartSwing(HoneySwingTest hook)
     {
         
-        int numberOfColliders = Physics.OverlapSphereNonAlloc(headSegment.position, collisionRadius, colliders, collisionMask,
-            QueryTriggerInteraction.Collide);
+        isSwingingSetUp = false;
+        currentSwingTime = 0;
+        //make this a sequence
+        stretchState = StretchState.Swinging;
+        //Vector3 anchorPoint = hook.transform.position - hook.swingAnchor;
 
-        for (int i = 0; i < numberOfColliders; i++)
+        
+        hookPoint = hook.swingAnchor;
+        hookPoint.transform.localPosition = Vector3.zero;
+        hookPoint.rotation = Quaternion.Euler(0, 0, 0);
+        
+        headSegment.isKinematic = true;
+        
+        
+        Sequence hookSequence = DOTween.Sequence();
+        
+        
+        
+       // bodySegment.transform.SetParent(headSegment.transform, true);
+        //tailSegment.transform.SetParent(bodySegment.transform, true);
+        
+        
+        
+        
+        //headSegment.transform.SetParent(hookPoint, true);
+        
+        hookSequence.Append(headSegment.transform.DOMove(hookPoint.transform.position, 0.1f));
+        
+        
+        hookSequence.Join(bodySegment.DOMove(hookPoint.position  + (-hookPoint.transform.up * (bodyOffset + swingLength)), 0.1f)).SetEase(Ease.OutBounce);
+        
+        
+        hookSequence.Join(tailSegment.DOMove(hookPoint.position + (-hookPoint.transform.up  * (tailOffset + bodyOffset+ swingLength)), 0.1f).SetEase(Ease.OutBounce));
+
+
+        hookSequence.OnComplete(() =>
         {
-            if (stretchState == StretchState.Stretching)
+            headSegment.isKinematic = false;
+            bodySegment.isKinematic = false;
+            tailSegment.isKinematic = false;
+
+
+            headSegment.useGravity = true;
+            bodySegment.useGravity = true;
+            tailSegment.useGravity = true;
+
+
+            headJoint = headSegment.gameObject.AddComponent<HingeJoint>();
+            bodyJoint = bodySegment.gameObject.AddComponent<HingeJoint>();
+            tailJoint = tailSegment.gameObject.AddComponent<HingeJoint>();
+            
+            
+            
+            headJoint.autoConfigureConnectedAnchor = false;
+            headJoint.connectedBody = hook.GetComponent<Rigidbody>();
+            headJoint.connectedAnchor = headSegment.transform.InverseTransformPoint(hookPoint.position);
+            
+            bodyJoint.connectedBody = headSegment;
+            tailJoint.connectedBody = bodySegment;
+
+
+            List<HingeJoint> currentJoints = new List<HingeJoint>();
+            currentJoints.Add(headJoint);
+            currentJoints.Add(bodyJoint);
+            currentJoints.Add(tailJoint);
+
+
+            for (int i = 0; i < currentJoints.Count; i++)
             {
-                if (colliders[i].transform.TryGetComponent(out IStretchInteractable stretchHit))
+                currentJoints[i].useLimits = true;
+                currentJoints[i].limits = new JointLimits
                 {
-                    stretchHit.OnStretchEvent(headSegment);
-                }
+                    min = -swingLimit,
+                    max = swingLimit,
+                };
+            }
+            isSwingingSetUp = true;
+        });
+
+        //swingLength = Mathf.Abs(swingLength);
+
+
+    }
+
+
+
+
+    void SwingEvent()
+    {
+        //move object like pendulums
+        
+        
+        //desired angle
+       // float angle = swingLimit * Mathf.Sin(Time.time * swingSpeed);
+        //total forces
+
+       // var desiredForce = swingSpeed * Time.fixedDeltaTime * Time.fixedDeltaTime;
+       // Vector3 direction = Vector3.Cross(stretchDirection, Vector3.down);
+    
+        //2 pi * squareroot of length/gravity
+        
+        //Vector3 distanceToAnchorBody = hookPoint.position - bodySegment.transform.position;
+        //Vector3 distanceToAnchorTail = hookPoint.position - tailSegment.transform.position;
+        
+        
+        
+      //  Vector3 newBodyDir = Vector3.Cross(bodySegment.transform.forward,  -Vector3.up );
+
+
+
+        //var  motor = headJoint.motor;
+        float currentAngle = headSegment.rotation.z;
+        //Debug.Log(currentSwingAngle);
+        float inputY = moveInput.y;
+
+        float direction = 0;
+
+       // float inputDir = 0;
+
+        //inputDir = moveInput.y;
+
+
+        if (Mathf.Abs(inputY) > 0.01f)
+        {
+            direction = inputY;
+        }
+        
+        
+
+        else
+        {
+            if (currentAngle > swingLimit)
+            {
+                currentAngle = swingLimit;
+                direction = -1;
             }
         
-            else if (stretchState == StretchState.Retracting)
+            else if (currentAngle < -swingLimit)
             {
-                if (colliders[i].transform.TryGetComponent(out IRetractInteractable stretchHit))
-                {
-                    stretchHit.OnRetractEvent(headSegment);
-                }
+                currentAngle = -swingLimit;
+                direction = 1;
             }
         }
+
+        //currentSwingTime += Time.deltaTime;
+        
+
+
+
+        float desiredAngle = swingLimit * (Mathf.Sin(Time.time * swingSpeed));
+
+        currentAngle += desiredAngle;
+        
+        //hookPoint.rotation = Quaternion.Euler(0, 0, currentAngle);
+
+        //don't want head moving too far
+
+        //want middle segment moving far
+
+        //want tail moving to the end point
+
+        //swing arc
+
+
+        //headSegment.angularVelocity = Vector3.forward * (direction * swingSpeed * Time.deltaTime);
+
+
+
+
+
+        // float desiredAngle = Time.deltaTime * direction * swingSpeed ;
+
+
+        //currentSwingAngle += desiredAngle;
+
+
+        //currentSwingAngle = Mathf.Clamp(currentSwingAngle, -swingLimit, swingLimit);
+
+        //hookPoint.localRotation = Quaternion.Euler(0, 0, currentSwingAngle);
+
+
+
+        // float swingAngle = swingLimit * Mathf.Sin((Time.time + inputDir * (Time.time *swingSpeed)));
+
+        //  float curvePos = Mathf.Abs(swingAngle/swingLimit);
+
+        // float speedRatio = swingCurve.Evaluate(curvePos * Time.deltaTime);
+
+        // Debug.Log("swing Ratio: " + speedRatio);
+
+        // hookPoint.localRotation = Quaternion.Euler(0, 0, swingAngle * speedRatio);
+        //hookPoint.rotation = Quaternion.Euler(0, 0, currentSwingAngle);
+
+
+
+
+
     }
     IEnumerator OnPlayerStretchedEvent()
     {
 
         
         //headSegment.isKinematic = true;
-        
+
+        if (stretchState != StretchState.None)
+            yield break;
+
+        if (headJoint != null)
+        {
+            Destroy(headJoint);
+            
+        }
         bodySegment.isKinematic = true;
         tailSegment.isKinematic = true;
+
+
+     
         Debug.Log("OnPlayerStretchedEvent");
         yield return null;
         //bodySegment.MovePosition(headSegment.position - (headSegment.transform.forward *bodyOffset));
@@ -193,11 +434,8 @@ public class PlayerStretch : MonoBehaviour
         cachedBodyPosition = bodySegment.transform.position;
         cachedTailPosition = tailSegment.transform.position;
         currentStretchTime = 0;
-
-       // CreateJoint();
-       // bodySegment.transform.LookAt(cachedHeadPosition);
-       // tailSegment.transform.LookAt(cachedBodyPosition);
         controller.SetState(PlayerState.Stretching);
+        stretchState = StretchState.Stretching;
 
 
     }
@@ -233,6 +471,7 @@ public class PlayerStretch : MonoBehaviour
         
         
         Vector3 constrainedOffset = headSegment.position - bodySegment.transform.position;
+        constrainedOffset.y = 0;
         
         if (constrainedOffset.magnitude > maxDistanceHead)
         {
@@ -252,64 +491,8 @@ public class PlayerStretch : MonoBehaviour
            
           
         }
-
         
-        
-   
-
-
     }
-
-
-   
-    /*
-    private void OnCollisionEnter(Collision other)
-    {
-        
-        if(controller.state != PlayerState.Stretching)
-            return;
-        
-        if (isStretching)
-        {
-            if (other.transform.TryGetComponent(out IStretchInteractable stretchHit))
-            {
-                stretchHit.OnStretchEvent(headSegment);
-            }
-        }
-        
-        else if (isRetracting)
-        {
-            if (other.transform.TryGetComponent(out IRetractInteractable retractHit))
-            {
-                retractHit.OnRetractEvent(headSegment);
-            }
-        }
-    }
-    
-    private void OnTriggerEnter(Collider other)
-    {
-        
-        if(controller.state != PlayerState.Stretching)
-            return;
-        
-        if (isStretching)
-        {
-            if (other.transform.TryGetComponent(out IStretchInteractable stretchHit))
-            {
-                stretchHit.OnStretchEvent(headSegment);
-            }
-        }
-        
-        else if (isRetracting)
-        {
-            if (other.transform.TryGetComponent(out IRetractInteractable stretchHit))
-            {
-                stretchHit.OnRetractEvent(headSegment);
-            }
-        }
-    }
-    */
-    
     void SteerEvent()
     {
        
@@ -329,10 +512,13 @@ public class PlayerStretch : MonoBehaviour
         //rotate around middle segment position
         if(moveInput.magnitude > 0.01f)
         {
-            
-            Quaternion targetRotation = Quaternion.LookRotation(stretchDirection.normalized, Vector3.up);
-            headSegment.transform.rotation =(Quaternion.Slerp(headSegment.transform.rotation, targetRotation, stretchTurnSpeed * Time.fixedDeltaTime));
-            
+            if (stretchState == StretchState.Stretching)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(stretchDirection.normalized, Vector3.up);
+                headSegment.transform.rotation = (Quaternion.Slerp(headSegment.transform.rotation, targetRotation,
+                    stretchTurnSpeed * Time.fixedDeltaTime));
+            }
+
         }
 
         
@@ -341,19 +527,19 @@ public class PlayerStretch : MonoBehaviour
     
     void OnPlayerRetracted()
     {
-        stretchState =  StretchState.None;
-        Honey = false;
-        
-        controller.SetState(PlayerState.Locomotion);
-       // StartCoroutine(PlayerRetractEvent());
+        if (controller.state == PlayerState.Locomotion)
+            return;
+        if(stretchState == StretchState.Swinging)
+            return;
+        Debug.Log(stretchState);
+        StartCoroutine(OnPlayerRetractedEvent());
     }
 
     public IEnumerator OnPlayerRetractedEvent()
     {
-        
-        if (controller.state == PlayerState.Locomotion)
-            yield break;
-        yield return new WaitUntil(() => controller.state == PlayerState.Stretching);
+        yield return new WaitForEndOfFrame();
+        Debug.Log(stretchState);
+        //yield return new WaitUntil(() => controller.state == PlayerState.Stretching);
         stretchState = StretchState.Retracting;
        
             
@@ -374,7 +560,6 @@ public class PlayerStretch : MonoBehaviour
             stretchSequence.Append(headSegment.DOMove(targetHeadPosition, stretchRetractTime)).SetEase(Ease.OutBounce);
             yield return stretchSequence.WaitForCompletion();
             yield return new WaitForFixedUpdate();
-            OnPlayerRetracted();
         }
 
         else
@@ -401,13 +586,16 @@ public class PlayerStretch : MonoBehaviour
                 .OnUpdate(() => tailSegment.transform.LookAt(bodySegment.transform.position + bodySegment.transform.forward))).SetEase(Ease.OutBounce);
             yield return stretchSequence.WaitForCompletion();
             yield return new WaitForFixedUpdate();
-            OnPlayerRetracted();
-
+            
         }
         
         
        
-       
+        
+        stretchState =  StretchState.None;
+        Honey = false;
+        
+        controller.SetState(PlayerState.Locomotion);
         
        
         

@@ -81,25 +81,40 @@ public class PlayerController : MonoBehaviour, IStickable
     }
 
 
+    private void Update()
+    {
+        
+    }
+
     public void SetState(PlayerState newState)
     {
         switch (newState)
         {
             case PlayerState.Stretching:
                 headSegment.isKinematic = false;
+                bodySegment.isKinematic = false;
+                tailSegment.isKinematic = false;
+                headSegment.constraints = RigidbodyConstraints.FreezePositionY;
                 
                 //segments[0].rb.useGravity = false;
                 break;
             case PlayerState.Locomotion:
                 headSegment.isKinematic = false;
+                bodySegment.isKinematic = false;
+                tailSegment.isKinematic = false;
+                headSegment.constraints = RigidbodyConstraints.None;
+                headSegment.constraints = RigidbodyConstraints.FreezeRotation;
                 //segments[0].rb.useGravity = true;
                 break;
             case PlayerState.Stuck:
                 headSegment.linearVelocity = Vector3.zero;
                 _stretch.Honey = true;
                 headSegment.isKinematic = true;
+                bodySegment.isKinematic = true;
+                tailSegment.isKinematic = true;
                 break;
         }
+        
         lastState = state;
         state = newState;
     }
@@ -119,25 +134,8 @@ public class PlayerController : MonoBehaviour, IStickable
         }
     }
 
-    public void Stick(float duration, Vector3 position)
+    public bool CanStick()
     {
-        float timer = duration;
-        
-        headSegment.isKinematic = true;
-        headSegment.position = position;
-        //automatically retract?
-
-        if (_stretch.stretchState == PlayerStretch.StretchState.Stretching)
-        {
-            StartCoroutine(_stretch.OnPlayerRetractedEvent());
-        }
-
-        
-        sequence = DOTween.Sequence();
-        
-        sequence.Append(headSegment.transform.DOMoveY(position.y - honeyOffsetDown, timer).OnComplete(() => headSegment.isKinematic = false));
-        //yield return new WaitForSeconds(duration);
-        //headSegment.isKinematic = false;
-        
+        return state == PlayerState.Stretching;
     }
 }

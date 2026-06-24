@@ -23,6 +23,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Look",
+                    "type": "Value",
+                    "id": "54591e97-321f-47f3-8340-7326efa68d34",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -111,6 +120,28 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "Stretch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9e17686c-7656-4a2a-8dd8-6523a14ff9bc",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "429fa036-71e8-470e-9406-f35343b1a61d",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "DeltaTimeScale",
+                    "groups": ";Gamepad",
+                    "action": "Look",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
