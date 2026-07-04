@@ -10,7 +10,8 @@ public enum PlayerState
 {
     Locomotion,
     Stretching,
-    Stuck
+    Stuck,
+    Swinging
 }
 
 [System.Serializable]
@@ -66,6 +67,10 @@ public class PlayerController : MonoBehaviour, IStickable
     public float honeyOffsetDown = 1;
     private PlayerStretch _stretch;
     
+    [HideInInspector] public float bodyOffset;
+    [HideInInspector] public float tailOffset;
+    
+    
     
     private void Awake()
     {
@@ -77,12 +82,16 @@ public class PlayerController : MonoBehaviour, IStickable
         headSegment = segments[0].rb;
         bodySegment = segments[1].rb;
         tailSegment = segments[2].rb;
+        
+        bodyOffset = Mathf.Abs(segments[1].spacingToNextSegment);
+        tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
         _stretch = GetComponent<PlayerStretch>();
     }
 
 
     private void Update()
     {
+        //Handle Inputs
         
     }
 
@@ -113,6 +122,12 @@ public class PlayerController : MonoBehaviour, IStickable
                 bodySegment.isKinematic = true;
                 tailSegment.isKinematic = true;
                 break;
+            case PlayerState.Swinging:
+                headSegment.isKinematic = true;
+                bodySegment.isKinematic = true;
+                tailSegment.isKinematic = true;
+                break;
+                
         }
         
         lastState = state;

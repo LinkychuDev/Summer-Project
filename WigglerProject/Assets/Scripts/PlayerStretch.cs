@@ -13,8 +13,7 @@ public class PlayerStretch : MonoBehaviour
     {
         None,
         Stretching,
-        Retracting,
-        Swinging
+        Retracting
     }
     public float stretchDistanceHead;
     public float stretchDistanceTail;
@@ -59,42 +58,17 @@ public class PlayerStretch : MonoBehaviour
     
     //spherecast detection
     [Header("Collision Detection")] 
-    public float collisionRadiusOffset = 0.05f;
-    private float collisionRadius;
     public float correctionOffset = 0.3f;
-
-    public int maxColliders = 1;
     
-    private Collider[] colliders;
-    
-    private LayerMask collisionMask;
     //public 
     
     public StretchState stretchState = StretchState.None;
 
     PlayerController controller;
 
-    private HingeJoint headJoint;
-    private HingeJoint bodyJoint;
-    private HingeJoint tailJoint;
 
-    private Transform hookPoint;
 
-    [SerializeField] private float swingLimit = 75;
-
-    [SerializeField] private float swingSpeed;
-
-    [SerializeField] private float swingSetUpDuration = 0.2f;
-
-    [SerializeField] private float swingLength = 3f;
-    
-    [SerializeField] private AnimationCurve swingCurve;
-    
-    private bool isSwingingSetUp;
-
-    private float currentSwingAngle;
-    float currentSwingTime;
-  
+    private PlayerSwing swing;
     
     //spring joint values
     //private SpringJoint headJoint;
@@ -117,15 +91,17 @@ public class PlayerStretch : MonoBehaviour
     {
         camera = Camera.main.transform;
         controller = GetComponent<PlayerController>();
-        
-        
+
+        bodyOffset = controller.bodyOffset;
+        tailOffset = controller.tailOffset;
         
         segments = controller.segments.ToArray();
         headSegment = segments[0].rb;
         bodySegment = segments[1].rb;
         tailSegment = segments[2].rb;
-        bodyOffset = Mathf.Abs(segments[1].spacingToNextSegment);
-        tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
+        
+        swing = GetComponent<PlayerSwing>();
+   
         maxDistanceHead = bodyOffset + stretchDistanceHead;
         
         /*collisionRadius = collisionRadiusOffset + headSegment.GetComponent<SphereCollider>().radius;
@@ -162,17 +138,13 @@ public class PlayerStretch : MonoBehaviour
        
         switch (stretchState)
         {
-            case StretchState.Swinging:
-                if(!isSwingingSetUp)
-                    return;
-                SwingEvent();
-                break;
             case StretchState.Retracting:
                 break;
-            default:
+            case StretchState.Stretching:
                 SteerEvent();
                 StretchEvent();
                 break;
+            
                 
         }
     }
@@ -181,18 +153,17 @@ public class PlayerStretch : MonoBehaviour
 
     private void OnCollisionEnter(Collision other)
     {
-        if(controller.state == PlayerState.Locomotion)
-            return;
-        if(stretchState == StretchState.Swinging)
+        if(controller.state != PlayerState.Stretching)
             return;
         switch (stretchState)
         {
             case StretchState.Stretching:
                 if (other.gameObject.TryGetComponent(out HoneySwingTest honeyTest))
                 {
+                    
                     honeyTest.DisableCollisions();
-                    StartSwing(honeyTest);
-                     
+                    controller.SetState(PlayerState.Swinging);
+                    swing.StartSwing(honeyTest); 
                 }
                 break;
             case StretchState.Retracting:
@@ -205,207 +176,7 @@ public class PlayerStretch : MonoBehaviour
         
     }
 
-    void StartSwing(HoneySwingTest hook)
-    {
-        
-        isSwingingSetUp = false;
-        currentSwingTime = 0;
-        //make this a sequence
-        stretchState = StretchState.Swinging;
-        //Vector3 anchorPoint = hook.transform.position - hook.swingAnchor;
-
-        
-        hookPoint = hook.swingAnchor;
-        hookPoint.transform.localPosition = Vector3.zero;
-        hookPoint.rotation = Quaternion.Euler(0, 0, 0);
-        
-        headSegment.isKinematic = true;
-        
-        
-        Sequence hookSequence = DOTween.Sequence();
-        
-        
-        
-       // bodySegment.transform.SetParent(headSegment.transform, true);
-        //tailSegment.transform.SetParent(bodySegment.transform, true);
-        
-        
-        
-        
-        //headSegment.transform.SetParent(hookPoint, true);
-        
-        hookSequence.Append(headSegment.transform.DOMove(hookPoint.transform.position, 0.1f));
-        
-        
-        hookSequence.Join(bodySegment.DOMove(hookPoint.position  + (-hookPoint.transform.up * (bodyOffset + swingLength)), 0.1f)).SetEase(Ease.OutBounce);
-        
-        
-        hookSequence.Join(tailSegment.DOMove(hookPoint.position + (-hookPoint.transform.up  * (tailOffset + bodyOffset+ swingLength)), 0.1f).SetEase(Ease.OutBounce));
-
-
-        hookSequence.OnComplete(() =>
-        {
-            headSegment.isKinematic = false;
-            bodySegment.isKinematic = false;
-            tailSegment.isKinematic = false;
-
-
-            headSegment.useGravity = true;
-            bodySegment.useGravity = true;
-            tailSegment.useGravity = true;
-
-
-            headJoint = headSegment.gameObject.AddComponent<HingeJoint>();
-            bodyJoint = bodySegment.gameObject.AddComponent<HingeJoint>();
-            tailJoint = tailSegment.gameObject.AddComponent<HingeJoint>();
-            
-            
-            
-            headJoint.autoConfigureConnectedAnchor = false;
-            headJoint.connectedBody = hook.GetComponent<Rigidbody>();
-            headJoint.connectedAnchor = headSegment.transform.InverseTransformPoint(hookPoint.position);
-            
-            bodyJoint.connectedBody = headSegment;
-            tailJoint.connectedBody = bodySegment;
-
-
-            List<HingeJoint> currentJoints = new List<HingeJoint>();
-            currentJoints.Add(headJoint);
-            currentJoints.Add(bodyJoint);
-            currentJoints.Add(tailJoint);
-
-
-            for (int i = 0; i < currentJoints.Count; i++)
-            {
-                currentJoints[i].useLimits = true;
-                currentJoints[i].limits = new JointLimits
-                {
-                    min = -swingLimit,
-                    max = swingLimit,
-                };
-            }
-            isSwingingSetUp = true;
-        });
-
-        //swingLength = Mathf.Abs(swingLength);
-
-
-    }
-
-
-
-
-    void SwingEvent()
-    {
-        //move object like pendulums
-        
-        
-        //desired angle
-       // float angle = swingLimit * Mathf.Sin(Time.time * swingSpeed);
-        //total forces
-
-       // var desiredForce = swingSpeed * Time.fixedDeltaTime * Time.fixedDeltaTime;
-       // Vector3 direction = Vector3.Cross(stretchDirection, Vector3.down);
-    
-        //2 pi * squareroot of length/gravity
-        
-        //Vector3 distanceToAnchorBody = hookPoint.position - bodySegment.transform.position;
-        //Vector3 distanceToAnchorTail = hookPoint.position - tailSegment.transform.position;
-        
-        
-        
-      //  Vector3 newBodyDir = Vector3.Cross(bodySegment.transform.forward,  -Vector3.up );
-
-
-
-        //var  motor = headJoint.motor;
-        float currentAngle = headSegment.rotation.z;
-        //Debug.Log(currentSwingAngle);
-        float inputY = moveInput.y;
-
-        float direction = 0;
-
-       // float inputDir = 0;
-
-        //inputDir = moveInput.y;
-
-
-        if (Mathf.Abs(inputY) > 0.01f)
-        {
-            direction = inputY;
-        }
-        
-        
-
-        else
-        {
-            if (currentAngle > swingLimit)
-            {
-                currentAngle = swingLimit;
-                direction = -1;
-            }
-        
-            else if (currentAngle < -swingLimit)
-            {
-                currentAngle = -swingLimit;
-                direction = 1;
-            }
-        }
-
-        //currentSwingTime += Time.deltaTime;
-        
-
-
-
-        float desiredAngle = swingLimit * (Mathf.Sin(Time.time * swingSpeed));
-
-        currentAngle += desiredAngle;
-        
-        //hookPoint.rotation = Quaternion.Euler(0, 0, currentAngle);
-
-        //don't want head moving too far
-
-        //want middle segment moving far
-
-        //want tail moving to the end point
-
-        //swing arc
-
-
-        //headSegment.angularVelocity = Vector3.forward * (direction * swingSpeed * Time.deltaTime);
-
-
-
-
-
-        // float desiredAngle = Time.deltaTime * direction * swingSpeed ;
-
-
-        //currentSwingAngle += desiredAngle;
-
-
-        //currentSwingAngle = Mathf.Clamp(currentSwingAngle, -swingLimit, swingLimit);
-
-        //hookPoint.localRotation = Quaternion.Euler(0, 0, currentSwingAngle);
-
-
-
-        // float swingAngle = swingLimit * Mathf.Sin((Time.time + inputDir * (Time.time *swingSpeed)));
-
-        //  float curvePos = Mathf.Abs(swingAngle/swingLimit);
-
-        // float speedRatio = swingCurve.Evaluate(curvePos * Time.deltaTime);
-
-        // Debug.Log("swing Ratio: " + speedRatio);
-
-        // hookPoint.localRotation = Quaternion.Euler(0, 0, swingAngle * speedRatio);
-        //hookPoint.rotation = Quaternion.Euler(0, 0, currentSwingAngle);
-
-
-
-
-
-    }
+   
     IEnumerator OnPlayerStretchedEvent()
     {
 
@@ -415,11 +186,7 @@ public class PlayerStretch : MonoBehaviour
         if (stretchState != StretchState.None)
             yield break;
 
-        if (headJoint != null)
-        {
-            Destroy(headJoint);
-            
-        }
+      
         bodySegment.isKinematic = true;
         tailSegment.isKinematic = true;
 
@@ -482,6 +249,7 @@ public class PlayerStretch : MonoBehaviour
            {
                headSegment.AddForce(-constrainedOffset.normalized * (outwardForce * correctionOffset), ForceMode.VelocityChange);
                
+               
                Debug.Log("Constrained");
            }
            
@@ -527,9 +295,7 @@ public class PlayerStretch : MonoBehaviour
     
     void OnPlayerRetracted()
     {
-        if (controller.state == PlayerState.Locomotion)
-            return;
-        if(stretchState == StretchState.Swinging)
+        if (controller.state != PlayerState.Stretching)
             return;
         Debug.Log(stretchState);
         StartCoroutine(OnPlayerRetractedEvent());
