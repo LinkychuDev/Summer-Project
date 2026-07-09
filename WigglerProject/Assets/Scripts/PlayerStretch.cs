@@ -23,9 +23,9 @@ public class PlayerStretch : MonoBehaviour
     public bool Honey;
     //public float stretchTime = 3f;
     //public bool isStretching;
-    public InputActionReference stretchButton;
+    //public InputActionReference stretchButton;
 
-    public InputActionReference stretchInput;
+    //public InputActionReference stretchInput;
     private Vector2 moveInput;
     Vector3 stretchDirection;
 
@@ -55,6 +55,15 @@ public class PlayerStretch : MonoBehaviour
     private float tailOffset;
     
     private float currentStretchDistance;
+
+
+    
+    [Header("Spring Joint")]
+    private SpringJoint springJoint;
+
+    [SerializeField] private float stiffness = 5000f;
+    [SerializeField] private float damper = 4f;
+    [SerializeField] private float connectedMassStrength = 0.01f;
     
     //spherecast detection
     [Header("Collision Detection")] 
@@ -77,15 +86,15 @@ public class PlayerStretch : MonoBehaviour
 
     private void OnEnable()
     {
-        stretchButton.action.started += ctx => StartCoroutine(OnPlayerStretchedEvent());
-        stretchButton.action.canceled += ctx => OnPlayerRetracted();
+        InputManager.instance.controls.Gameplay.Stretch.started += ctx => StartCoroutine(OnPlayerStretchedEvent());
+        InputManager.instance.controls.Gameplay.Stretch.canceled += ctx => OnPlayerRetracted();
     }
 
 
     void OnDisable()
     {
-        stretchButton.action.started -= ctx => StartCoroutine(OnPlayerStretchedEvent());
-        stretchButton.action.canceled -= ctx => OnPlayerRetracted();
+        InputManager.instance.controls.Gameplay.Stretch.started -= ctx => StartCoroutine(OnPlayerStretchedEvent());
+        InputManager.instance.controls.Gameplay.Stretch.canceled -= ctx => OnPlayerRetracted();
     }
     void Start()
     {
@@ -114,7 +123,7 @@ public class PlayerStretch : MonoBehaviour
 
     void Update()
     {
-        moveInput = stretchInput.action.ReadValue<Vector2>();
+        moveInput = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
         //isStretching = stretchButton.action.IsPressed();
         if(stretchState == StretchState.Retracting)
             return;
@@ -201,6 +210,20 @@ public class PlayerStretch : MonoBehaviour
         cachedBodyPosition = bodySegment.transform.position;
         cachedTailPosition = tailSegment.transform.position;
         currentStretchTime = 0;
+
+        if (headSegment.TryGetComponent(out SpringJoint joint))
+        {
+            Destroy(joint);
+        }
+        
+        springJoint = headSegment.gameObject.AddComponent<SpringJoint>();
+        springJoint.connectedBody = bodySegment;
+        springJoint.minDistance = bodyOffset;
+        springJoint.maxDistance = maxDistanceHead;
+        springJoint.spring = stiffness;
+        springJoint.connectedMassScale = connectedMassStrength;
+        springJoint.damper = damper;
+        bodySegment.isKinematic = true;
         controller.SetState(PlayerState.Stretching);
         stretchState = StretchState.Stretching;
 
@@ -235,9 +258,14 @@ public class PlayerStretch : MonoBehaviour
 
         velocityChange = Vector3.ClampMagnitude(velocityChange, maxStretchSpeed);
         headSegment.AddForce(velocityChange, ForceMode.VelocityChange);
+
+
+        if (stretchDirection.sqrMagnitude > 0.01f)
+        {
+            controller.UpdateCachedHeadPositions(transform.position, transform.rotation);
+        }
         
-        
-        Vector3 constrainedOffset = headSegment.position - bodySegment.transform.position;
+        /*Vector3 constrainedOffset = headSegment.position - bodySegment.transform.position;
         constrainedOffset.y = 0;
         
         if (constrainedOffset.magnitude > maxDistanceHead)
@@ -258,7 +286,7 @@ public class PlayerStretch : MonoBehaviour
 
            
           
-        }
+        }*/
         
     }
     void SteerEvent()
@@ -298,6 +326,13 @@ public class PlayerStretch : MonoBehaviour
         if (controller.state != PlayerState.Stretching)
             return;
         Debug.Log(stretchState);
+        if (springJoint != null)
+        {
+            Destroy(springJoint);
+            springJoint = null;
+        }
+        
+        
         StartCoroutine(OnPlayerRetractedEvent());
     }
 

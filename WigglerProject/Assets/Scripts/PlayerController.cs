@@ -52,6 +52,18 @@ public class Segment
     
     
 }
+
+
+public class CachedPosition
+{
+    public Vector3 lastPosition;
+    public Quaternion lastRotation;
+    public CachedPosition(Vector3 lastPosition, Quaternion lastRotation)
+    {
+        this.lastPosition = lastPosition;
+        this.lastRotation = lastRotation;
+    }
+}
 public class PlayerController : MonoBehaviour, IStickable
 {
 
@@ -69,8 +81,14 @@ public class PlayerController : MonoBehaviour, IStickable
     
     [HideInInspector] public float bodyOffset;
     [HideInInspector] public float tailOffset;
+
+    public int segmentIndexSpacing = 2;
+
+    public List<CachedPosition> cachedHeadPositions = new List<CachedPosition>();
+    public int maxIterations = 30;
     
-    
+
+    [SerializeField] private Transform headClose;
     
     private void Awake()
     {
@@ -86,6 +104,11 @@ public class PlayerController : MonoBehaviour, IStickable
         bodyOffset = Mathf.Abs(segments[1].spacingToNextSegment);
         tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
         _stretch = GetComponent<PlayerStretch>();
+        
+        
+        
+        SetState(PlayerState.Locomotion);
+
     }
 
 
@@ -94,6 +117,8 @@ public class PlayerController : MonoBehaviour, IStickable
         //Handle Inputs
         
     }
+    
+    
 
     public void SetState(PlayerState newState)
     {
@@ -101,8 +126,9 @@ public class PlayerController : MonoBehaviour, IStickable
         {
             case PlayerState.Stretching:
                 headSegment.isKinematic = false;
-                bodySegment.isKinematic = false;
-                tailSegment.isKinematic = false;
+                bodySegment.isKinematic = true;
+                tailSegment.isKinematic = true;
+               
                 headSegment.constraints = RigidbodyConstraints.FreezePositionY;
                 
                 //segments[0].rb.useGravity = false;
@@ -111,8 +137,10 @@ public class PlayerController : MonoBehaviour, IStickable
                 headSegment.isKinematic = false;
                 bodySegment.isKinematic = false;
                 tailSegment.isKinematic = false;
-                headSegment.constraints = RigidbodyConstraints.None;
+                _stretch.stretchState = PlayerStretch.StretchState.None;
                 headSegment.constraints = RigidbodyConstraints.FreezeRotation;
+                bodySegment.constraints = RigidbodyConstraints.FreezeRotation;
+                tailSegment.constraints = RigidbodyConstraints.FreezeRotation;
                 //segments[0].rb.useGravity = true;
                 break;
             case PlayerState.Stuck:
@@ -153,4 +181,43 @@ public class PlayerController : MonoBehaviour, IStickable
     {
         return state == PlayerState.Stretching;
     }
+
+
+    private void FixedUpdate()
+    {
+      
+        //UpdateSegments();
+    }
+
+    public void UpdateCachedHeadPositions(Vector3 position, Quaternion rotation)
+    {
+        if (cachedHeadPositions.Count > 0)
+        {
+            if (cachedHeadPositions[0].lastPosition != position)
+            {
+                cachedHeadPositions.Insert(0, new CachedPosition(position, rotation));
+
+            }
+        }
+
+        else
+        {
+            cachedHeadPositions.Add(new CachedPosition(position, rotation));
+        }
+        
+      
+        if (cachedHeadPositions.Count > maxIterations)
+        {
+            cachedHeadPositions.RemoveAt(cachedHeadPositions.Count - 1);
+        }
+        
+        // UpdateSegments();
+    }
+
+    
+    public void ClearCachedHeadPositions()
+    {
+        cachedHeadPositions.Clear();
+    }
+    
 }

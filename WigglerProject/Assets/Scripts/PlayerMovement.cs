@@ -40,7 +40,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float acceleration = 10;
     [SerializeField] private float deceleration = 10;
    
-    public InputActionReference moveInput;
+   // public InputActionReference moveInput;
     
     
     public LayerMask groundMask;
@@ -79,7 +79,7 @@ public class PlayerMovement : MonoBehaviour
         
         if(_controller.state != PlayerState.Locomotion)
             return;
-        input = moveInput.action.ReadValue<Vector2>();
+        input = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
       
        
     }
@@ -92,7 +92,6 @@ public class PlayerMovement : MonoBehaviour
         if(_controller.state != PlayerState.Locomotion)
             return;
         HandleDrag(); 
-       
         Movement();
     }
 
@@ -168,6 +167,8 @@ public class PlayerMovement : MonoBehaviour
           
        /*body.position = Vector3.Lerp(body.position, transform.position - (bodyHeadSpacing * transform.forward), bodyReactTime * Time.deltaTime);
        tail.position = Vector3.Lerp(tail.position, body.position - (tailBodySpacing * transform.forward), tailReactTime * Time.deltaTime);*/
+
+       //_controller.UpdateCachedHeadPositions(_rigidbody.position, transform.rotation);
        
        UpdateSegments();
        //rotation
@@ -196,11 +197,14 @@ public class PlayerMovement : MonoBehaviour
             /*body.rotation =  Quaternion.Slerp(body.rotation, transform.rotation, bodyReactTime * Time.deltaTime);
             tail.rotation =  Quaternion.Slerp(tail.rotation, transform.rotation, tailReactTime * Time.deltaTime);*/
         }
+        
+        
 
        
     }
-    
 
+
+   
     void UpdateSegments()
     {
         if(_controller.state != PlayerState.Locomotion)
@@ -271,9 +275,14 @@ public class PlayerMovement : MonoBehaviour
                 
                 
                 segments[i].t.transform.rotation = (Quaternion.Slerp(segments[i].t.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime));
-                
+               
             }
 
+        }
+
+        if (moveDir.magnitude > 0.001f)
+        {
+            _controller.UpdateCachedHeadPositions(transform.position, transform.rotation);
         }
     }
 

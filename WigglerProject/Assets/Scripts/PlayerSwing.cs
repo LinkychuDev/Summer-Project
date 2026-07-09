@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -28,7 +29,7 @@ public class PlayerSwing : MonoBehaviour
     Rigidbody bodySegment;
     Rigidbody tailSegment;
 
-    public InputActionReference swingInputReference;
+    //public InputActionReference swingInputReference;
 
     [SerializeField] private float swingForce;
     public Vector2 swingInput;
@@ -45,14 +46,38 @@ public class PlayerSwing : MonoBehaviour
     
     [SerializeField] private float bodySpring = 100f;
     [SerializeField] private float tailSpring = 4000f;
-    
+
+    [SerializeField] private float springSpeed = 30f;
     JointMotor bodyJointMotor;
-    
-    
+
+    float lastSwingAngle;
     [SerializeField] bool useGravity = true;
 
-    [SerializeField] private InputActionReference swingHeldInputReference;
+    //[SerializeField] private InputActionReference swingHeldInputReference;
+
+    private HoneySwingTest hookReference;
+    
+     Vector3 accumulatedVelocity;
+     Vector3 accumulatedAngularVelocity;
+     
+     [SerializeField] private float headLaunchRatio,  bodyLaunchRatio, tailLaunchRatio;
+     
+     float cachedDampingBody, cachedDampingBodyAngular, cachedDampingTail,  cachedDampingTailAngular;
     private bool isHeldDown;
+    [SerializeField] private float upwardForce;
+    [SerializeField] private float downTime;
+
+   // private bool enterSwingRecoveryMode;
+
+    
+    [Header("Collision Detection")]
+    //public float groundCheckDistance;
+    public float collisionDistance = 0.01f;
+    Collider tailCollider;
+    Collider headCollider;
+    Collider bodyCollider;
+    
+    [SerializeField] private float swingDamp;
     void Start()
     {
         controller = GetComponent<PlayerController>();
@@ -64,6 +89,8 @@ public class PlayerSwing : MonoBehaviour
     
      public void StartSwing(HoneySwingTest hook)
     {
+        if(hook ==  null)
+            return;
         
         isSwingingSetUp = false;
         
@@ -72,13 +99,16 @@ public class PlayerSwing : MonoBehaviour
         //stretchState = StretchState.Swinging;
         //Vector3 anchorPoint = hook.transform.position - hook.swingAnchor;
 
-        
-        hookPoint = hook.swingAnchor;
+        hookReference = hook;
+        hookPoint = hookReference.swingAnchor;
         hookPoint.transform.localPosition = Vector3.zero;
         hookPoint.rotation = Quaternion.Euler(0, 0, 0);
         headSegment.isKinematic = true;
         headSegment.position = hookPoint.position;
 
+        headCollider = headSegment.GetComponent<SphereCollider>();
+        bodyCollider = bodySegment.GetComponent<SphereCollider>();
+        tailCollider = tailSegment.GetComponent<SphereCollider>();
      
         
         
@@ -136,11 +166,15 @@ public class PlayerSwing : MonoBehaviour
             bodyJoint.useAcceleration = true;
             tailJoint.useAcceleration = true;
 
+            cachedDampingBody = bodySegment.linearDamping;
+            cachedDampingTail = tailSegment.linearDamping;
 
-            bodySegment.linearDamping = 0;
-            bodySegment.angularDamping = 0;
-            tailSegment.linearDamping = 0;
-            tailSegment.angularDamping = 0;
+            cachedDampingBodyAngular = bodySegment.angularDamping;
+            cachedDampingTailAngular = tailSegment.angularDamping;
+            bodySegment.linearDamping = swingDamp;
+            //bodySegment.angularDamping = 0;
+            tailSegment.linearDamping = swingDamp;
+            //tailSegment.angularDamping = 0.05f;
 
 
             bodyJoint.connectedBody = headSegment;
@@ -232,9 +266,11 @@ public class PlayerSwing : MonoBehaviour
     {
         if (isSwingingSetUp)
         {
-            swingInput = swingInputReference.action.ReadValue<Vector2>();
-            isHeldDown = swingHeldInputReference.action.ReadValue<float>() > 0;
+            swingInput = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
+            
         }
+        
+        isHeldDown = InputManager.instance.controls.Gameplay.Stretch.ReadValue<float>() > 0;
     }
 
 
@@ -242,8 +278,19 @@ public class PlayerSwing : MonoBehaviour
     {
         if (isSwingingSetUp)
         {
-            SwingEvent();
+            if (isHeldDown)
+            {
+                SwingEvent();
+            }
+
+            else
+            {
+                ReleaseEvent();
+                LaunchEvent();
+            }
         }
+        
+       
     }
 
     void SwingEvent()
@@ -251,56 +298,7 @@ public class PlayerSwing : MonoBehaviour
 
 
         float input = swingInput.y;
-
-        /*
-
-        if (Mathf.Abs(input) > 0)
-        {
-            currentSpeed = swingSpeed;
-        }
-
-        else
-        {
-            currentSpeed = 0;
-        }
         
-        float headAngle = (swingLimit * headRatio) * Mathf.Sin(Time.time * currentSpeed);
-        float bodyAngle = (swingLimit * bodyRatio) * Mathf.Sin(Time.time * currentSpeed);
-        float tailAngle = (swingLimit * tailRatio) * Mathf.Sin(Time.time * currentSpeed);
-
-        
-
-       
-
-        
-
-        float currentHeadAngle = headAngle * input;
-        float currentBodyAngle = bodyAngle * input;
-        float currentTailAngle = tailAngle * input;
-
-
-        float newBodyAngle = bodyAngle - currentHeadAngle;
-        float newTailAngle = tailAngle - currentBodyAngle;
-
-
-        float diffHead = headAngle - lastAngleHead;
-        float diffBody = bodyAngle - lastAngleBody;
-        float diffTail = tailAngle - lastAngleTail;
-        
-        
-        headSegment.transform.rotation = Quaternion.Euler(0, 0, headAngle);
-        bodySegment.transform.rotation = Quaternion.Euler(0, 0, newBodyAngle);
-        tailSegment.transform.rotation = Quaternion.Euler(0, 0, newTailAngle);
-        */
-        
-       
-        
-        //bodyJointMotor.force = swingSpeed;
-
-        /*if (Mathf.Abs(input) > 0f)
-        {
-            bodyJointMotor.targetVelocity = targetSwingVelocity * input;
-        }*/
 
         if (useGravity)
         {
@@ -322,7 +320,169 @@ public class PlayerSwing : MonoBehaviour
             bodyJoint.useMotor = false;
         }
 
+        var currentRotation = bodySegment.transform.localRotation;
+        var targetRotationMin = bodyJoint.axis * -swingLimit;
+        var targetRotationMax = bodyJoint.axis * swingLimit;
+
+
+
+        lastSwingAngle = tailJoint.angle;
+        accumulatedAngularVelocity = tailSegment.angularVelocity;
+        Debug.Log("2Accumulated Velocity: " +accumulatedAngularVelocity);
+        Debug.Log("2Joint Velocity: " + tailJoint.velocity);
+        Debug.Log("2Joint Body Velocity: " + bodyJoint.velocity);
+
+        //accumulatedVelocity = bodySegment.transform.forward * bodyJoint.velocity;
+
+        //is at max swing
+
+
     }
 
+    void ReleaseEvent()
+    {
+        if(hookReference == null)
+            return;
+        Debug.Log("Triggered");
+        headSegment.isKinematic = false;
+        bodySegment.isKinematic = false;
+        tailSegment.isKinematic = false;
+        
+        
+        
+        bodySegment.constraints = RigidbodyConstraints.FreezeRotation;
+        tailSegment.constraints = RigidbodyConstraints.FreezeRotation;
+        
+        
+        //Destroy(headJoint);
+        
+       // bodyJoint.connectedBody = null;
+       // tailJoint.connectedBody = null;
+       
+
+       Destroy(bodyJoint);
+       Destroy(tailJoint);
+        
+       
+       
+        //hookReference.EnableCollisions();
+        
+       
+        
+       
+        
+        
+        //controller.SetState(PlayerState.Locomotion);
+        //hookReference = null;
+        
+       
+    }
+
+    void LaunchEvent()
+    {
+        //tailSegment.AddForce(tailSegment.transform.forward * springSpeed, ForceMode.VelocityChange);
+       
+        
+        
+        
+        
+ 
+        bodySegment.constraints = RigidbodyConstraints.FreezePositionZ;
+        tailSegment.constraints = RigidbodyConstraints.FreezePositionZ;
+        bodySegment.linearDamping = 0.3f;
+        tailSegment.linearDamping = 0.3f;
+        
+        isSwingingSetUp = false;
+        StartCoroutine(ResetSwing());
+
+
+        /*
+        Vector3 upwardsForce = upwardForce * Vector3.up;
+
+        headSegment.AddForce((upwardsForce) * (springSpeed * headLaunchRatio), ForceMode.VelocityChange);
+        bodySegment.AddForce((upwardsForce) * (springSpeed * bodyLaunchRatio), ForceMode.VelocityChange);
+        tailSegment.AddForce(( upwardsForce) * (springSpeed * tailLaunchRatio), ForceMode.VelocityChange);
+        */
+
+
+
+
+
+
+    }
+
+    IEnumerator ResetSwing()
+    {
+        /*bodySegment.linearDamping = cachedDampingBody;
+        bodySegment.angularDamping = cachedDampingBodyAngular;
+        tailSegment.linearDamping = cachedDampingTail;
+        tailSegment.angularDamping = cachedDampingTailAngular;*/
+
+        //apply gravity
+        
+        
+        //launch velocity
+        float x = Mathf.Sin(lastSwingAngle * Mathf.Deg2Rad);
+        float y = Mathf.Cos(lastSwingAngle * Mathf.Deg2Rad);
+        
+        
+
+        Vector3 launchVector = new Vector3(x, y);
+        
+        launchVector.Normalize();
+
+        
+        Debug.Log("Angular Velocity Cached: " + accumulatedAngularVelocity);
+        launchVector += accumulatedAngularVelocity;
+        Debug.Log("Launch Vector: " + launchVector);
+
+        
+        //float timer = 0;
+        bodySegment.AddForce(launchVector  * bodyLaunchRatio, ForceMode.VelocityChange);
+        tailSegment.AddForce( launchVector  * tailLaunchRatio, ForceMode.VelocityChange);
+
+        while (!HasHitSomething(tailCollider) || !(HasHitSomething(bodyCollider)))
+        {
+            
+           
+            bodySegment.AddForce(gravity * Vector3.up, ForceMode.Acceleration);
+            tailSegment.AddForce(gravity  * Vector3.up, ForceMode.Acceleration);
+            yield return null;
+        }
+        
+        
+        bodySegment.transform.forward = Vector3.right;
+        tailSegment.transform.forward = Vector3.right;
+        headSegment.DOMove(bodySegment.position - (bodySegment.transform.right * controller.bodyOffset), downTime).OnComplete(() =>
+        {
+            
+            hookReference.EnableCollisions();
+            hookReference = null;
+            hookPoint = null;
+            controller.SetState(PlayerState.Locomotion);
+        });
+        
+        //wait for grounded callback
+        
+
+
+
+
+
+
+
+
+    }
+
+
+    bool HasHitSomething(Collider segmentCollider)
+    {
+        if(Physics.CheckSphere(segmentCollider.attachedRigidbody.position, segmentCollider.bounds.extents.x + ( collisionDistance), controller.playerCollisionMask))
+        {
+            return true;
+        }
+        
+        return false;
+    }
     
 }
