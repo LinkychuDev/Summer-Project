@@ -51,7 +51,7 @@ public class WireTestManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        controller.UpdateCachedHeadPositions(headSegment.position, headSegment.transform.rotation);
+        controller.UpdateCachedHeadPositions(headSegment.position, headSegment.transform.forward, Vector3.forward);
         UpdateSegmentsHead();
     }
 
@@ -59,9 +59,9 @@ public class WireTestManager : MonoBehaviour
     {
         spline.Clear();
         spline.Add(new BezierKnot(container.transform.InverseTransformPoint(bodySegment.position)));
-        spline.Add(new BezierKnot(container.transform.InverseTransformPoint(controller.cachedHeadPositions[0].lastPosition)));
+        spline.Add(new BezierKnot(container.transform.InverseTransformPoint(controller.cachedHeadMovementPositions[0].lastPosition)));
         
-       for (int i = 0; i < controller.cachedHeadPositions.Count ; i++)
+       for (int i = 0; i < controller.cachedHeadMovementPositions.Count ; i++)
        {
          
            /*Vector3 position = controller.cachedHeadPositions[i].lastPosition;

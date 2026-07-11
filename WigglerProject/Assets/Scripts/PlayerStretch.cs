@@ -54,7 +54,7 @@ public class PlayerStretch : MonoBehaviour
     private float bodyOffset;
     private float tailOffset;
     
-    private float currentStretchDistance;
+    //private float currentStretchDistance;
 
 
     
@@ -64,25 +64,28 @@ public class PlayerStretch : MonoBehaviour
     [SerializeField] private float stiffness = 5000f;
     [SerializeField] private float damper = 4f;
     [SerializeField] private float connectedMassStrength = 0.01f;
-    
+
+    [SerializeField] private float pushbackRatio = 0.0001f;
     //spherecast detection
     [Header("Collision Detection")] 
-    public float correctionOffset = 0.3f;
-    
+
     //public 
     
     public StretchState stretchState = StretchState.None;
 
     PlayerController controller;
-
-
-
-    private PlayerSwing swing;
     
+    private PlayerSwing swing;
+
+   
     //spring joint values
     //private SpringJoint headJoint;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
+    
+    
+    [SerializeField] private SpringVisualConnection springVisualConnection;
 
+    private List<Vector3> positions = new List<Vector3>();
 
     private void OnEnable()
     {
@@ -123,6 +126,8 @@ public class PlayerStretch : MonoBehaviour
 
     void Update()
     {
+        if(controller.state == PlayerState.Locomotion)
+            return;
         moveInput = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
         //isStretching = stretchButton.action.IsPressed();
         if(stretchState == StretchState.Retracting)
@@ -218,16 +223,18 @@ public class PlayerStretch : MonoBehaviour
         
         springJoint = headSegment.gameObject.AddComponent<SpringJoint>();
         springJoint.connectedBody = bodySegment;
-        springJoint.minDistance = bodyOffset;
-        springJoint.maxDistance = maxDistanceHead;
+        springJoint.autoConfigureConnectedAnchor = false;
+        springJoint.connectedAnchor = Vector3.zero;
+        springJoint.minDistance = 0;
+        springJoint.maxDistance = stretchDistanceHead;
         springJoint.spring = stiffness;
         springJoint.connectedMassScale = connectedMassStrength;
         springJoint.damper = damper;
         bodySegment.isKinematic = true;
         controller.SetState(PlayerState.Stretching);
         stretchState = StretchState.Stretching;
-
-
+        //cachedStretchPositions.Add(headSegment.transform);
+       
     }
 
 
@@ -241,13 +248,17 @@ public class PlayerStretch : MonoBehaviour
       
         
       //  currentStretchDistance = Mathf.Lerp(minDistanceHead, maxDistanceHead, currentStretchTime );
+      
+      
 
         Vector3 targetDirection = stretchDirection.normalized;
         
         Vector3 targetVelocity = targetDirection * stretchSpeed;
       
+        
+        
        
-        Vector3 currentOffset = (headSegment.position + targetDirection) - bodySegment.transform.position;
+        
         
         
         Vector3 currentVelocity = headSegment.linearVelocity;
@@ -257,38 +268,38 @@ public class PlayerStretch : MonoBehaviour
         Vector3 velocityChange = targetVelocity - currentVelocity;
 
         velocityChange = Vector3.ClampMagnitude(velocityChange, maxStretchSpeed);
+
         headSegment.AddForce(velocityChange, ForceMode.VelocityChange);
-
-
-        if (stretchDirection.sqrMagnitude > 0.01f)
-        {
-            controller.UpdateCachedHeadPositions(transform.position, transform.rotation);
-        }
         
+       
+        
+       
+
         /*Vector3 constrainedOffset = headSegment.position - bodySegment.transform.position;
         constrainedOffset.y = 0;
-        
+
         if (constrainedOffset.magnitude > maxDistanceHead)
         {
            Debug.Log("Potentially Over board");
-            
+
            float outwardForce = Vector3.Dot(headSegment.linearVelocity, constrainedOffset.normalized);
            if (outwardForce > 0)
            {
                headSegment.AddForce(-constrainedOffset.normalized * (outwardForce * correctionOffset), ForceMode.VelocityChange);
-               
-               
+
+
                Debug.Log("Constrained");
            }
-           
-           
+
+
            headSegment.position = bodySegment.position + constrainedOffset.normalized * maxDistanceHead;
 
-           
-          
+
+
         }*/
         
     }
+    
     void SteerEvent()
     {
        
@@ -320,7 +331,8 @@ public class PlayerStretch : MonoBehaviour
         
         
     }
-    
+
+   
     void OnPlayerRetracted()
     {
         if (controller.state != PlayerState.Stretching)
@@ -331,6 +343,7 @@ public class PlayerStretch : MonoBehaviour
             Destroy(springJoint);
             springJoint = null;
         }
+        
         
         
         StartCoroutine(OnPlayerRetractedEvent());
@@ -349,57 +362,109 @@ public class PlayerStretch : MonoBehaviour
         tailSegment.transform.LookAt(bodySegment.transform.position + bodySegment.transform.forward);
         bodySegment.isKinematic = false;
         tailSegment.isKinematic = false;
+        
+        
         yield return new WaitForFixedUpdate();
         
+        Sequence stretchSequence = DOTween.Sequence();
 
+        List<Vector3> listOfPositions = new List<Vector3>();
+
+        int amount = springVisualConnection.springSegments.Count;
+        
+        ;
         if (!Honey)
         {
-            Vector3 targetHeadDir = (bodySegment.transform.position + bodySegment.transform.forward) -headSegment.transform.position;
-            Vector3 targetHeadPosition = bodySegment.transform.position + (bodySegment.transform.forward * bodyOffset);
+            //Vector3 targetHeadDir = (bodySegment.transform.position + bodySegment.transform.forward) -headSegment.transform.position;
+            //Vector3 targetHeadPosition = bodySegment.transform.position + (bodySegment.transform.forward * bodyOffset);
+            
+            
+            
+            
+            for (int i = amount -1 ; i > -1 ; i--)
+            {
+                listOfPositions.Add(springVisualConnection.springSegments[i].position);
+            }
+            
+            listOfPositions.Add(bodySegment.position + (bodySegment.transform.forward * bodyOffset));
 
-            Sequence stretchSequence = DOTween.Sequence();
-            stretchSequence.Append(headSegment.DOMove(targetHeadPosition, stretchRetractTime)).SetEase(Ease.OutBounce);
-            yield return stretchSequence.WaitForCompletion();
-            yield return new WaitForFixedUpdate();
+            positions = listOfPositions;
+            
+            
+            
+            
+                
+            stretchSequence.Append(headSegment.DOPath(listOfPositions.ToArray(), stretchRetractTime,
+                PathType.CatmullRom, PathMode.Full3D));
+
+
+            
         }
 
         else
         {
             
-            Sequence stretchSequence = DOTween.Sequence();
+            for (int i = 0; i < amount; i++)
+            {
+                listOfPositions.Add(springVisualConnection.springSegments[i].position);
+            }
+            
+            
+            listOfPositions.Add(headSegment.position - (headSegment.transform.forward * bodyOffset));
+
+
+            List<Vector3> tailPositions = listOfPositions;
+
+            for (int i = 0; i < tailPositions.Count; i++)
+            {
+                var pos = tailPositions[i];
+                tailPositions[i] = pos - (tailOffset * bodySegment.transform.forward);
+            }
+            
+                 
+            stretchSequence.Append(bodySegment.DOPath(listOfPositions.ToArray(), stretchRetractTime,
+                PathType.CubicBezier, PathMode.Full3D));
+                  
+            stretchSequence.Append(tailSegment.DOPath(tailPositions.ToArray(), stretchRetractTime,
+                PathType.CubicBezier, PathMode.Full3D));
+
+
+            /*Sequence stretchSequence = DOTween.Sequence();
             cachedHeadPosition = headSegment.transform.position;
             Vector3 distanceToHead = (cachedHeadPosition - cachedBodyPosition).normalized;
             Vector3 distanceToBody = (cachedBodyPosition - cachedTailPosition).normalized;
             Vector3 targetBodyBodyPos = cachedHeadPosition - Mathf.Abs(segments[1].spacingToNextSegment) * (distanceToHead);
-       
-        
+
+
             //Quaternion cachedBodyRotation = bodySegment.transform.rotation;
 
 
 
-        
+
             Vector3 targetTailPosition = targetBodyBodyPos - Mathf.Abs(segments[2].spacingToNextSegment) * bodySegment.transform.forward;
 
-        
-            stretchSequence.Append(bodySegment.DOMove(targetBodyBodyPos, stretchRetractTime).OnUpdate(() => 
+
+            stretchSequence.Append(bodySegment.DOMove(targetBodyBodyPos, stretchRetractTime).OnUpdate(() =>
                 bodySegment.transform.LookAt(headSegment.transform.position + headSegment.transform.forward))).SetEase(Ease.OutBounce);
             stretchSequence.Insert(0.1f, tailSegment.DOMove(targetTailPosition, stretchRetractTime)
                 .OnUpdate(() => tailSegment.transform.LookAt(bodySegment.transform.position + bodySegment.transform.forward))).SetEase(Ease.OutBounce);
             yield return stretchSequence.WaitForCompletion();
-            yield return new WaitForFixedUpdate();
-            
+            yield return new WaitForFixedUpdate();*/
         }
         
         
        
-        
+        yield return stretchSequence.WaitForCompletion();
+            
+        //add effect
+        yield return new WaitForFixedUpdate();
         stretchState =  StretchState.None;
         Honey = false;
-        
         controller.SetState(PlayerState.Locomotion);
         
-       
         
+
+
         //yield return null;
 
     }
@@ -410,7 +475,27 @@ public class PlayerStretch : MonoBehaviour
         segment.rotation = Quaternion.Slerp(segment.rotation, Quaternion.LookRotation(distanceToSegment, Vector3.up), stretchTurnSpeed * Time.fixedDeltaTime);
     }
 
-  
+    private void OnDrawGizmosSelected()
+    {
+
+        if (springJoint != null)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.TransformPoint(springJoint.connectedAnchor), 0.3f);
+            
+            Gizmos.color = Color.blueViolet;
+            Gizmos.DrawWireSphere(transform.TransformPoint(springJoint.anchor), 0.3f);
+        }
+        if(positions.Count == 0)
+            return;
+        Gizmos.color = Color.cyan;
+
+        for (int i = 0; i < positions.Count; i++)
+        {
+            Gizmos.DrawWireSphere(positions[i], controller.distanceRadius);
+        }
+      
+    }
 }
 
 public interface IStretchInteractable

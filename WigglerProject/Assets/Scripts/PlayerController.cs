@@ -53,17 +53,21 @@ public class Segment
     
 }
 
-
 public class CachedPosition
 {
     public Vector3 lastPosition;
-    public Quaternion lastRotation;
-    public CachedPosition(Vector3 lastPosition, Quaternion lastRotation)
+    public Vector3 lastRotation;
+    public Vector3 cachedVelocity;
+    public CachedPosition(Vector3 lastPosition, Vector3 lastRotation, Vector3 cachedVelocity)
     {
         this.lastPosition = lastPosition;
         this.lastRotation = lastRotation;
+        this.cachedVelocity = cachedVelocity;
     }
 }
+
+
+
 public class PlayerController : MonoBehaviour, IStickable
 {
 
@@ -84,11 +88,15 @@ public class PlayerController : MonoBehaviour, IStickable
 
     public int segmentIndexSpacing = 2;
 
-    public List<CachedPosition> cachedHeadPositions = new List<CachedPosition>();
+    public List<CachedPosition> cachedHeadMovementPositions = new List<CachedPosition>();
     public int maxIterations = 30;
-    
 
+    public float minMoveDistance = 1;
     [SerializeField] private Transform headClose;
+
+    [Header("Debug")] [SerializeField] public float distanceRadius = 1;
+    
+    public static Action<PlayerState> OnStateChange; 
     
     private void Awake()
     {
@@ -103,6 +111,8 @@ public class PlayerController : MonoBehaviour, IStickable
         
         bodyOffset = Mathf.Abs(segments[1].spacingToNextSegment);
         tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
+        
+        cachedHeadMovementPositions.Add(new CachedPosition(headClose.position, headSegment.transform.forward, headSegment.linearVelocity));
         _stretch = GetComponent<PlayerStretch>();
         
         
@@ -157,9 +167,16 @@ public class PlayerController : MonoBehaviour, IStickable
                 break;
                 
         }
+
+
         
         lastState = state;
         state = newState;
+        
+        if (lastState != newState)
+        {
+            OnStateChange?.Invoke(state);
+        }
     }
 
     public PlayerState GetLastState()
@@ -185,31 +202,42 @@ public class PlayerController : MonoBehaviour, IStickable
 
     private void FixedUpdate()
     {
-      
+       UpdateCachedHeadPositions(headClose.position, headSegment.transform.forward, headSegment.linearVelocity);
         //UpdateSegments();
     }
 
-    public void UpdateCachedHeadPositions(Vector3 position, Quaternion rotation)
+    public void UpdateCachedHeadPositions(Vector3 position, Vector3 forwardVector, Vector3 cachedVelocity)
     {
-        if (cachedHeadPositions.Count > 0)
+        
+        if (cachedHeadMovementPositions.Count > 0)
         {
-            if (cachedHeadPositions[0].lastPosition != position)
+            if(Vector3.Distance(cachedHeadMovementPositions[0].lastPosition, position) < minMoveDistance)
+                return;
+            if (cachedHeadMovementPositions[0].lastPosition != position)
             {
-                cachedHeadPositions.Insert(0, new CachedPosition(position, rotation));
-
+                cachedHeadMovementPositions.Insert(0, new CachedPosition(position, forwardVector, cachedVelocity));
             }
         }
 
         else
         {
-            cachedHeadPositions.Add(new CachedPosition(position, rotation));
+            //initial
+            cachedHeadMovementPositions.Add(new CachedPosition(position, forwardVector, cachedVelocity));
         }
         
       
-        if (cachedHeadPositions.Count > maxIterations)
+        
+        if (cachedHeadMovementPositions.Count > maxIterations)
         {
-            cachedHeadPositions.RemoveAt(cachedHeadPositions.Count - 1);
+            cachedHeadMovementPositions.RemoveAt(cachedHeadMovementPositions.Count - 1);
         }
+
+
+
+        
+
+
+        Debug.Log(cachedHeadMovementPositions.Count);
         
         // UpdateSegments();
     }
@@ -217,7 +245,19 @@ public class PlayerController : MonoBehaviour, IStickable
     
     public void ClearCachedHeadPositions()
     {
-        cachedHeadPositions.Clear();
+        cachedHeadMovementPositions.Clear();
     }
-    
+
+    private void OnDrawGizmosSelected()
+    {
+        if(cachedHeadMovementPositions.Count == 0)
+            return;
+        Gizmos.color = Color.red;
+
+        for (int i = 0; i < cachedHeadMovementPositions.Count; i++)
+        {
+            Gizmos.DrawWireSphere(cachedHeadMovementPositions[i].lastPosition, distanceRadius);
+        }
+      
+    }
 }

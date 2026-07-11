@@ -279,11 +279,6 @@ public class PlayerMovement : MonoBehaviour
             }
 
         }
-
-        if (moveDir.magnitude > 0.001f)
-        {
-            _controller.UpdateCachedHeadPositions(transform.position, transform.rotation);
-        }
     }
 
     private void OnDrawGizmos()

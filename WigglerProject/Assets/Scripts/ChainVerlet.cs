@@ -88,11 +88,11 @@ public class ChainVerlet : MonoBehaviour
 
     void CacheHeadPosition()
     {
-        if(controller.cachedHeadPositions.Count == 0)
+        if(controller.cachedHeadMovementPositions.Count == 0)
             return;
-        int index = Mathf.Min(controller.segmentIndexSpacing, controller.cachedHeadPositions.Count - 1);
+        int index = Mathf.Min(controller.segmentIndexSpacing, controller.cachedHeadMovementPositions.Count - 1);
         VerletNode head = nodes[^1];
-        head.currentPosition = controller.cachedHeadPositions[index].lastPosition;
+        head.currentPosition = controller.cachedHeadMovementPositions[index].lastPosition;
         nodes[^1] = head;
 
     }
