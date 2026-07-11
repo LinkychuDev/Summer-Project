@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Splines;
 
 
 public struct SpringSegment
@@ -33,6 +34,7 @@ public class SpringVisualConnection : MonoBehaviour
     public Transform playerManager;
     public GameObject pointPrefab;
 
+    [SerializeField] private float splineInstantiateRatio = 1;
 
     [SerializeField] private PlayerController controller;
     [SerializeField] LineRenderer lineRenderer;
@@ -46,14 +48,24 @@ public class SpringVisualConnection : MonoBehaviour
     [SerializeField] private int numberOfConstraints;
     
     //Vector3 startPosition;
+    [SerializeField] private float minSplineDistance = 0.1f;
     [SerializeField] private float blendFactor = 0.5f;
 
     private float distancePerSegment;
 
+    [SerializeField] private SplineContainer splineContainer;
+
+    private Spline _spline;
+
+    private SplineInstantiate _splineInstantiate;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     private void Awake()
     {
+        _spline = splineContainer.Spline;
+       _splineInstantiate = splineContainer.GetComponent<SplineInstantiate>();
+       _spline.Clear();
+       
         for (int i = 0; i < segments; i++)
         {
             var point = new GameObject("springPoint " + i)
@@ -65,15 +77,27 @@ public class SpringVisualConnection : MonoBehaviour
                 }
             };
             springSegments.Add(point.transform);
+            _spline.Add(splineContainer.transform.InverseTransformPoint(springSegments[i].position));
         }
+
+        
     }
 
 
     private void Update()
     {
         UpdatePositions();
-//UpdateRotations();
+      
+    
     }
+
+    private void LateUpdate()
+    {
+        UpdateSpline();
+    }
+    
+    
+    
 
 
     void UpdatePositions()
@@ -82,7 +106,7 @@ public class SpringVisualConnection : MonoBehaviour
         springSegments[0].position = bodyTransform.position;
         springSegments[^1].position = headTransform.position;
 
-        float segmentLength = Vector3.Distance(bodyTransform.position, headTransform.position) / segments;
+        distancePerSegment = Vector3.Distance(bodyTransform.position, headTransform.position) / segments;
         
         for (int i = segments - 2; i > 0; i--)
         {
@@ -94,10 +118,62 @@ public class SpringVisualConnection : MonoBehaviour
             if (dir == Vector3.zero)
                 dir = (bodyTransform.position - nextPos).normalized;
 
-            springSegments[i].position = nextPos + dir * segmentLength;
+            springSegments[i].position = nextPos + dir * distancePerSegment;
         }
     }
 
+    
+
+    void UpdateSpline()
+    {
+        Vector3 direction = headTransform.forward;
+        
+        Vector3 nextPos = headTransform.position;
+        for (int i = segments -1; i > -1; i--)
+        {
+            var point = _spline[i];
+            var pos = springSegments[i].position;
+
+            point.Position = splineContainer.transform.InverseTransformPoint(pos);
+            
+            
+
+            if (i != segments - 1)
+            {
+                nextPos = springSegments[i + 1].position;
+            }
+
+            Vector3 dir = (springSegments[i].position - nextPos).normalized;
+            
+            var rotation = Quaternion.LookRotation(dir, Vector3.up);
+            
+            point.Rotation = rotation;
+            _spline[i] = point;
+        }
+        
+        
+        _splineInstantiate.MinSpacing = minSplineDistance;
+        _splineInstantiate.MaxSpacing = minSplineDistance;
+        _splineInstantiate.UpdateInstances();
+    }
+
+
+    private void OnDrawGizmos()
+    {
+        if(springSegments.Count == 0)
+            return;
+        
+        
+        
+        for (int i = 0; i < springSegments.Count; i++)
+        {
+            Gizmos.color = Color.aquamarine;
+                Gizmos.DrawWireSphere(springSegments[i].position, 0.1f);
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(springSegments[i].position, springSegments[i].position - springSegments[i].forward);
+        }
+    }
+    
     void UpdateRotations()
     {
         springSegments[0].rotation = bodyTransform.rotation;
@@ -116,23 +192,6 @@ public class SpringVisualConnection : MonoBehaviour
             
             //springSegments[i - 1].position = Vector3.Slerp(lastPosition, targetPosition, blendFactor);
 
-        }
-    }
-
-
-    private void OnDrawGizmos()
-    {
-        if(springSegments.Count == 0)
-            return;
-        
-        
-        
-        for (int i = 0; i < segments; i++)
-        {
-            Gizmos.color = Color.aquamarine;
-            Gizmos.DrawWireSphere(springSegments[i].position, 0.1f);
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(springSegments[i].position, springSegments[i].position - springSegments[i].forward);
         }
     }
 }
