@@ -21,7 +21,7 @@ public class WireTestManager : MonoBehaviour
     public int cornerVertices = 5;
     int segmentCount;
     
-    PlayerController controller;
+    PlayerReferenceManager controller;
 
     
     private List<GameObject> objectsBodyToHead;
@@ -40,7 +40,7 @@ public class WireTestManager : MonoBehaviour
     void Start()
     {
         spline = container.Spline;
-        controller = GameObject.FindFirstObjectByType<PlayerController>();
+        controller = GameObject.FindFirstObjectByType<PlayerReferenceManager>();
         
         //Create spline
 

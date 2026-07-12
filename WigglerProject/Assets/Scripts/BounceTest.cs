@@ -9,7 +9,7 @@ public class BounceTest : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(!(other.TryGetComponent(out PlayerController player)))
+        if(!(other.TryGetComponent(out PlayerReferenceManager player)))
             return;
         Debug.Log("Bounce");
         player.Bounce(bounceHeight);

@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
@@ -68,12 +68,12 @@ public class CachedPosition
 
 
 
-public class PlayerController : MonoBehaviour, IStickable
+public class PlayerReferenceManager : MonoBehaviour, IStickable
 {
 
-    
+    public static PlayerReferenceManager instance;
     public List<Segment> segments = new List<Segment>();
-    public PlayerState state;
+    public PlayerState currentState;
     public PlayerState lastState;
 
     public Sequence sequence;
@@ -96,10 +96,18 @@ public class PlayerController : MonoBehaviour, IStickable
 
     [Header("Debug")] [SerializeField] public float distanceRadius = 1;
     
-    public static Action<PlayerState> OnStateChange; 
+    public static Action<PlayerState> OnStateChange;
+
+    public bool isHoney;
     
     private void Awake()
     {
+
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(this);
+        }
         foreach (Segment segment in segments)
         {
             segment.Initialise();
@@ -147,7 +155,7 @@ public class PlayerController : MonoBehaviour, IStickable
                 headSegment.isKinematic = false;
                 bodySegment.isKinematic = false;
                 tailSegment.isKinematic = false;
-                _stretch.stretchState = PlayerStretch.StretchState.None;
+                PlayerStretch.stretchState = PlayerStretch.StretchState.None;
                 headSegment.constraints = RigidbodyConstraints.FreezeRotation;
                 bodySegment.constraints = RigidbodyConstraints.FreezeRotation;
                 tailSegment.constraints = RigidbodyConstraints.FreezeRotation;
@@ -155,7 +163,7 @@ public class PlayerController : MonoBehaviour, IStickable
                 break;
             case PlayerState.Stuck:
                 headSegment.linearVelocity = Vector3.zero;
-                _stretch.Honey = true;
+                isHoney = true;
                 headSegment.isKinematic = true;
                 bodySegment.isKinematic = true;
                 tailSegment.isKinematic = true;
@@ -170,12 +178,12 @@ public class PlayerController : MonoBehaviour, IStickable
 
 
         
-        lastState = state;
-        state = newState;
+        lastState = currentState;
+        currentState = newState;
         
         if (lastState != newState)
         {
-            OnStateChange?.Invoke(state);
+            OnStateChange?.Invoke(currentState);
         }
     }
 
@@ -196,7 +204,7 @@ public class PlayerController : MonoBehaviour, IStickable
 
     public bool CanStick()
     {
-        return state == PlayerState.Stretching;
+        return currentState == PlayerState.Stretching;
     }
 
 

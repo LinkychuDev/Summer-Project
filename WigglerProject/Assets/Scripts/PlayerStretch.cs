@@ -20,7 +20,7 @@ public class PlayerStretch : MonoBehaviour
     public float stretchRetractTime = 4f;
 
 
-    public bool Honey;
+    
     //public float stretchTime = 3f;
     //public bool isStretching;
     //public InputActionReference stretchButton;
@@ -71,9 +71,9 @@ public class PlayerStretch : MonoBehaviour
 
     //public 
     
-    public StretchState stretchState = StretchState.None;
+    public static StretchState stretchState = StretchState.None;
 
-    PlayerController controller;
+
     
     private PlayerSwing swing;
 
@@ -102,12 +102,12 @@ public class PlayerStretch : MonoBehaviour
     void Start()
     {
         camera = Camera.main.transform;
-        controller = GetComponent<PlayerController>();
+      
 
-        bodyOffset = controller.bodyOffset;
-        tailOffset = controller.tailOffset;
+        bodyOffset = PlayerReferenceManager.instance.bodyOffset;
+        tailOffset = PlayerReferenceManager.instance.tailOffset;
         
-        segments = controller.segments.ToArray();
+        segments = PlayerReferenceManager.instance.segments.ToArray();
         headSegment = segments[0].rb;
         bodySegment = segments[1].rb;
         tailSegment = segments[2].rb;
@@ -118,7 +118,7 @@ public class PlayerStretch : MonoBehaviour
         
         /*collisionRadius = collisionRadiusOffset + headSegment.GetComponent<SphereCollider>().radius;
         colliders = new Collider[maxColliders];
-        collisionMask = controller.playerCollisionMask;*/
+        collisionMask = PlayerReferenceManager.instance.playerCollisionMask;*/
         //CreateJoint();
         //headSegment.GetComponent<SphereCollider>().radius
         //sphere collision
@@ -126,13 +126,13 @@ public class PlayerStretch : MonoBehaviour
 
     void Update()
     {
-        if(controller.state == PlayerState.Locomotion)
+        if(PlayerReferenceManager.instance.currentState == PlayerState.Locomotion)
             return;
         moveInput = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
         //isStretching = stretchButton.action.IsPressed();
         if(stretchState == StretchState.Retracting)
             return;
-        if(controller.state != PlayerState.Stretching)
+        if(PlayerReferenceManager.instance.currentState != PlayerState.Stretching)
             return;
         
 
@@ -147,7 +147,7 @@ public class PlayerStretch : MonoBehaviour
     {
 
       
-        if(controller.state != PlayerState.Stretching)
+        if(PlayerReferenceManager.instance.currentState != PlayerState.Stretching)
             return;
        
         switch (stretchState)
@@ -167,7 +167,7 @@ public class PlayerStretch : MonoBehaviour
 
     private void OnCollisionEnter(Collision other)
     {
-        if(controller.state != PlayerState.Stretching)
+        if(PlayerReferenceManager.instance.currentState != PlayerState.Stretching)
             return;
         switch (stretchState)
         {
@@ -176,7 +176,7 @@ public class PlayerStretch : MonoBehaviour
                 {
                     
                     honeyTest.DisableCollisions();
-                    controller.SetState(PlayerState.Swinging);
+                    PlayerReferenceManager.instance.SetState(PlayerState.Swinging);
                     swing.StartSwing(honeyTest); 
                 }
                 break;
@@ -231,7 +231,7 @@ public class PlayerStretch : MonoBehaviour
         springJoint.connectedMassScale = connectedMassStrength;
         springJoint.damper = damper;
         bodySegment.isKinematic = true;
-        controller.SetState(PlayerState.Stretching);
+        PlayerReferenceManager.instance.SetState(PlayerState.Stretching);
         stretchState = StretchState.Stretching;
         //cachedStretchPositions.Add(headSegment.transform);
        
@@ -335,7 +335,7 @@ public class PlayerStretch : MonoBehaviour
    
     void OnPlayerRetracted()
     {
-        if (controller.state != PlayerState.Stretching)
+        if (PlayerReferenceManager.instance.currentState != PlayerState.Stretching)
             return;
         Debug.Log(stretchState);
         if (springJoint != null)
@@ -353,7 +353,7 @@ public class PlayerStretch : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         Debug.Log(stretchState);
-        //yield return new WaitUntil(() => controller.state == PlayerState.Stretching);
+        //yield return new WaitUntil(() => PlayerPlayerReferenceManager.instance.state == PlayerState.Stretching);
         stretchState = StretchState.Retracting;
        
             
@@ -370,10 +370,13 @@ public class PlayerStretch : MonoBehaviour
 
         List<Vector3> listOfPositions = new List<Vector3>();
 
-        int amount = springVisualConnection.springSegments.Count;
+
+        var stretchPositions = springVisualConnection.GetPositions();
+
+        int amount = stretchPositions.Length;
         
         ;
-        if (!Honey)
+        if (!PlayerReferenceManager.instance.isHoney)
         {
             //Vector3 targetHeadDir = (bodySegment.transform.position + bodySegment.transform.forward) -headSegment.transform.position;
             //Vector3 targetHeadPosition = bodySegment.transform.position + (bodySegment.transform.forward * bodyOffset);
@@ -383,7 +386,7 @@ public class PlayerStretch : MonoBehaviour
             
             for (int i = amount -1 ; i > -1 ; i--)
             {
-                listOfPositions.Add(springVisualConnection.springSegments[i].position);
+                listOfPositions.Add(stretchPositions[i]);
             }
             
             listOfPositions.Add(bodySegment.position + (bodySegment.transform.forward * bodyOffset));
@@ -406,7 +409,7 @@ public class PlayerStretch : MonoBehaviour
             
             for (int i = 0; i < amount; i++)
             {
-                listOfPositions.Add(springVisualConnection.springSegments[i].position);
+                listOfPositions.Add(stretchPositions[i]);
             }
             
             
@@ -459,8 +462,8 @@ public class PlayerStretch : MonoBehaviour
         //add effect
         yield return new WaitForFixedUpdate();
         stretchState =  StretchState.None;
-        Honey = false;
-        controller.SetState(PlayerState.Locomotion);
+        PlayerReferenceManager.instance.isHoney = false;
+        PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
         
         
 
@@ -492,7 +495,7 @@ public class PlayerStretch : MonoBehaviour
 
         for (int i = 0; i < positions.Count; i++)
         {
-            Gizmos.DrawWireSphere(positions[i], controller.distanceRadius);
+            Gizmos.DrawWireSphere(positions[i], PlayerReferenceManager.instance.distanceRadius);
         }
       
     }

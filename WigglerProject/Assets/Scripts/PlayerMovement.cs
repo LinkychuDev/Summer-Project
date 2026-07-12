@@ -54,7 +54,7 @@ public class PlayerMovement : MonoBehaviour
 
     public float groundDrag = 6f;
 
-    private PlayerController _controller;
+   
     
  
     /*Vector3 targetBodyPosition;
@@ -63,10 +63,10 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         
-        _controller = GetComponent<PlayerController>();
-        segments.Add(_controller.segments[0]);
-        segments.Add(_controller.segments[1]);
-        segments.Add(_controller.segments[2]);
+       
+        segments.Add(PlayerReferenceManager.instance.segments[0]);
+        segments.Add(PlayerReferenceManager.instance.segments[1]);
+        segments.Add(PlayerReferenceManager.instance.segments[2]);
 
         _rigidbody = segments[0].rb;
         camera = Camera.main.transform;
@@ -77,7 +77,7 @@ public class PlayerMovement : MonoBehaviour
     private void Update()
     {
         
-        if(_controller.state != PlayerState.Locomotion)
+        if(PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
             return;
         input = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
       
@@ -89,7 +89,7 @@ public class PlayerMovement : MonoBehaviour
         //isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
         GroundCheck();
         
-        if(_controller.state != PlayerState.Locomotion)
+        if(PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
             return;
         HandleDrag(); 
         Movement();
@@ -168,7 +168,7 @@ public class PlayerMovement : MonoBehaviour
        /*body.position = Vector3.Lerp(body.position, transform.position - (bodyHeadSpacing * transform.forward), bodyReactTime * Time.deltaTime);
        tail.position = Vector3.Lerp(tail.position, body.position - (tailBodySpacing * transform.forward), tailReactTime * Time.deltaTime);*/
 
-       //_controller.UpdateCachedHeadPositions(_rigidbody.position, transform.rotation);
+       //PlayerReferenceManager.instance.UpdateCachedHeadPositions(_rigidbody.position, transform.rotation);
        
        UpdateSegments();
        //rotation
@@ -177,7 +177,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleRotation()
     {
-        if(_controller.state == PlayerState.Stretching)
+        if(PlayerReferenceManager.instance.currentState == PlayerState.Stretching)
             return;
         Vector3 forward = camera.transform.forward;
         Vector3 right = camera.transform.right;
@@ -207,7 +207,7 @@ public class PlayerMovement : MonoBehaviour
    
     void UpdateSegments()
     {
-        if(_controller.state != PlayerState.Locomotion)
+        if(PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
             return;
         for (int i = 1; i < segments.Count; i++)
         {

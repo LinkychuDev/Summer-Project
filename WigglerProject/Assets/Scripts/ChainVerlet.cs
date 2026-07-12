@@ -31,7 +31,7 @@ public class ChainVerlet : MonoBehaviour
     [SerializeField] private float scaleFactor = 0.5f;
 
 
-    [SerializeField] private PlayerController controller;
+    [SerializeField] private PlayerReferenceManager controller;
     private void Awake()
     {
         lineRenderer = GetComponent<LineRenderer>();

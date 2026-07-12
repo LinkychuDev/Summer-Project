@@ -24,7 +24,6 @@ public class PlayerSwing : MonoBehaviour
 
     private float currentSwingAngle;
     
-    private PlayerController controller;
     Rigidbody headSegment;
     Rigidbody bodySegment;
     Rigidbody tailSegment;
@@ -76,14 +75,21 @@ public class PlayerSwing : MonoBehaviour
     Collider tailCollider;
     Collider headCollider;
     Collider bodyCollider;
-    
+
+
+    [SerializeField] private Transform bodyOpen;
+    [SerializeField] private Transform headClose;
+    Vector3 headClosePos;
+    Vector3 bodyOpenPos;
     [SerializeField] private float swingDamp;
+    
+    [SerializeField] Vector3 headTargetRotation = new Vector3(-90f, 0f, 0f);
     void Start()
     {
-        controller = GetComponent<PlayerController>();
-        headSegment = controller.headSegment;
-        bodySegment = controller.bodySegment;
-        tailSegment = controller.tailSegment;
+   
+        headSegment = PlayerReferenceManager.instance.headSegment;
+        bodySegment = PlayerReferenceManager.instance.bodySegment;
+        tailSegment = PlayerReferenceManager.instance.tailSegment;
     }
     
     
@@ -98,14 +104,15 @@ public class PlayerSwing : MonoBehaviour
         //make this a sequence
         //stretchState = StretchState.Swinging;
         //Vector3 anchorPoint = hook.transform.position - hook.swingAnchor;
+      
 
         hookReference = hook;
         hookPoint = hookReference.swingAnchor;
         hookPoint.transform.localPosition = Vector3.zero;
         hookPoint.rotation = Quaternion.Euler(0, 0, 0);
         headSegment.isKinematic = true;
-        headSegment.position = hookPoint.position;
-
+        headSegment.rotation = Quaternion.Euler(0, 90f, 0);
+        
         headCollider = headSegment.GetComponent<SphereCollider>();
         bodyCollider = bodySegment.GetComponent<SphereCollider>();
         tailCollider = tailSegment.GetComponent<SphereCollider>();
@@ -118,22 +125,23 @@ public class PlayerSwing : MonoBehaviour
         Sequence hookSequence = DOTween.Sequence();
         
         
-        
+        headClosePos = headClose.localPosition;
+        bodyOpenPos = bodyOpen.localPosition;
        
 
 
         hookSequence.Append(headSegment.transform.DOMove(hookPoint.transform.position, swingSetUpDuration));
        
+        //hookSequence.Join(headSegment.transform.DORotate(headSegment.rotation.eulerAngles + headTargetRotation, swingSetUpDuration));
         //headSegment.transform.SetParent(hookPoint, true);
 
         headSegment.isKinematic = true;
 
-        headSegment.transform.rotation = Quaternion.Euler(0, 90f, 0);
-
-        Vector3 targetBodyPosition =
-            hookPoint.position + (swingLength * (Vector3.down * (controller.bodyOffset)));
         
-        Vector3 targetTailPosition = targetBodyPosition + (Vector3.down * (controller.tailOffset));
+        Vector3 targetBodyPosition =
+            hookPoint.position + (swingLength * (Vector3.down * (PlayerReferenceManager.instance.bodyOffset)));
+        
+        Vector3 targetTailPosition = targetBodyPosition + (Vector3.down * (PlayerReferenceManager.instance.tailOffset));
         hookSequence.Join(bodySegment.DOMove(targetBodyPosition, swingSetUpDuration)).SetEase(Ease.OutBounce);
         
         
@@ -143,6 +151,11 @@ public class PlayerSwing : MonoBehaviour
         hookSequence.OnComplete(() =>
         {
 
+            
+            headClose.localPosition = new Vector3(headClosePos.x, headClosePos.z, headClosePos.y);
+            bodyOpen.localPosition = new Vector3(bodyOpenPos.x, bodyOpenPos.z, bodyOpenPos.y);
+            
+            
             bodySegment.position = new Vector3(headSegment.position.x, bodySegment.position.y, headSegment.position.z);
             bodySegment.transform.rotation = headSegment.transform.rotation;
             
@@ -180,12 +193,16 @@ public class PlayerSwing : MonoBehaviour
             bodyJoint.connectedBody = headSegment;
             tailJoint.connectedBody = bodySegment;
 
+            
+            bodyJoint.autoConfigureConnectedAnchor = false;
+            tailJoint.autoConfigureConnectedAnchor = false;
+            
+            
             bodyJoint.anchor = new Vector3(0, bodySegment.transform.InverseTransformPoint(headSegment.position).y, 0);
             tailJoint.anchor = new Vector3(0, tailSegment.transform.InverseTransformPoint(bodySegment.position).y, 0);
             
             
-            bodyJoint.autoConfigureConnectedAnchor = false;
-            tailJoint.autoConfigureConnectedAnchor = false;
+       
             
             bodyJoint.connectedAnchor = Vector3.zero;
             tailJoint.connectedAnchor = Vector3.zero;
@@ -256,6 +273,7 @@ public class PlayerSwing : MonoBehaviour
 
         });
 
+       
         //swingLength = Mathf.Abs(swingLength);
 
 
@@ -372,7 +390,7 @@ public class PlayerSwing : MonoBehaviour
        
         
         
-        //controller.SetState(PlayerState.Locomotion);
+        //PlayerReference.instance.SetState(PlayerState.Locomotion);
         //hookReference = null;
         
        
@@ -393,6 +411,8 @@ public class PlayerSwing : MonoBehaviour
         tailSegment.linearDamping = 0.3f;
         
         isSwingingSetUp = false;
+        
+       
         StartCoroutine(ResetSwing());
 
 
@@ -419,7 +439,8 @@ public class PlayerSwing : MonoBehaviour
         tailSegment.angularDamping = cachedDampingTailAngular;*/
 
         //apply gravity
-        
+        headClose.localPosition = new Vector3(headClosePos.x, headClosePos.y, headClosePos.z);
+        bodyOpen.localPosition = new Vector3(bodyOpenPos.x, bodyOpenPos.y, bodyOpenPos.z);
         
         //launch velocity
         float x = Mathf.Sin(lastSwingAngle * Mathf.Deg2Rad);
@@ -453,13 +474,13 @@ public class PlayerSwing : MonoBehaviour
         
         bodySegment.transform.forward = Vector3.right;
         tailSegment.transform.forward = Vector3.right;
-        headSegment.DOMove(bodySegment.position - (bodySegment.transform.right * controller.bodyOffset), downTime).OnComplete(() =>
+        headSegment.DOMove(bodySegment.position - (bodySegment.transform.right * PlayerReferenceManager.instance.bodyOffset), downTime).OnComplete(() =>
         {
             
             hookReference.EnableCollisions();
             hookReference = null;
             hookPoint = null;
-            controller.SetState(PlayerState.Locomotion);
+            PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
         });
         
         //wait for grounded callback
@@ -477,7 +498,7 @@ public class PlayerSwing : MonoBehaviour
 
     bool HasHitSomething(Collider segmentCollider)
     {
-        if(Physics.CheckSphere(segmentCollider.attachedRigidbody.position, segmentCollider.bounds.extents.x + ( collisionDistance), controller.playerCollisionMask))
+        if(Physics.CheckSphere(segmentCollider.attachedRigidbody.position, segmentCollider.bounds.extents.x + ( collisionDistance), PlayerReferenceManager.instance.playerCollisionMask))
         {
             return true;
         }

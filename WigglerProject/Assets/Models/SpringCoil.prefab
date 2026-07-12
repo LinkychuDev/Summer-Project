@@ -9,7 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8650645424802014483}
-  m_Layer: 0
+  - component: {fileID: 1716908056032335628}
+  m_Layer: 6
   m_Name: SpringCoil
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -32,6 +33,27 @@ Transform:
   - {fileID: 3078766162374265344}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -158.5, z: 0}
+--- !u!135 &1716908056032335628
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3174802076730260709}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.17
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &2664715603373330903
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -80,9 +102,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4638713870766306478, guid: b58f34baadd99e348b1819b3e18d7008, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6584537260243047803, guid: b58f34baadd99e348b1819b3e18d7008, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: fc1b4a722102d9b478756271572049d1, type: 2}
     - target: {fileID: 8905941407910297404, guid: b58f34baadd99e348b1819b3e18d7008, type: 3}
       propertyPath: m_Name
       value: GameObject
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905941407910297404, guid: b58f34baadd99e348b1819b3e18d7008, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

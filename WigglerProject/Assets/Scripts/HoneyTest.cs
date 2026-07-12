@@ -55,7 +55,7 @@ public class HoneyTest : MonoBehaviour
     IEnumerator StickDuration()
     {
         
-        if (currentStuckObject.TryGetComponent(out PlayerController controller))
+        if (currentStuckObject.TryGetComponent(out PlayerReferenceManager controller))
         {
             controller.SetState(PlayerState.Stuck);
             //currentStuckObject.position = transform.position;
