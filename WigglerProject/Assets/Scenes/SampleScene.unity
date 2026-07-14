@@ -1438,7 +1438,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2440bb45ab966b94dbf0e4d7b5d66744, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerGrab
-  grabDetectionRadius: 0.4
+  grabDetectionRadius: 0.08
+  maxGrabDistance: 0.5
 --- !u!1 &436708728 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 254257a7927fc564ba336c6fc45ec09a, type: 3}
@@ -4917,6 +4918,7 @@ GameObject:
   - component: {fileID: 1716918743}
   - component: {fileID: 1716918742}
   - component: {fileID: 1716918746}
+  - component: {fileID: 1716918747}
   m_Layer: 0
   m_Name: Cube (4)
   m_TagString: Untagged
@@ -5030,6 +5032,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnvironmentObject
   OnHoney: 1
+--- !u!54 &1716918747
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1716918741}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 1
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1001 &1744908089
 PrefabInstance:
   m_ObjectHideFlags: 0

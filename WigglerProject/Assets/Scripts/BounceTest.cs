@@ -9,9 +9,15 @@ public class BounceTest : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(!(other.TryGetComponent(out PlayerReferenceManager player)))
+        if(!(other.TryGetComponent(out PlayerController player)))
             return;
         Debug.Log("Bounce");
-        player.Bounce(bounceHeight);
+        Bounce();
+    }
+    
+    public void Bounce()
+    {
+        var jumpVelocity = PlayerReferenceManager.instance.headSegment.mass * Mathf.Sqrt(bounceHeight * -2 * PlayerReferenceManager.instance.gravity) - (Time.fixedDeltaTime * PlayerReferenceManager.instance.gravity / 2);
+        PlayerReferenceManager.instance.headSegment.AddForce(Vector3.up * jumpVelocity, ForceMode.Impulse);
     }
 }

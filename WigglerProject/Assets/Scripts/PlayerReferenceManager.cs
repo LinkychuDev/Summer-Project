@@ -1,9 +1,13 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
+
+#region PlayerStateSetup
+
+
 
 
 public enum PlayerState
@@ -30,7 +34,7 @@ public class Segment
     public float spacingToNextSegment;
     [HideInInspector] public Rigidbody rb;
     [HideInInspector] public bool isGrounded;
-
+   
     [HideInInspector] public PlayerSpringConnector springConnector;
     public void Initialise()
     {
@@ -66,16 +70,18 @@ public class CachedPosition
     }
 }
 
+#endregion
 
 
 public class PlayerReferenceManager : MonoBehaviour, IStickable
 {
 
+    public LayerMask groundMask;
     public static PlayerReferenceManager instance;
     public List<Segment> segments = new List<Segment>();
     public PlayerState currentState;
     public PlayerState lastState;
-
+    public float gravity = -15f;
     public Sequence sequence;
     [HideInInspector] public Rigidbody headSegment, bodySegment, tailSegment;
     [SerializeField] private float bounceMultiplier = 200f;
@@ -99,7 +105,8 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     public static Action<PlayerState> OnStateChange;
 
     public bool isHoney;
-    
+    public bool isGrounded;
+
     private void Awake()
     {
 
@@ -192,15 +199,8 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         return lastState;
     }
 
-
-    public void Bounce(float bounceHeight)
-    {
-        foreach (Segment segment in segments)
-        {
-            segment.rb.AddForce(Vector3.up * bounceHeight * bounceMultiplier * Time.deltaTime, ForceMode.VelocityChange);
-            Debug.Log("Supposed to bounce");
-        }
-    }
+   
+   
 
     public bool CanStick()
     {

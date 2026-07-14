@@ -3,32 +3,35 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EnvironmentObject : MonoBehaviour
+public class EnvironmentObject : MonoBehaviour, IGrabbable
 {
     public bool OnHoney = false;
-    private Transform originalParent;
     private int originalLayer;
+    private FixedJoint joint;
 
 
     private void Awake()
     {
-        originalParent = transform.parent;
         originalLayer = gameObject.layer;
     }
 
+
+    public void SetupGrab(Rigidbody connectedBody)
+    {
+        if (joint != null)
+        {
+            ResetGrab();
+        }
+        
+        gameObject.layer = connectedBody.gameObject.layer;
+        joint = gameObject.AddComponent<FixedJoint>();
+        joint.connectedBody = connectedBody;
+        joint.connectedMassScale = 0.0001f;
+    }
     public void ResetGrab()
     {
-        if (originalParent != null)
-        {
-            transform.SetParent(originalParent);
-        }
-
-        else
-        {
-            transform.parent = null;
-        }
-
-
+        Destroy(joint);
+        joint = null;
         gameObject.layer = originalLayer;
     }
     

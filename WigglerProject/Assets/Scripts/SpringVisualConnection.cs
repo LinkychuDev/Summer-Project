@@ -114,6 +114,8 @@ public class SpringVisualConnection : MonoBehaviour
     private void Update()
     {
         //ApplyRotations();
+        
+        //ApplyRotations();
         UpdateSpline();
         
     }
@@ -127,7 +129,7 @@ public class SpringVisualConnection : MonoBehaviour
             //UpdateTransforms();
         }
         
-       // ApplyRotations();
+       
     }
 
     void Simulate()

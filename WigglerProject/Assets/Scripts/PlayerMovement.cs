@@ -15,6 +15,7 @@ public class PlayerMovement : MonoBehaviour
     public float speed;
     public float maxSpeed;
     public float turnSpeed;
+
     
     
     private List<Segment> segments = new List<Segment>();
@@ -31,9 +32,12 @@ public class PlayerMovement : MonoBehaviour
 
     private float verticalVelocity;
    
-    public float gravity = -9.81f;
+    
 
-    [SerializeField] private float movementMultiplier = 50f;
+    [SerializeField] private float groundMultiplier = 1f;
+    [SerializeField] private float airMultiplier = 0.2f;
+    private float movementMultiplier;
+    
     public bool isGrounded;
   
     
@@ -43,7 +47,7 @@ public class PlayerMovement : MonoBehaviour
    // public InputActionReference moveInput;
     
     
-    public LayerMask groundMask;
+    
     public float groundDistance = 0.4f;
     public float groundRadius = 0.2f;
     public Transform groundCheck;
@@ -99,7 +103,7 @@ public class PlayerMovement : MonoBehaviour
     void GroundCheck()
     {
         if (Physics.SphereCast(groundCheck.position, groundRadius, Vector3.down, out RaycastHit hit, groundDistance,
-                groundMask))
+                PlayerReferenceManager.instance.groundMask))
         {
             if (Vector3.Angle(hit.normal, Vector3.up) < GroundAngleLimit)
             {
@@ -120,6 +124,8 @@ public class PlayerMovement : MonoBehaviour
         {
             isGrounded = false;
         }
+        
+        PlayerReferenceManager.instance.isGrounded = isGrounded;
     }
 
     void HandleDrag()
@@ -127,11 +133,13 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded)
         {
             _rigidbody.linearDamping = groundDrag;
+            movementMultiplier = groundMultiplier;
         }
 
         else
         {
             _rigidbody.linearDamping = airDrag;
+            movementMultiplier = airMultiplier;
         }
     }
 
@@ -140,7 +148,7 @@ public class PlayerMovement : MonoBehaviour
     {
         HandleRotation();
         
-        _rigidbody.AddForce(gravity  * Vector3.up, ForceMode.Acceleration);
+        _rigidbody.AddForce(PlayerReferenceManager.instance.gravity  * Vector3.up, ForceMode.Acceleration);
        
         
         
@@ -154,17 +162,17 @@ public class PlayerMovement : MonoBehaviour
         
        // _rigidbody.MovePosition(_rigidbody.position + finalVel);
 
-
        Vector3 currentVelocity = _rigidbody.linearVelocity;
        currentVelocity.y = 0;
 
        Vector3 targetVelocity = moveDir.normalized * speed;
        Vector3 velocityChange = targetVelocity - currentVelocity;
-           
+
        velocityChange = Vector3.ClampMagnitude(velocityChange, maxSpeed);
        // float input = PIDController.Update(Time.fixedDeltaTime, currentVelocity * moveDir,  )
-       _rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
-          
+       _rigidbody.AddForce(velocityChange * movementMultiplier, ForceMode.VelocityChange);
+       
+
        /*body.position = Vector3.Lerp(body.position, transform.position - (bodyHeadSpacing * transform.forward), bodyReactTime * Time.deltaTime);
        tail.position = Vector3.Lerp(tail.position, body.position - (tailBodySpacing * transform.forward), tailReactTime * Time.deltaTime);*/
 
@@ -274,7 +282,7 @@ public class PlayerMovement : MonoBehaviour
                 Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
                 
                 
-                segments[i].t.transform.rotation = (Quaternion.Slerp(segments[i].t.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime));
+                segments[i].t.transform.rotation = (Quaternion.Slerp(segments[i].t.rotation, targetRotation, turnSpeed * movementMultiplier * Time.fixedDeltaTime));
                
             }
 

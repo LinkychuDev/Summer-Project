@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -37,7 +38,7 @@ public class PlayerSwing : MonoBehaviour
     private HingeJoint headJoint, bodyJoint, tailJoint;
     
 
-    [SerializeField] private float gravity = -15f;
+    
 
     [SerializeField] private float springDamper = 0.2f;
 
@@ -79,11 +80,33 @@ public class PlayerSwing : MonoBehaviour
 
     [SerializeField] private Transform bodyOpen;
     [SerializeField] private Transform headClose;
+    [SerializeField] private Transform bodyClose;
+    [SerializeField] private Transform tailOpen;
     Vector3 headClosePos;
     Vector3 bodyOpenPos;
+    Vector3 bodyClosePos;
+    Vector3 tailOpenPos;
     [SerializeField] private float swingDamp;
     
     [SerializeField] Vector3 headTargetRotation = new Vector3(-90f, 0f, 0f);
+
+
+
+
+
+    [Header("Parabola")] 
+    [SerializeField] private float maxHeight;
+    [SerializeField] private float minHeight;
+    [SerializeField] private float minDistance;
+    [SerializeField] private float maxDistance;
+    [SerializeField] private int parabolaPoints;
+    [SerializeField] private LineRenderer trajectoryLine;
+    private float parabolaHeight;
+    [SerializeField] private float curveLength;
+    List<Vector3> pathPoints = new List<Vector3>();
+    Vector3 TargetSwingPosition;
+    [SerializeField] private float launchRatio;
+
     void Start()
     {
    
@@ -98,8 +121,10 @@ public class PlayerSwing : MonoBehaviour
         if(hook ==  null)
             return;
         
-        isSwingingSetUp = false;
         
+        isSwingingSetUp = false;
+        trajectoryLine.positionCount = parabolaPoints;
+        trajectoryLine.enabled = true;
        
         //make this a sequence
         //stretchState = StretchState.Swinging;
@@ -127,8 +152,11 @@ public class PlayerSwing : MonoBehaviour
         
         headClosePos = headClose.localPosition;
         bodyOpenPos = bodyOpen.localPosition;
-       
+        bodyClosePos = bodyClose.localPosition;
+        tailOpenPos = tailOpen.localPosition;
 
+        pathPoints.Clear();
+        
 
         hookSequence.Append(headSegment.transform.DOMove(hookPoint.transform.position, swingSetUpDuration));
        
@@ -154,7 +182,8 @@ public class PlayerSwing : MonoBehaviour
             
             headClose.localPosition = new Vector3(headClosePos.x, headClosePos.z, headClosePos.y);
             bodyOpen.localPosition = new Vector3(bodyOpenPos.x, bodyOpenPos.z, bodyOpenPos.y);
-            
+            bodyClose.localPosition = new Vector3(bodyClosePos.x, bodyClosePos.z, bodyClosePos.y);
+            tailOpen.localPosition = new Vector3(tailOpenPos.x, tailOpenPos.z, tailOpenPos.y);
             
             bodySegment.position = new Vector3(headSegment.position.x, bodySegment.position.y, headSegment.position.z);
             bodySegment.transform.rotation = headSegment.transform.rotation;
@@ -320,8 +349,8 @@ public class PlayerSwing : MonoBehaviour
 
         if (useGravity)
         {
-            bodySegment.AddForce(gravity * Vector3.up, ForceMode.Acceleration);
-            tailSegment.AddForce(gravity * Vector3.up, ForceMode.Acceleration);
+            bodySegment.AddForce(PlayerReferenceManager.instance.gravity * Vector3.up, ForceMode.Acceleration);
+            tailSegment.AddForce(PlayerReferenceManager.instance.gravity * Vector3.up, ForceMode.Acceleration);
         }
 
 
@@ -346,17 +375,50 @@ public class PlayerSwing : MonoBehaviour
 
         lastSwingAngle = tailJoint.angle;
         accumulatedAngularVelocity = tailSegment.angularVelocity;
+        accumulatedVelocity = tailSegment.linearVelocity;
         Debug.Log("2Accumulated Velocity: " +accumulatedAngularVelocity);
-        Debug.Log("2Joint Velocity: " + tailJoint.velocity);
-        Debug.Log("2Joint Body Velocity: " + bodyJoint.velocity);
+        Debug.Log("Rigidbody Velocity: " + accumulatedVelocity);
 
+        
+        
+        TargetSwingPosition = new Vector3(tailSegment.position.x + input * (minDistance + (accumulatedVelocity.magnitude * launchRatio))  , tailSegment.position.y, tailSegment.position.z);
+        
+
+       
+            
         //accumulatedVelocity = bodySegment.transform.forward * bodyJoint.velocity;
-
         //is at max swing
-
+        CalculateSwingTrajectory(tailSegment.position, TargetSwingPosition);
 
     }
 
+
+    void CalculateSwingTrajectory(Vector3 startPosition, Vector3 endPosition)
+    {
+        pathPoints.Clear();
+        for (int i = 0; i < parabolaPoints; i++)
+        {
+            float t = (float)i / (parabolaPoints -1);
+            
+            Vector3 point = ParabolaCalculator(startPosition, endPosition, t);
+            pathPoints.Add(point);
+            
+        }
+        
+        
+        if (Physics.Raycast(pathPoints[^1], Vector3.down, out RaycastHit hit, Mathf.Infinity, PlayerReferenceManager.instance.groundMask))
+        {
+            pathPoints.Add(hit.point);
+            Debug.Log("Ground Detected: " + hit.point);
+        }
+
+        else
+        {
+            Debug.Log("No Ground Detected");
+        }
+        trajectoryLine.SetPositions(pathPoints.ToArray());
+        
+    }
     void ReleaseEvent()
     {
         if(hookReference == null)
@@ -396,24 +458,32 @@ public class PlayerSwing : MonoBehaviour
        
     }
 
+    public Vector3 ParabolaCalculator(Vector3 start, Vector3 end, float timeStep)
+    {
+        Vector3 linePoint = Vector3.Lerp(start, end, timeStep);
+        
+        float parabola = -4f * minHeight * (timeStep * timeStep - timeStep);
+        
+        linePoint.y += parabola;
+        
+        return linePoint;
+    }
     void LaunchEvent()
     {
         //tailSegment.AddForce(tailSegment.transform.forward * springSpeed, ForceMode.VelocityChange);
-       
-        
-        
-        
-        
- 
-        bodySegment.constraints = RigidbodyConstraints.FreezePositionZ;
-        tailSegment.constraints = RigidbodyConstraints.FreezePositionZ;
-        bodySegment.linearDamping = 0.3f;
-        tailSegment.linearDamping = 0.3f;
+
+
+
+
+
+        headSegment.isKinematic = true;
+        bodySegment.isKinematic = true;
+        tailSegment.isKinematic = true;
         
         isSwingingSetUp = false;
         
        
-        StartCoroutine(ResetSwing());
+        ResetSwing();
 
 
         /*
@@ -431,70 +501,55 @@ public class PlayerSwing : MonoBehaviour
 
     }
 
-    IEnumerator ResetSwing()
+    void ResetSwing()
     {
-        /*bodySegment.linearDamping = cachedDampingBody;
-        bodySegment.angularDamping = cachedDampingBodyAngular;
-        tailSegment.linearDamping = cachedDampingTail;
-        tailSegment.angularDamping = cachedDampingTailAngular;*/
-
-        //apply gravity
         headClose.localPosition = new Vector3(headClosePos.x, headClosePos.y, headClosePos.z);
         bodyOpen.localPosition = new Vector3(bodyOpenPos.x, bodyOpenPos.y, bodyOpenPos.z);
-        
-        //launch velocity
-        float x = Mathf.Sin(lastSwingAngle * Mathf.Deg2Rad);
-        float y = Mathf.Cos(lastSwingAngle * Mathf.Deg2Rad);
-        
-        
-
-        Vector3 launchVector = new Vector3(x, y);
-        
-        launchVector.Normalize();
-
-        
-        Debug.Log("Angular Velocity Cached: " + accumulatedAngularVelocity);
-        launchVector += accumulatedAngularVelocity;
-        Debug.Log("Launch Vector: " + launchVector);
-
-        
-        //float timer = 0;
-        bodySegment.AddForce(launchVector  * bodyLaunchRatio, ForceMode.VelocityChange);
-        tailSegment.AddForce( launchVector  * tailLaunchRatio, ForceMode.VelocityChange);
-
-        while (!HasHitSomething(tailCollider) || !(HasHitSomething(bodyCollider)))
-        {
-            
-           
-            bodySegment.AddForce(gravity * Vector3.up, ForceMode.Acceleration);
-            tailSegment.AddForce(gravity  * Vector3.up, ForceMode.Acceleration);
-            yield return null;
-        }
+        bodyClose.localPosition = new Vector3(bodyClosePos.x, bodyClosePos.y, bodyClosePos.z);
+        tailOpen.localPosition = new Vector3(tailOpenPos.x, tailOpenPos.y, tailOpenPos.z);
         
         
         bodySegment.transform.forward = Vector3.right;
         tailSegment.transform.forward = Vector3.right;
-        headSegment.DOMove(bodySegment.position - (bodySegment.transform.right * PlayerReferenceManager.instance.bodyOffset), downTime).OnComplete(() =>
+
+        
+        
+        
+        
+        var positions = pathPoints.ToArray();
+        Sequence sequence = DOTween.Sequence();
+
+        sequence.Append(tailSegment.DOPath(positions, downTime)).OnUpdate(() =>
         {
-            
-            hookReference.EnableCollisions();
-            hookReference = null;
-            hookPoint = null;
-            PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
+            bodySegment.position = tailSegment.position - (tailSegment.transform.right * PlayerReferenceManager.instance.tailOffset);
+            headSegment.position = bodySegment.position - (bodySegment.transform.right * PlayerReferenceManager.instance.bodyOffset);
         });
         
-        //wait for grounded callback
         
-
-
-
-
-
+        
+        sequence.OnComplete(() =>
+        {
+            headSegment.isKinematic = false;
+            bodySegment.isKinematic = false;
+            tailSegment.isKinematic = false;
+            
+        });
+        
+        //headSegment.isKinematic = true;
+       
 
 
 
     }
 
+
+   
+      
+        
+    
+
+    
+   
 
     bool HasHitSomething(Collider segmentCollider)
     {
@@ -505,5 +560,30 @@ public class PlayerSwing : MonoBehaviour
         
         return false;
     }
-    
+
+    private void OnDrawGizmosSelected()
+    {
+        if (isSwingingSetUp)
+        {
+            
+            for (int i = 0; i < pathPoints.Count; i++)
+            {
+                if (i != pathPoints.Count - 1)
+                {
+                    Gizmos.color = Color.chartreuse;
+                    Gizmos.DrawWireSphere(pathPoints[i], 0.2f);
+                }
+
+                else
+                {
+                    Gizmos.color = Color.crimson;
+                    Gizmos.DrawWireSphere(pathPoints[i], 0.2f);
+                }
+            }
+
+
+            Gizmos.color = Color.slateBlue;
+            Gizmos.DrawLine(pathPoints[^1], pathPoints[^1] + (Vector3.down  * 10000));
+        }
+    }
 }
