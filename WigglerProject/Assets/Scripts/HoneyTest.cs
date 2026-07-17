@@ -31,6 +31,15 @@ public class HoneyTest : MonoBehaviour
     private Rigidbody currentStuckObject;
     private void OnTriggerEnter(Collider other)
     {
+        if (other.transform.parent != null)
+        {
+            if(transform.parent != null)
+            {
+                if (other.gameObject == transform.parent.gameObject)
+                return;
+            }
+        }
+
         if(other.attachedRigidbody == null)
             return;
         if(other.attachedRigidbody.isKinematic)
@@ -43,6 +52,11 @@ public class HoneyTest : MonoBehaviour
             return;
         if(!stickable.CanStick())
             return;
+        if (other.TryGetComponent(out EnvironmentObject environmentObject))
+        {
+            if(environmentObject.OnHoney)
+                return;
+        }
         currentStuckObject = other.attachedRigidbody;
         directionHit = transform.position - currentStuckObject.position;
         directionHit.y = 0;
@@ -84,6 +98,7 @@ public class HoneyTest : MonoBehaviour
         currentStuckObject = null;
         yield return new WaitForSeconds(coolDuration);
         isActive = true;
+        //Destroy(this);
         
     }
 

@@ -5,17 +5,15 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-#region PlayerStateSetup
-
-
-
+#region setup
 
 public enum PlayerState
 {
     Locomotion,
     Stretching,
     Stuck,
-    Swinging
+    Swinging,
+    Launching
 }
 
 [System.Serializable]
@@ -86,7 +84,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     [HideInInspector] public Rigidbody headSegment, bodySegment, tailSegment;
     [SerializeField] private float bounceMultiplier = 200f;
     public LayerMask playerCollisionMask;
-    public float honeyOffsetDown = 1;
+    public float honeyCooldown = 1;
     private PlayerStretch _stretch;
     
     [HideInInspector] public float bodyOffset;
@@ -106,7 +104,20 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
 
     public bool isHoney;
     public bool isGrounded;
+    public bool canStretch = true;
+    [SerializeField] private GameObject HoneyVisualiser;
+    [SerializeField] private GameObject StretchVisualiser;
 
+
+    public bool isOnCoyoteTime;
+    public bool useCoyoteTime;
+
+
+    public GameObject[] groundedCircle;
+
+    public float groundedCircleMaxDistance;
+
+    public bool launched;
     private void Awake()
     {
 
@@ -140,9 +151,36 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     private void Update()
     {
         //Handle Inputs
-        
+        DisplayCharacterCircles();
     }
     
+
+    void DisplayCharacterCircles()
+    {
+        for(int i = 0; i < segments.Count; i++)
+        {
+            if(Physics.Raycast(segments[i].rb.position, -segments[i].rb.transform.up, out RaycastHit hit, groundedCircleMaxDistance, groundMask))
+            {
+                Vector3 direction = Vector3.ProjectOnPlane(groundedCircle[i].transform.up, hit.normal);
+
+                var rot = Quaternion.LookRotation(direction);
+
+                groundedCircle[i].transform.rotation = rot;
+
+                groundedCircle[i].transform.position = hit.point;
+
+                if(!groundedCircle[i].activeSelf)
+                {
+                    groundedCircle[i].SetActive(true);
+                }
+            }
+
+            else
+            {
+                groundedCircle[i].SetActive(false);
+            }
+        }
+    }
     
 
     public void SetState(PlayerState newState)
@@ -154,7 +192,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
                 bodySegment.isKinematic = true;
                 tailSegment.isKinematic = true;
                
-                headSegment.constraints = RigidbodyConstraints.FreezePositionY;
+                headSegment.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
                 
                 //segments[0].rb.useGravity = false;
                 break;
@@ -166,6 +204,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
                 headSegment.constraints = RigidbodyConstraints.FreezeRotation;
                 bodySegment.constraints = RigidbodyConstraints.FreezeRotation;
                 tailSegment.constraints = RigidbodyConstraints.FreezeRotation;
+                
                 //segments[0].rb.useGravity = true;
                 break;
             case PlayerState.Stuck:
@@ -180,6 +219,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
                 bodySegment.isKinematic = true;
                 tailSegment.isKinematic = true;
                 break;
+            
                 
         }
 
@@ -204,7 +244,32 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
 
     public bool CanStick()
     {
-        return currentState == PlayerState.Stretching;
+        bool canStick;
+        if (isHoney)
+        {
+            if (currentState == PlayerState.Stretching)
+            {
+
+                canStick = true;
+            }
+
+            else
+            {
+                canStick = false;
+            }
+           
+        }
+
+        else
+        {
+            canStick = false;
+        }
+
+        Debug.Log("CanStick: " + canStick);
+        
+
+        return canStick;
+        //return currentState == PlayerState.Stretching;
     }
 
 
@@ -245,7 +310,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         
 
 
-        Debug.Log(cachedHeadMovementPositions.Count);
+    
         
         // UpdateSegments();
     }
@@ -267,5 +332,38 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
             Gizmos.DrawWireSphere(cachedHeadMovementPositions[i].lastPosition, distanceRadius);
         }
       
+    }
+
+   
+
+    public void Honeyfied(bool val)
+    {
+        StopCoroutine(HoneyCooldown());
+        isHoney = val;
+        HoneyVisualiser.SetActive(val);
+
+        if (val)
+        {
+            StartCoroutine(HoneyCooldown());
+        }
+
+    }
+
+    IEnumerator HoneyCooldown()
+    {
+        if (PlayerStretch.stretchState == PlayerStretch.StretchState.Retracting)
+        {
+            yield return new WaitUntil(() =>
+                PlayerStretch.stretchState != PlayerStretch.StretchState.Retracting ||
+                currentState != PlayerState.Stretching);
+        }
+        else
+        {
+            yield return new WaitForSeconds(honeyCooldown);
+        }
+        isHoney = false;
+        HoneyVisualiser.SetActive(false);
+        
+        //Honeyfied(false);
     }
 }

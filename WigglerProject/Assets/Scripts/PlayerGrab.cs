@@ -16,7 +16,9 @@ public class PlayerGrab : MonoBehaviour
     
     float targetGrabRadius;
     
-    
+    [SerializeField] private bool onlyGrabWhenRetracting;
+
+    [SerializeField] private float grabOffset = 0.5f;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -47,56 +49,62 @@ public class PlayerGrab : MonoBehaviour
     void Update()
     {
         //targetGrabRadius = grabDetectionRadius + collisionRadius;
-        if(targetObject != null)
-            return;
+       
         if (PlayerReferenceManager.instance.CanStick())
         {
-            
-            if(Physics.SphereCast(headRigidbody.transform.position, grabDetectionRadius, headRigidbody.transform.forward, out RaycastHit hit, maxGrabDistance, PlayerReferenceManager.instance.playerCollisionMask))
+
+            if (targetObject == null)
             {
-                if (hit.transform.TryGetComponent(out EnvironmentObject environmentObject))
-                {
-                    if (PlayerReferenceManager.instance.isHoney)
-                    {
-                        environmentObject.SetupGrab(headRigidbody);
-                    }
-
-                    else if (environmentObject.OnHoney)
-                    {
-                        environmentObject.SetupGrab(headRigidbody);
-                    }
-
-
-                    targetObject = environmentObject;
-                }
+                DetectGrab();
             }
-            /*var size = Physics.OverlapSphereNonAlloc(headRigidbody.position + headRigidbody.transform.forward , grabDetectionRadius, interactionColliders, PlayerReferenceManager.instance.playerCollisionMask);
-            if (size > 0)
+
+            else
             {
+                GrabObject();
+            }
 
-                if (interactionColliders[0].TryGetComponent(out EnvironmentObject environmentObject))
-                {
-                    if (PlayerReferenceManager.instance.isHoney)
-                    {
-                        environmentObject.SetupGrab(headRigidbody);
-                    }
+        }
 
-                    else if(environmentObject.OnHoney)
-                    {
-                        environmentObject.SetupGrab(headRigidbody);
-                    }
-
-
-                    targetObject = environmentObject;
-
-                }
-            }*/
-            
-            
-            
-            
+        else
+        {
+            if (targetObject != null)
+            {
+                Debug.Log("Called");
+                targetObject.ResetGrab();
+                targetObject = null;
+            }
         }
         
+    }
+
+    private void DetectGrab()
+    {
+        if (Physics.SphereCast(headRigidbody.transform.position, grabDetectionRadius,
+                headRigidbody.transform.forward, out RaycastHit hit, maxGrabDistance,
+                PlayerReferenceManager.instance.playerCollisionMask))
+        {
+            if (hit.transform.TryGetComponent(out EnvironmentObject environmentObject))
+            {
+                if (PlayerReferenceManager.instance.isHoney)
+                {
+                    environmentObject.SetupGrab(headRigidbody);
+                }
+
+                else if (environmentObject.OnHoney)
+                {
+                    environmentObject.SetupGrab(headRigidbody);
+                }
+
+
+                targetObject = environmentObject;
+            }
+        }
+    }
+
+
+    void GrabObject()
+    {
+        targetObject.GrabMove(headRigidbody.position + headRigidbody.transform.forward * grabOffset);
     }
 
     private void OnDrawGizmosSelected()
