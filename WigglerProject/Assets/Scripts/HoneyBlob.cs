@@ -22,7 +22,7 @@ public class HoneyBlob : MonoBehaviour
     {
         if (other.TryGetComponent(out PlayerController playerController))
         {
-            PlayerReferenceManager.instance.Honeyfied(true);
+            playerController.Honeyfied(true);
             Debug.Log("Hit Player");
         }
 

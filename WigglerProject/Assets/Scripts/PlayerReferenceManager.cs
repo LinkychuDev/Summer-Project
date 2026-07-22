@@ -9,6 +9,7 @@ using UnityEngine.UI;
 
 public enum PlayerState
 {
+    Default,
     Locomotion,
     Stretching,
     Stuck,
@@ -30,13 +31,13 @@ public class Segment
     public Transform visual;
      public SegmentType type;
     public float spacingToNextSegment;
-    [HideInInspector] public Rigidbody rb;
+    [HideInInspector] public CharacterController characterController;
     [HideInInspector] public bool isGrounded;
-   
+    public Transform groundCheck;
     [HideInInspector] public PlayerSpringConnector springConnector;
     public void Initialise()
     {
-        rb = t.GetComponent<Rigidbody>();
+        characterController = t.GetComponent<CharacterController>();
         
         if (this.type != SegmentType.Head)
         {
@@ -81,12 +82,12 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     public PlayerState lastState;
     public float gravity = -15f;
     public Sequence sequence;
-    [HideInInspector] public Rigidbody headSegment, bodySegment, tailSegment;
-    [SerializeField] private float bounceMultiplier = 200f;
+    [HideInInspector] public CharacterController headSegment;
+    [HideInInspector] public CharacterController bodySegment;
+    [HideInInspector] public CharacterController tailSegment;
     public LayerMask playerCollisionMask;
-    public float honeyCooldown = 1;
-    private PlayerStretch _stretch;
     
+   
     [HideInInspector] public float bodyOffset;
     [HideInInspector] public float tailOffset;
 
@@ -101,12 +102,11 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     [Header("Debug")] [SerializeField] public float distanceRadius = 1;
     
     public static Action<PlayerState> OnStateChange;
-
-    public bool isHoney;
+    
     public bool isGrounded;
     public bool canStretch = true;
-    [SerializeField] private GameObject HoneyVisualiser;
-    [SerializeField] private GameObject StretchVisualiser;
+   
+   
 
 
     public bool isOnCoyoteTime;
@@ -118,6 +118,8 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     public float groundedCircleMaxDistance;
 
     public bool launched;
+    public bool isOnSlope;
+
     private void Awake()
     {
 
@@ -131,15 +133,15 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
             segment.Initialise();
         }
 
-        headSegment = segments[0].rb;
-        bodySegment = segments[1].rb;
-        tailSegment = segments[2].rb;
+        headSegment = segments[0].characterController;
+        bodySegment = segments[1].characterController;
+        tailSegment = segments[2].characterController;
         
         bodyOffset = Mathf.Abs(segments[1].spacingToNextSegment);
         tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
         
-        cachedHeadMovementPositions.Add(new CachedPosition(headClose.position, headSegment.transform.forward, headSegment.linearVelocity));
-        _stretch = GetComponent<PlayerStretch>();
+        cachedHeadMovementPositions.Add(new CachedPosition(headClose.position, headSegment.transform.forward, headSegment.velocity));
+      
         
         
         
@@ -152,6 +154,8 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     {
         //Handle Inputs
         DisplayCharacterCircles();
+        
+        UpdateCachedHeadPositions(headClose.position, headSegment.transform.forward, headSegment.velocity);
     }
     
 
@@ -159,7 +163,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     {
         for(int i = 0; i < segments.Count; i++)
         {
-            if(Physics.Raycast(segments[i].rb.position, -segments[i].rb.transform.up, out RaycastHit hit, groundedCircleMaxDistance, groundMask))
+            if(Physics.Raycast(segments[i].characterController.transform.position, -segments[i].characterController.transform.up, out RaycastHit hit, groundedCircleMaxDistance, groundMask))
             {
                 Vector3 direction = Vector3.ProjectOnPlane(groundedCircle[i].transform.up, hit.normal);
 
@@ -188,36 +192,22 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         switch (newState)
         {
             case PlayerState.Stretching:
-                headSegment.isKinematic = false;
-                bodySegment.isKinematic = true;
-                tailSegment.isKinematic = true;
                
-                headSegment.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
                 
                 //segments[0].rb.useGravity = false;
                 break;
             case PlayerState.Locomotion:
-                headSegment.isKinematic = false;
-                bodySegment.isKinematic = false;
-                tailSegment.isKinematic = false;
+               
                 PlayerStretch.stretchState = PlayerStretch.StretchState.None;
-                headSegment.constraints = RigidbodyConstraints.FreezeRotation;
-                bodySegment.constraints = RigidbodyConstraints.FreezeRotation;
-                tailSegment.constraints = RigidbodyConstraints.FreezeRotation;
+              
                 
                 //segments[0].rb.useGravity = true;
                 break;
             case PlayerState.Stuck:
-                headSegment.linearVelocity = Vector3.zero;
-                isHoney = true;
-                headSegment.isKinematic = true;
-                bodySegment.isKinematic = true;
-                tailSegment.isKinematic = true;
+             
                 break;
             case PlayerState.Swinging:
-                headSegment.isKinematic = true;
-                bodySegment.isKinematic = true;
-                tailSegment.isKinematic = true;
+              
                 break;
             
                 
@@ -242,40 +232,12 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
    
    
 
-    public bool CanStick()
-    {
-        bool canStick;
-        if (isHoney)
-        {
-            if (currentState == PlayerState.Stretching)
-            {
-
-                canStick = true;
-            }
-
-            else
-            {
-                canStick = false;
-            }
-           
-        }
-
-        else
-        {
-            canStick = false;
-        }
-
-        Debug.Log("CanStick: " + canStick);
-        
-
-        return canStick;
-        //return currentState == PlayerState.Stretching;
-    }
+    
 
 
     private void FixedUpdate()
     {
-       UpdateCachedHeadPositions(headClose.position, headSegment.transform.forward, headSegment.linearVelocity);
+     
         //UpdateSegments();
     }
 
@@ -336,34 +298,5 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
 
    
 
-    public void Honeyfied(bool val)
-    {
-        StopCoroutine(HoneyCooldown());
-        isHoney = val;
-        HoneyVisualiser.SetActive(val);
-
-        if (val)
-        {
-            StartCoroutine(HoneyCooldown());
-        }
-
-    }
-
-    IEnumerator HoneyCooldown()
-    {
-        if (PlayerStretch.stretchState == PlayerStretch.StretchState.Retracting)
-        {
-            yield return new WaitUntil(() =>
-                PlayerStretch.stretchState != PlayerStretch.StretchState.Retracting ||
-                currentState != PlayerState.Stretching);
-        }
-        else
-        {
-            yield return new WaitForSeconds(honeyCooldown);
-        }
-        isHoney = false;
-        HoneyVisualiser.SetActive(false);
-        
-        //Honeyfied(false);
-    }
+   
 }

@@ -4,21 +4,42 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable
+public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IBreakable
 {
     public bool OnHoney = false;
     private int originalLayer;
    // private FixedJoint joint;
     public GameObject honeyObject;
     protected Rigidbody rb;
-    public bool isDynamic;
+    private bool isDynamic;
+
+    public float honeyCooldown;
+
+    protected bool isGrabbed = false;
+
+    protected FixedJoint joint;
+
+    public bool canGrab = true;
+
+    protected const float grabDistance = 0.1f;
+
+    private Transform originalParent;
     
-    bool isGrabbed = false;
-    private void Awake()
+    private Transform grabPointReference;
+
+    public bool isBreakable = false;
+    
+    //private Transform grabPoint;
+    protected virtual void Awake()
     {
         originalLayer = gameObject.layer;
         rb = GetComponent<Rigidbody>();
-        rb.isKinematic = !isDynamic;
+        isDynamic = rb.isKinematic;
+
+        if (transform.parent != null)
+        {
+            originalParent = transform.parent;
+        }
     }
 
 
@@ -31,32 +52,79 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable
     IEnumerator RemoveHoney()
     {
         Debug.LogWarning("Please replace honey cooldown with a GameManager version");
-        yield return new WaitForSeconds(PlayerReferenceManager.instance.honeyCooldown);
+        yield return new WaitForSeconds(honeyCooldown);
         honeyObject.SetActive(false);
     }
-    public void SetupGrab(Rigidbody connectedBody)
+    public virtual void SetupGrab(Transform grabPoint)
     {
+        if(!canGrab)
+            return;
         if (isGrabbed)
         {
             return;
         }
+        
         rb.isKinematic = false;
-        gameObject.layer = connectedBody.gameObject.layer;
-        //joint = gameObject.AddComponent<FixedJoint>();
-       // joint.connectedBody = connectedBody;
-        //joint.connectedMassScale = 0.0001f;
+        grabPointReference = grabPoint;
+        rb.useGravity = false;
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+        transform.parent = grabPointReference;
+        rb.MovePosition(grabPoint.position);
+        gameObject.layer = grabPoint.gameObject.layer;
+        isGrabbed = true;
+        
     }
-    public void ResetGrab()
+    public virtual void ResetGrab()
     {
-        //Destroy(joint);
-        //joint = null;
+       
+        
         isGrabbed = false;
         gameObject.layer = originalLayer;
-        rb.isKinematic =  !isDynamic;
+        rb.isKinematic =  isDynamic;
+        transform.parent = originalParent;
+        grabPointReference = null;
+        rb.useGravity = true;
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+
     }
 
-    public virtual void GrabMove(Vector3 headRigidbodyPosition)
+
+    protected virtual void Update()
     {
-        rb.MovePosition(headRigidbodyPosition);
+        if (isGrabbed)
+        {
+            GrabMove();
+        }
+    }
+
+    public virtual void GrabMove()
+    {
+        /*if (rb.position != headRigidbodyPosition)
+        {
+            rb.MovePosition(headRigidbodyPosition);
+        }*/
+
+        //if(!canGrab)
+        //    return;
+       // if(!isGrabbed)
+            return;
+        //Vector3 rotation = headRigidbodyPosition - rb.position;
+        
+       // rb.MovePosition(headRigidbodyPosition);
+        //rb.Move(Vector3.Lerp(rb.position, headRigidbodyPosition,  grabSpeed * Time.deltaTime), Quaternion.LookRotation(forwardVector, Vector3.up));
+        
+    }
+
+    public virtual void GrabIdle()
+    {
+      
+    }
+
+    public void Break()
+    {
+        if (isBreakable)
+        {
+            Destroy(gameObject);
+        }
     }
 }

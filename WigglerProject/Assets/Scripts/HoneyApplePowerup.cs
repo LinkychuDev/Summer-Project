@@ -8,7 +8,7 @@ public class HoneyApplePowerup : MonoBehaviour
             return;
         if (other.TryGetComponent(out PlayerController player))
         {
-            PlayerReferenceManager.instance.Honeyfied(true);
+            player.Honeyfied(true);
             if(PlayerReferenceManager.instance.currentState == PlayerState.Stretching)
                 return;
             if(PlayerReferenceManager.instance.canStretch)

@@ -26,9 +26,9 @@ public class PlayerSwing : MonoBehaviour
 
     private float currentSwingAngle;
 
-    Rigidbody headSegment;
-    Rigidbody bodySegment;
-    Rigidbody tailSegment;
+    CharacterController headSegment;
+    CharacterController bodySegment;
+    CharacterController tailSegment;
 
     //public InputActionReference swingInputReference;
 
@@ -139,10 +139,10 @@ public class PlayerSwing : MonoBehaviour
         hookPoint.transform.localPosition = Vector3.zero;
 
 
-        Vector3 direction = (headSegment.position - hookPoint.position).normalized;
-        headSegment.isKinematic = true;
-        headSegment.rotation = hookPoint.rotation;
-        headSegment.position = hookPoint.position;
+        Vector3 direction = (headSegment.transform.position - hookPoint.position).normalized;
+        //headSegment.isKinematic = true;
+        headSegment.transform.rotation = hookPoint.rotation;
+        headSegment.transform.position = hookPoint.position;
 
         headCollider = headSegment.GetComponent<SphereCollider>();
         bodyCollider = bodySegment.GetComponent<SphereCollider>();
@@ -169,17 +169,17 @@ public class PlayerSwing : MonoBehaviour
         //hookSequence.Join(headSegment.transform.DORotate(headSegment.rotation.eulerAngles + headTargetRotation, swingSetUpDuration));
         //headSegment.transform.SetParent(hookPoint, true);
 
-        headSegment.isKinematic = true;
+      
 
 
         Vector3 targetBodyPosition =
             hookPoint.position + (swingLength * (Vector3.down * (PlayerReferenceManager.instance.bodyOffset)));
 
         Vector3 targetTailPosition = targetBodyPosition + (Vector3.down * (PlayerReferenceManager.instance.tailOffset));
-        hookSequence.Join(bodySegment.DOMove(targetBodyPosition, swingSetUpDuration)).SetEase(Ease.OutBounce);
+        hookSequence.Join(bodySegment.transform.DOMove(targetBodyPosition, swingSetUpDuration)).SetEase(Ease.OutBounce);
 
 
-        hookSequence.Join(tailSegment.DOMove(targetTailPosition, swingSetUpDuration)).SetEase(Ease.OutBounce);
+        hookSequence.Join(tailSegment.transform.DOMove(targetTailPosition, swingSetUpDuration)).SetEase(Ease.OutBounce);
 
 
         hookSequence.OnComplete(() =>
@@ -187,21 +187,14 @@ public class PlayerSwing : MonoBehaviour
 
 
 
-            bodySegment.position = new Vector3(headSegment.position.x, bodySegment.position.y, headSegment.position.z);
+            bodySegment.transform.position = new Vector3(headSegment.transform.position.x, bodySegment.transform.position.y, headSegment.transform.position.z);
             bodySegment.transform.rotation = hookPoint.rotation;
 
 
-            tailSegment.position = new Vector3(headSegment.position.x, tailSegment.position.y, headSegment.position.z);
+            tailSegment.transform.position = new Vector3(headSegment.transform.position.x, tailSegment.transform.position.y, headSegment.transform.position.z);
             tailSegment.transform.rotation = hookPoint.rotation;
 
-            bodySegment.isKinematic = true;
-            tailSegment.isKinematic = true;
-
-
-            bodySegment.linearDamping = swingDamp;
-            //bodySegment.angularDamping = 0;
-            tailSegment.linearDamping = swingDamp;
-            //tailSegment.angularDamping = 0.05f;
+            
 
 
 
@@ -252,13 +245,13 @@ public class PlayerSwing : MonoBehaviour
         float input = swingInput.y;
 
         // Head stays fixed at hook point
-        headSegment.position = hookPoint.position;
+        headSegment.transform.position = hookPoint.position;
 
         swingDirection = -headSegment.transform.right;
 
 
         // Rope direction (from head to body)
-        Vector3 ropeDir = (bodySegment.position - headSegment.position).normalized;
+        Vector3 ropeDir = (bodySegment.transform.position - headSegment.transform.position).normalized;
 
         // Tangent direction (direction of swing)
         Vector3 tangent = Vector3.Cross(swingDirection, ropeDir).normalized;
@@ -274,13 +267,13 @@ public class PlayerSwing : MonoBehaviour
         swingVelocity *= swingDamp;
 
         // Move body
-        Vector3 newBodyPos = bodySegment.position + swingVelocity * Time.deltaTime;
+        Vector3 newBodyPos = bodySegment.transform.position + swingVelocity * Time.deltaTime;
 
 
 
         // Compute current angle
         // Compute current angle
-        float angle = Vector3.SignedAngle(Vector3.down, (newBodyPos - headSegment.position).normalized, swingDirection);
+        float angle = Vector3.SignedAngle(Vector3.down, (newBodyPos - headSegment.transform.position).normalized, swingDirection);
 
 
         float gravityForce = -Mathf.Sin(angle * Mathf.Deg2Rad) * Mathf.Abs(PlayerReferenceManager.instance.gravity);
@@ -301,16 +294,16 @@ public class PlayerSwing : MonoBehaviour
         Vector3 ropeDirClamped = rot * Vector3.down;
 
         // Enforce rope length
-        newBodyPos = headSegment.position + ropeDirClamped * swingLength;
+        newBodyPos = headSegment.transform.position + ropeDirClamped * swingLength;
 
 
         // Apply final body position
-        bodySegment.position = newBodyPos;
+        bodySegment.transform.position = newBodyPos;
 
 
 
         // Tail follows body
-        tailSegment.position = bodySegment.position + (-bodySegment.transform.up * PlayerReferenceManager.instance.tailOffset);
+        tailSegment.transform.position = bodySegment.transform.position + (-bodySegment.transform.up * PlayerReferenceManager.instance.tailOffset);
 
         // Rotate body toward swing direction
         Quaternion bodyRot = Quaternion.LookRotation(tangent, Vector3.up);
@@ -335,15 +328,7 @@ public class PlayerSwing : MonoBehaviour
         isSwinging = false;
         Debug.Log("Triggered");
         isSwinging = false;
-        headSegment.isKinematic = true;
-        bodySegment.isKinematic = false;
-        tailSegment.isKinematic = false;
-
-
-
-        bodySegment.constraints = RigidbodyConstraints.FreezeRotation;
-        tailSegment.constraints = RigidbodyConstraints.FreezeRotation;
-
+    
 
         PlayerReferenceManager.instance.launched = true;
 
@@ -359,11 +344,11 @@ public class PlayerSwing : MonoBehaviour
         float curvedLaunch = Mathf.Pow(swingVelocity.magnitude, 0.85f) * launchSpeed;
 
         // Apply forces
-        bodySegment.AddForce(launchDir * curvedLaunch * bodyLaunchRatio, ForceMode.VelocityChange);
-        tailSegment.AddForce(launchDir * curvedLaunch * tailLaunchRatio, ForceMode.VelocityChange);
+        bodySegment.Move(launchDir * curvedLaunch * bodyLaunchRatio * Time.deltaTime);
+        tailSegment.Move(launchDir * curvedLaunch * tailLaunchRatio * Time.deltaTime);
 
-        bodySegment.AddForce(jumpVel * bodyLaunchRatio, ForceMode.VelocityChange);
-        tailSegment.AddForce(jumpVel * tailLaunchRatio, ForceMode.VelocityChange);
+        bodySegment.Move(jumpVel * bodyLaunchRatio * Time.deltaTime);
+        tailSegment.Move(jumpVel * tailLaunchRatio * Time.deltaTime);
 
 
         yield return new WaitForSeconds(airTime);
@@ -396,16 +381,14 @@ public class PlayerSwing : MonoBehaviour
         bodySegment.transform.forward = Vector3.right;
         tailSegment.transform.forward = Vector3.right;
 
-        headSegment.isKinematic = false;
-        bodySegment.isKinematic = false;
-        tailSegment.isKinematic = false;
+    
         hookReference = null;
         hookPoint = null;
 
         trajectoryLine.enabled = false;
         Sequence sequence = DOTween.Sequence();
-        sequence.Append(headSegment.transform.DOMove(tailSegment.position + (tailSegment.transform.forward * (PlayerReferenceManager.instance.bodyOffset + PlayerReferenceManager.instance.tailOffset)), downTime));
-        sequence.Join(bodySegment.transform.DOMove(tailSegment.position + (tailSegment.transform.forward * PlayerReferenceManager.instance.bodyOffset), downTime));
+        sequence.Append(headSegment.transform.DOMove(tailSegment.transform.position + (tailSegment.transform.forward * (PlayerReferenceManager.instance.bodyOffset + PlayerReferenceManager.instance.tailOffset)), downTime));
+        sequence.Join(bodySegment.transform.DOMove(tailSegment.transform.position + (tailSegment.transform.forward * PlayerReferenceManager.instance.bodyOffset), downTime));
         sequence.Play();
 
 

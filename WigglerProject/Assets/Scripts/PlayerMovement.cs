@@ -20,7 +20,7 @@ public class PlayerMovement : MonoBehaviour
 
     private List<Segment> segments = new List<Segment>();
 
-    private Rigidbody _rigidbody;
+    private CharacterController _characterController;
 
     private Vector2 input;
 
@@ -31,7 +31,8 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 moveVelocity;
 
     private float verticalVelocity;
-
+    
+    
 
 
     [SerializeField] private float groundMultiplier = 1f;
@@ -83,10 +84,32 @@ public class PlayerMovement : MonoBehaviour
     public bool isOnCoyoteTime;
 
     float timeSinceLastGrounded;
+    [SerializeField] private float groundVelocity = -2f;
+    private RaycastHit slopeHit;
 
+    private bool isOnSturdy;
+
+    private float sturdyRatio;
     /*Vector3 targetBodyPosition;
     Vector3 targetTailPosition;*/
     // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+    private void OnEnable()
+    {
+        PlayerController.isOnSturdyEvent += OnSturdyEvent;
+    }
+
+    private void OnDisable()
+    {
+        PlayerController.isOnSturdyEvent -= OnSturdyEvent;
+    }
+
+    private void OnSturdyEvent(float arg1, bool arg2)
+    {
+        sturdyRatio = arg1;
+        isOnSturdy = arg2;
+    }
+
     void Start()
     {
 
@@ -95,22 +118,27 @@ public class PlayerMovement : MonoBehaviour
         segments.Add(PlayerReferenceManager.instance.segments[1]);
         segments.Add(PlayerReferenceManager.instance.segments[2]);
 
-        _rigidbody = segments[0].rb;
-        playerCollider = _rigidbody.GetComponent<SphereCollider>();
+        _characterController = segments[0].characterController;
+        playerCollider = _characterController.GetComponent<SphereCollider>();
         sphereRadius = playerCollider.radius;
         playerCam = Camera.main.transform;
 
-
+        _characterController.slopeLimit = GroundAngleLimit;
         //collisionDetection = _rigidbody.transform.GetComponent<CollisionDetection>();
     }
 
     private void Update()
     {
 
+        GroundCheck();
         if (PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
             return;
         HandleInput();
-
+       
+        HandleGravity();
+        HandleRotation();
+        HandleDrag();
+        Movement();
 
 
     }
@@ -131,42 +159,19 @@ public class PlayerMovement : MonoBehaviour
         moveDir.y = 0;
     }
 
-    private void FixedUpdate()
-    {
-        //isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
-
-        GroundCheck();
-
-        if (PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
-            return;
-        HandleGravity();
-        HandleRotation();
-        HandleDrag();
-        Movement();
-
-
-    }
-
+   
 
     void HandleGravity()
     {
-        if (isGrounded)
+        if (isGrounded && verticalVelocity < 0)
         {
-            if (isOnSlope)
-            {
-                // Keep player pinned to slope
-                _rigidbody.AddForce(Vector3.down * slopeDownForce, ForceMode.Acceleration);
-            }
-            else
-            {
-                // Normal gravity
-                _rigidbody.AddForce(PlayerReferenceManager.instance.gravity * Vector3.up, ForceMode.Acceleration);
-            }
+
+            verticalVelocity = (groundVelocity);
         }
         else
         {
             // Full gravity in air
-            _rigidbody.AddForce(PlayerReferenceManager.instance.gravity * Vector3.up, ForceMode.Acceleration);
+            verticalVelocity += PlayerReferenceManager.instance.gravity * (1/sturdyRatio) * Time.deltaTime;
         }
 
 
@@ -176,12 +181,30 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void GroundCheck()
+    private bool IsOnSlope()
+    {
+        Vector3 origin = _characterController.transform.position + Vector3.up * 0.1f;
+
+        if (Physics.Raycast(origin, Vector3.down, out slopeHit, _characterController.height * 0.5f + 0.2f))
+        {
+            float angle = Vector3.Angle(slopeHit.normal, Vector3.up);
+            isOnSlope = angle > 0.1f && angle <= GroundAngleLimit;
+        }
+        else
+        {
+            isOnSlope = false;
+        }
+
+        return isOnSlope;
+    }   
+
+    public void GroundCheck()
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundRadius, PlayerReferenceManager.instance.groundMask);
         PlayerReferenceManager.instance.isGrounded = isGrounded;
 
-
+        isOnSlope = IsOnSlope();
+        PlayerReferenceManager.instance.isOnSlope = isOnSlope;
         if (PlayerReferenceManager.instance.currentState == PlayerState.Locomotion)
         {
             if (isGrounded == false)
@@ -209,8 +232,7 @@ public class PlayerMovement : MonoBehaviour
 
             
             PlayerReferenceManager.instance.isOnCoyoteTime = isOnCoyoteTime;
-
-            isOnSlope = IsOnSlope(moveDir, ref slopeDir);
+            
         }
 
 
@@ -222,23 +244,12 @@ public class PlayerMovement : MonoBehaviour
     {
         if (isGrounded)
         {
-            _rigidbody.linearDamping = groundDrag;
-
-            if (isOnSlope)
-            {
-                movementMultiplier = slopeMultiplier;
-            }
-
-            else
-            {
-                movementMultiplier = groundMultiplier;
-            }
+            movementMultiplier = groundMultiplier;
 
         }
 
         else
         {
-            _rigidbody.linearDamping = airDrag;
             movementMultiplier = airMultiplier;
         }
     }
@@ -250,7 +261,7 @@ public class PlayerMovement : MonoBehaviour
 
 
 
-
+        Vector3 currentVelocity = moveVelocity;
         //movement
 
         //Vector3 moveVel = moveDir * (speed * Time.fixedDeltaTime) + (verticalVelocity * Time.fixedDeltaTime * Vector3.up);
@@ -261,25 +272,27 @@ public class PlayerMovement : MonoBehaviour
         // _rigidbody.MovePosition(_rigidbody.position + finalVel);
 
 
-
-        Vector3 currentVelocity = _rigidbody.linearVelocity;
         currentVelocity.y = 0;
-
-        Vector3 targetDirection = moveDir.normalized;
-
+        //Vector3 currentVelocity = _rigidbody.linearVelocity;
 
 
+        
+
+        var currAccel = input.magnitude > 0.01f ? acceleration * sturdyRatio : deceleration;
+        Vector3 targetVelocity = Vector3.MoveTowards(currentVelocity, moveDir * (speed * sturdyRatio * movementMultiplier), currAccel);
 
 
-        Vector3 targetVelocity = targetDirection * (speed * movementMultiplier * input.magnitude);
-        Vector3 velocityChange = targetVelocity - currentVelocity;
+        //SlopeCheck(targetVelocity);
+        
+        moveVelocity = targetVelocity + (Vector3.up * (verticalVelocity));
 
+        
+        
+        //_rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
 
+        _characterController.Move(moveVelocity  * Time.deltaTime);
 
-        velocityChange = Vector3.ClampMagnitude(velocityChange, maxSpeed);
-
-        _rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
-
+        
 
         /*body.position = Vector3.Lerp(body.position, transform.position - (bodyHeadSpacing * transform.forward), bodyReactTime * Time.deltaTime);
         tail.position = Vector3.Lerp(tail.position, body.position - (tailBodySpacing * transform.forward), tailReactTime * Time.deltaTime);*/
@@ -301,14 +314,11 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector3 direction = moveDir.normalized;
 
-            if (isOnSlope)
-            {
-                direction = slopeDir;
-            }
+            
 
             direction.y = 0;
             Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
-            transform.rotation = Quaternion.Slerp(_rigidbody.transform.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime);
+            transform.rotation = Quaternion.Slerp(_characterController.transform.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime);
             /*body.rotation =  Quaternion.Slerp(body.rotation, transform.rotation, bodyReactTime * Time.deltaTime);
             tail.rotation =  Quaternion.Slerp(tail.rotation, transform.rotation, tailReactTime * Time.deltaTime);*/
         }
@@ -318,6 +328,13 @@ public class PlayerMovement : MonoBehaviour
 
     }
 
+    public void Bounce(float height)
+    {
+        verticalVelocity += Mathf.Sqrt(-2 * PlayerReferenceManager.instance.gravity * height);
+    }
+
+
+    
 
 
     void UpdateSegments()
@@ -328,8 +345,8 @@ public class PlayerMovement : MonoBehaviour
             return;
         for (int i = 1; i < segments.Count; i++)
         {
-            Vector3 pos = segments[i].rb.position;
-            Vector3 prevPos = segments[i - 1].rb.position;
+            Vector3 pos = segments[i].characterController.transform.position;
+            Vector3 prevPos = segments[i - 1].characterController.transform.position;
             //Vector3 forward = segments[i - 1].t.forward;
 
 
@@ -350,12 +367,25 @@ public class PlayerMovement : MonoBehaviour
 
 
             //check if overshooting
-            Vector3 velocity = segments[i].rb.linearVelocity;
-            segments[i].springConnector.UpdateSpringVector(Time.fixedDeltaTime, ref pos, ref velocity, desiredPos);
+            Vector3 velocity = segments[i].characterController.velocity;
+            segments[i].springConnector.UpdateSpringVector(Time.deltaTime, ref pos, ref velocity, desiredPos);
 
             // segments[i].rb.MovePosition(pos);
-            segments[i].rb.linearVelocity = velocity;
+            segments[i].characterController.Move(velocity * Time.deltaTime);
 
+            segments[i].isGrounded = (Physics.CheckSphere(segments[i].groundCheck.position, groundRadius,
+                PlayerReferenceManager.instance.groundMask));
+
+            if (!segments[i].isGrounded)
+            {
+                if (isGrounded)
+                {
+                    segments[i].characterController.Move(Vector3.up * PlayerReferenceManager.instance.gravity/2);
+                }
+            }
+            
+                
+                
 
 
 
@@ -398,34 +428,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    public bool IsOnSlope(Vector3 inputDir, ref Vector3 slopeDir)
-    {
-        Physics.Raycast(_rigidbody.position, Vector3.down, out RaycastHit hit, sphereRadius * 0.5f + slopeGroundDistance + slopeOffset,
-            PlayerReferenceManager.instance.groundMask);
-
-        if (hit.normal != Vector3.up)
-        {
-            var angle = Vector3.Angle(hit.normal, Vector3.up);
-
-            if (angle < GroundAngleLimit && angle != 0)
-            {
-                slopeDir = Vector3.ProjectOnPlane(inputDir, hit.normal).normalized;
-
-                Debug.Log("Slope Point: " + hit.point);
-                Debug.Log("Slope Point Local: " + _rigidbody.transform.InverseTransformPoint(hit.point));
-
-                // transform.forward = slopeDir;
-                Debug.Log("Is On Slope");
-                return true;
-            }
-
-
-        }
-
-
-
-        return false;
-    }
+   
 
     private void OnDrawGizmos()
     {
