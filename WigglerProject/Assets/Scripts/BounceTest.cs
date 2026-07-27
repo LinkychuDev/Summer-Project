@@ -12,6 +12,7 @@ public class BounceTest : MonoBehaviour
     [SerializeField] Material DeadMaterial;
     [SerializeField] Material ActiveMaterial;
 
+
     void Start()
     {
         Setup();
@@ -22,7 +23,7 @@ public class BounceTest : MonoBehaviour
         Setup();
     }
 
-    void Setup()
+    protected virtual void Setup()
     {
         if (!isActive)
         {
@@ -37,6 +38,7 @@ public class BounceTest : MonoBehaviour
     public void Activate()
     {
         bounceRenderer.material = ActiveMaterial;
+        
     }
 
     public void Deactivate()
@@ -55,6 +57,9 @@ public class BounceTest : MonoBehaviour
             return;
         player.Bounce(bounceHeight);
     }
+
+
+    
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {

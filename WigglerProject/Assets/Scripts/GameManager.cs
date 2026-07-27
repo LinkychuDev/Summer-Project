@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 
+public delegate void GameEvent();
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
     public int points;
+    public GameEvent FirstFlowerGrownEvent;
+    
 
     void Awake()
     {
@@ -24,5 +27,10 @@ public class GameManager : MonoBehaviour
     public void AddPoints(int amount)
     {
         points+= amount;
+    }
+
+    public void ActivateFirstFlower()
+    {
+        FirstFlowerGrownEvent?.Invoke();
     }
 }

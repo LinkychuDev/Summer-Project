@@ -78,7 +78,9 @@ public class PlayerMovement : MonoBehaviour
 
     public float coyoteTime = 0.3f;
 
-   
+
+    private float airTime;
+    [SerializeField] private float airThreshold = 2f;
 
 
     public static bool isOnCoyoteTime;
@@ -277,13 +279,21 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded)
         {
             movementMultiplier = groundMultiplier;
+            airTime = 0;
 
         }
 
         else
         {
-            movementMultiplier = airMultiplier;
+            airTime += Time.deltaTime;
+
+            if (airTime >= airThreshold)
+            {
+                movementMultiplier = airMultiplier;
+            }
         }
+        
+        airTime = Mathf.Clamp(airTime, 0, airThreshold);
     }
 
     // Update is called once per frame
