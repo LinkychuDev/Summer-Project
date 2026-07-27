@@ -27,14 +27,17 @@ public class Segment
         Tail
     }
 
+    
     public Transform t;
     public Transform visual;
      public SegmentType type;
     public float spacingToNextSegment;
-    [HideInInspector] public CharacterController characterController;
-    [HideInInspector] public bool isGrounded;
+   public CharacterController characterController {get; private set;}
+    public bool isGrounded {get;  set;}
     public Transform groundCheck;
-    [HideInInspector] public PlayerSpringConnector springConnector;
+
+    public float mass = 50;
+    public PlayerSpringConnector springConnector {get; private set;}
     public void Initialise()
     {
         characterController = t.GetComponent<CharacterController>();
@@ -103,13 +106,13 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     
     public static Action<PlayerState> OnStateChange;
     
-    public bool isGrounded;
+   // public bool isGrounded;
     public bool canStretch = true;
    
    
 
 
-    public bool isOnCoyoteTime;
+   // public bool isOnCoyoteTime;
     public bool useCoyoteTime;
 
 

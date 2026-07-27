@@ -2,10 +2,17 @@ using System;
 using System.Collections;
 using UnityEngine;
 
+
 public interface IBreakable
 {
     void Break();
 }
+public interface IMetalBreakable
+{
+    void MetalBreak();
+}
+
+
 public class PlayerController : MonoBehaviour
 {
     
@@ -28,8 +35,11 @@ public class PlayerController : MonoBehaviour
     
     
     
+    
+    
     private PlayerState currentState;
 
+    
 
     private void OnEnable()
     {

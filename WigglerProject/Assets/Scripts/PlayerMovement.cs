@@ -39,7 +39,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float airMultiplier = 0.2f;
     private float movementMultiplier;
 
-    public bool isGrounded;
+    public static bool isGrounded;
 
 
     [SerializeField] private float acceleration = 10;
@@ -81,7 +81,7 @@ public class PlayerMovement : MonoBehaviour
    
 
 
-    public bool isOnCoyoteTime;
+    public static bool isOnCoyoteTime;
 
     float timeSinceLastGrounded;
     [SerializeField] private float groundVelocity = -2f;
@@ -90,6 +90,15 @@ public class PlayerMovement : MonoBehaviour
     private bool isOnSturdy;
 
     private float sturdyRatio;
+
+
+
+    public static Action<Vector3, Vector3, Vector3> LaunchVelocity;
+
+
+    private bool isBounced; 
+    Vector3 launchVelocityHead, launchVelocityBody, launchVelocityTail;
+    
     /*Vector3 targetBodyPosition;
     Vector3 targetTailPosition;*/
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -97,17 +106,26 @@ public class PlayerMovement : MonoBehaviour
     private void OnEnable()
     {
         PlayerController.isOnSturdyEvent += OnSturdyEvent;
+        LaunchVelocity += OnSwingLaunch;
     }
 
     private void OnDisable()
     {
         PlayerController.isOnSturdyEvent -= OnSturdyEvent;
+        LaunchVelocity -= OnSwingLaunch;
     }
 
     private void OnSturdyEvent(float arg1, bool arg2)
     {
         sturdyRatio = arg1;
         isOnSturdy = arg2;
+    }
+    
+    private void OnSwingLaunch(Vector3 arg1, Vector3 arg2, Vector3 arg3)
+    {
+        launchVelocityHead = arg1;
+        launchVelocityBody = arg2;
+        launchVelocityTail = arg3;
     }
 
     void Start()
@@ -163,10 +181,23 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleGravity()
     {
-        if (isGrounded && verticalVelocity < 0)
+        if (isGrounded)
         {
-
-            verticalVelocity = (groundVelocity);
+            
+            
+            if (verticalVelocity < 0)
+            {
+                verticalVelocity = (groundVelocity);
+            }
+            
+            
+            if (PlayerReferenceManager.instance.launched)
+            {
+                launchVelocityHead = Vector3.zero;
+                launchVelocityBody = Vector3.zero;
+                launchVelocityTail = Vector3.zero;
+                PlayerReferenceManager.instance.launched = false;
+            }
         }
         else
         {
@@ -175,17 +206,14 @@ public class PlayerMovement : MonoBehaviour
         }
 
 
-        if (PlayerReferenceManager.instance.launched)
-        {
-            PlayerReferenceManager.instance.launched = false;
-        }
+       
     }
 
     private bool IsOnSlope()
     {
         Vector3 origin = _characterController.transform.position + Vector3.up * 0.1f;
 
-        if (Physics.Raycast(origin, Vector3.down, out slopeHit, _characterController.height * 0.5f + 0.2f))
+        if (Physics.Raycast(origin, Vector3.down, out slopeHit, _characterController.height * 0.5f + 0.2f, PlayerReferenceManager.instance.groundMask))
         {
             float angle = Vector3.Angle(slopeHit.normal, Vector3.up);
             isOnSlope = angle > 0.1f && angle <= GroundAngleLimit;
@@ -201,19 +229,23 @@ public class PlayerMovement : MonoBehaviour
     public void GroundCheck()
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundRadius, PlayerReferenceManager.instance.groundMask);
-        PlayerReferenceManager.instance.isGrounded = isGrounded;
+       // PlayerReferenceManager.instance.isGrounded = isGrounded;
 
+        if (isGrounded)
+        {
+            isBounced = false;
+        }
         isOnSlope = IsOnSlope();
         PlayerReferenceManager.instance.isOnSlope = isOnSlope;
         if (PlayerReferenceManager.instance.currentState == PlayerState.Locomotion)
         {
-            if (isGrounded == false)
+            timeSinceLastGrounded = Mathf.Clamp(timeSinceLastGrounded, 0, coyoteTime);
+            if (!isGrounded && !isBounced)
             {
-                if (timeSinceLastGrounded > coyoteTime)
+                if (timeSinceLastGrounded >= coyoteTime)
                 {
                     //stop coyote time
                     isOnCoyoteTime = false;
-                    timeSinceLastGrounded = 0;
                 }
 
                 else
@@ -231,7 +263,7 @@ public class PlayerMovement : MonoBehaviour
             }
 
             
-            PlayerReferenceManager.instance.isOnCoyoteTime = isOnCoyoteTime;
+            //PlayerReferenceManager.instance.isOnCoyoteTime = isOnCoyoteTime;
             
         }
 
@@ -286,8 +318,11 @@ public class PlayerMovement : MonoBehaviour
         
         moveVelocity = targetVelocity + (Vector3.up * (verticalVelocity));
 
-        
-        
+
+        if (PlayerReferenceManager.instance.launched)
+        {
+            moveVelocity += (launchVelocityHead * Time.deltaTime);
+        }
         //_rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
 
         _characterController.Move(moveVelocity  * Time.deltaTime);
@@ -330,6 +365,8 @@ public class PlayerMovement : MonoBehaviour
 
     public void Bounce(float height)
     {
+        isBounced = true;
+        verticalVelocity = 0;
         verticalVelocity += Mathf.Sqrt(-2 * PlayerReferenceManager.instance.gravity * height);
     }
 
@@ -341,91 +378,113 @@ public class PlayerMovement : MonoBehaviour
     {
         if (PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
             return;
-        if(PlayerReferenceManager.instance.launched)
-            return;
-        for (int i = 1; i < segments.Count; i++)
+        if (PlayerReferenceManager.instance.launched)
         {
-            Vector3 pos = segments[i].characterController.transform.position;
-            Vector3 prevPos = segments[i - 1].characterController.transform.position;
-            //Vector3 forward = segments[i - 1].t.forward;
+            Vector3 targetVelocityBody = (Vector3.up * verticalVelocity) + launchVelocityBody;
+            Vector3 targetVelocityTail = (Vector3.up * verticalVelocity) + launchVelocityTail;
+            
+            PlayerReferenceManager.instance.bodySegment.Move(targetVelocityBody * Time.deltaTime);
+            PlayerReferenceManager.instance.tailSegment.Move(targetVelocityTail * Time.deltaTime);
+        }
+
+        else
+        {
+             for (int i = 1; i < segments.Count; i++)
+             {
+                 Vector3 pos = segments[i].characterController.transform.position;
+                 Vector3 prevPos = segments[i - 1].characterController.transform.position;
+                 //Vector3 forward = segments[i - 1].t.forward;
 
 
-            var spacing = Mathf.Abs(segments[i].spacingToNextSegment);
+                 var spacing = Mathf.Abs(segments[i].spacingToNextSegment);
 
-            Vector3 currentDir = pos - prevPos;
-
-
-
-            Vector3 desiredPos = prevPos + (currentDir.normalized * spacing);
+                 Vector3 currentDir = pos - prevPos;
 
 
+
+                 Vector3 desiredPos = prevPos + (currentDir.normalized * spacing);
 
 
 
 
-            //segments[i].rb.AddForce(direction * Mathf.Lerp() , ForceMode.Acceleration);
 
 
-            //check if overshooting
-            Vector3 velocity = segments[i].characterController.velocity;
-            segments[i].springConnector.UpdateSpringVector(Time.deltaTime, ref pos, ref velocity, desiredPos);
+                 //segments[i].rb.AddForce(direction * Mathf.Lerp() , ForceMode.Acceleration);
 
-            // segments[i].rb.MovePosition(pos);
-            segments[i].characterController.Move(velocity * Time.deltaTime);
 
-            segments[i].isGrounded = (Physics.CheckSphere(segments[i].groundCheck.position, groundRadius,
-                PlayerReferenceManager.instance.groundMask));
+                 //check if overshooting
+                 Vector3 velocity = segments[i].characterController.velocity;
+                 segments[i].springConnector.UpdateSpringVector(Time.deltaTime, ref pos, ref velocity, desiredPos);
 
-            if (!segments[i].isGrounded)
-            {
-                if (isGrounded)
-                {
-                    segments[i].characterController.Move(Vector3.up * PlayerReferenceManager.instance.gravity/2);
-                }
-            }
+                 // segments[i].rb.MovePosition(pos);
+                 segments[i].characterController.Move(velocity * Time.deltaTime);
+
+                 segments[i].isGrounded = (Physics.CheckSphere(segments[i].groundCheck.position, groundRadius,
+                     PlayerReferenceManager.instance.groundMask));
+
+                 if (!segments[i].isGrounded)
+                 {
+                     if (isGrounded)
+                     {
+                         segments[i].characterController.Move(Vector3.up * PlayerReferenceManager.instance.gravity/2);
+                     }
+                 }
+            
             
                 
                 
 
 
 
-            //
+                 //
 
-            //segments[i].rb.MovePosition(smoothedPosition);
-            //var scaledDirection = Vector3.Scale();
-
-
-            //Vector3 finalVelocity = segments[i].collisionDetection.CollideAndSlide(targetPos, pos, 0, true, targetPos);
-            //if (finalVelocity == Vector3.zero)
-            //  {
-            //      finalVelocity = pos;
-            //  }
-            //   segments[i].rb.MovePosition(finalVelocity);
+                 //segments[i].rb.MovePosition(smoothedPosition);
+                 //var scaledDirection = Vector3.Scale();
 
 
+                 //Vector3 finalVelocity = segments[i].collisionDetection.CollideAndSlide(targetPos, pos, 0, true, targetPos);
+                 //if (finalVelocity == Vector3.zero)
+                 //  {
+                 //      finalVelocity = pos;
+                 //  }
+                 //   segments[i].rb.MovePosition(finalVelocity);
 
 
 
-            //calculate spring physics
-
-            Vector3 targetPos = desiredPos - pos;
 
 
+                 //calculate spring physics
 
-            Vector3 direction = targetPos.normalized;
-            direction.y = 0;
-
-            //rotation
-            if (moveDir.magnitude > 0.001f)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
+                 Vector3 targetPos = desiredPos - pos;
 
 
-                segments[i].t.transform.rotation = (Quaternion.Slerp(segments[i].t.rotation, targetRotation, turnSpeed * movementMultiplier * Time.fixedDeltaTime));
 
-            }
+                 Vector3 direction = targetPos.normalized;
+                 direction.y = 0;
 
+                 //rotation
+                 if (moveDir.magnitude > 0.001f)
+                 {
+                     Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
+
+
+                     segments[i].t.transform.rotation = (Quaternion.Slerp(segments[i].t.rotation, targetRotation, turnSpeed * movementMultiplier * Time.fixedDeltaTime));
+
+                 }
+
+             }
+
+             if (segments[1].isGrounded)
+             {
+                 launchVelocityBody = Vector3.zero;
+             }
+
+             if (segments[2].isGrounded)
+             {
+                 launchVelocityTail = Vector3.zero;
+             }
         }
+       
     }
 
    

@@ -77,13 +77,15 @@ public class PlayerStretch : MonoBehaviour
 
     [SerializeField] private bool shouldStretchForward;
 
-    private PlayerSwing swing;
+    private PlayerSwing2 swing;
     private PlayerMovement movement;
 
     private Vector3 slopeDir;
 
     private float stretchVerticalVelocity;
 
+
+    //private bool wasStartingStretchGrounded;
     bool isOnSlope;
     //spring joint values
     //private SpringJoint headJoint;
@@ -103,7 +105,7 @@ public class PlayerStretch : MonoBehaviour
     private bool isOnHoney;
     private void OnEnable()
     {
-        InputManager.instance.controls.Gameplay.Stretch.started += ctx => StartCoroutine(OnPlayerStretchedEvent());
+        InputManager.instance.controls.Gameplay.Stretch.started += ctx => OnPlayerStretchedEvent();
         InputManager.instance.controls.Gameplay.Stretch.canceled += ctx => OnPlayerRetracted();
         PlayerController.isOnSturdyEvent += OnSturdyEvent;
         PlayerController.isOnHoneyEvent += b => isOnHoney = b;
@@ -119,7 +121,7 @@ public class PlayerStretch : MonoBehaviour
 
     void OnDisable()
     {
-        InputManager.instance.controls.Gameplay.Stretch.started -= ctx => StartCoroutine(OnPlayerStretchedEvent());
+        InputManager.instance.controls.Gameplay.Stretch.started -= ctx => OnPlayerStretchedEvent();
         InputManager.instance.controls.Gameplay.Stretch.canceled -= ctx => OnPlayerRetracted();
         PlayerController.isOnSturdyEvent -= OnSturdyEvent;
         PlayerController.isOnHoneyEvent -= _ => isOnHoney = false;
@@ -137,7 +139,7 @@ public class PlayerStretch : MonoBehaviour
         bodySegment = segments[1].characterController;
         tailSegment = segments[2].characterController;
 
-        swing = GetComponent<PlayerSwing>();
+        swing = GetComponent<PlayerSwing2>();
 
         maxDistanceHead = bodyOffset + stretchDistanceHead;
 
@@ -171,6 +173,7 @@ public class PlayerStretch : MonoBehaviour
                 SteerEvent();
                 StretchEvent();
                 CollisionDetection();
+
                 break;
             case StretchState.Stuck:
                 break;
@@ -247,6 +250,11 @@ public class PlayerStretch : MonoBehaviour
         if (Physics.OverlapSphereNonAlloc(headSegment.transform.position, detectionRadius,  colliders, PlayerReferenceManager.instance.playerCollisionMask) > 0)
         {
             var other = colliders[0].transform;
+            
+            Debug.Log(other.gameObject.name);
+
+            
+            
             if (isOnHoney)
             {
                 if (other.TryGetComponent(out Rigidbody rb))
@@ -286,12 +294,12 @@ public class PlayerStretch : MonoBehaviour
 
         if (PlayerReferenceManager.instance.canStretch)
         {
-            if (PlayerReferenceManager.instance.isGrounded)
+            if (PlayerMovement.isGrounded)
             {
                 return true;
             }
 
-            else if (PlayerReferenceManager.instance.isOnCoyoteTime)
+            else if (PlayerMovement.isOnCoyoteTime)
             {
                 return true;
             }
@@ -314,23 +322,22 @@ public class PlayerStretch : MonoBehaviour
         }
     }
 
-    IEnumerator OnPlayerStretchedEvent()
+    void OnPlayerStretchedEvent()
     {
 
-        if (!CanStretch())
-            yield break;
+        if (!CanStretch()) 
+            return;
         //headSegment.isKinematic = true;
 
         if (stretchState != StretchState.None)
-            yield break;
-
+            return;
         if (!PlayerReferenceManager.instance.canStretch)
-            yield break;
+            return;
         
 
 
         Debug.Log("OnPlayerStretchedEvent");
-        yield return null;
+       
         //bodySegment.MovePosition(headSegment.position - (headSegment.transform.forward *bodyOffset));
         // tailSegment.MovePosition(bodySegment.position - (bodySegment.transform.forward * tailOffset));
 
@@ -386,7 +393,7 @@ public class PlayerStretch : MonoBehaviour
 
 
 
-        if ((PlayerReferenceManager.instance.isGrounded && stretchVerticalVelocity < 0))
+        if ((PlayerMovement.isGrounded && stretchVerticalVelocity < 0))
         {
             stretchVerticalVelocity = -2f;
         }
@@ -497,10 +504,19 @@ public class PlayerStretch : MonoBehaviour
 
         if (isMetal)
         {
-            if (hit.transform.TryGetComponent(out IBreakable breakable))
+            if (hit.transform.TryGetComponent(out IMetalBreakable breakable))
+            {
+                breakable.MetalBreak();
+            }
+        }
+
+        else
+        {
+            if (hit.gameObject.TryGetComponent(out IBreakable breakable))
             {
                 breakable.Break();
             }
+
         }
 
         

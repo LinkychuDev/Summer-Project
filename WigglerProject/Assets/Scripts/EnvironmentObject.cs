@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IBreakable
+public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBreakable
 {
     public bool OnHoney = false;
     private int originalLayer;
@@ -28,7 +28,8 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IBreakab
     private Transform grabPointReference;
 
     public bool isBreakable = false;
-    
+
+    public GameObject honeyDecal;
     //private Transform grabPoint;
     protected virtual void Awake()
     {
@@ -42,6 +43,10 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IBreakab
         }
     }
 
+    private void OnValidate()
+    {
+        honeyDecal.SetActive(OnHoney);
+    }
 
     public void SetupHoney()
     {
@@ -120,7 +125,7 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IBreakab
       
     }
 
-    public void Break()
+    public void MetalBreak()
     {
         if (isBreakable)
         {
