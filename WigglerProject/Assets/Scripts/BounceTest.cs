@@ -39,14 +39,16 @@ public class BounceTest : MonoBehaviour
     }
     public void Activate()
     {
-        bounceRenderer.materials = ActiveMaterial;
-        grassRenderer.material = aliveGrassMaterial;
+        if (bounceRenderer != null) bounceRenderer.materials = ActiveMaterial;
+
+        if (grassRenderer != null) grassRenderer.material = aliveGrassMaterial;
     }
 
     public void Deactivate()
     {
-        bounceRenderer.materials = DeadMaterial;   
-        grassRenderer.material = deadGrassMaterial;
+        if (bounceRenderer != null) bounceRenderer.materials = DeadMaterial;
+
+        if (grassRenderer != null) grassRenderer.material = deadGrassMaterial;
     }
     private void OnTriggerEnter(Collider other)
     {

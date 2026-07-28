@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
     public int points;
     public GameEvent FirstFlowerGrownEvent;
 
-
+    public GameObject honeyDecal;
     public bool showFPS;
     public TextMeshProUGUI fpsText;
 
@@ -42,7 +42,10 @@ public class GameManager : MonoBehaviour
 
     void ShowFPS()
     {
-        fpsText.gameObject.SetActive(showFPS);
+        if (showFPS)
+        {
+            fpsText.gameObject.SetActive(showFPS);
+        }
 
         if (shouldCapFps)
         {

@@ -29,7 +29,7 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
 
     public bool isBreakable = false;
 
-    public GameObject honeyDecal;
+    private GameObject honeyDecal;
     //private Transform grabPoint;
     protected virtual void Awake()
     {
@@ -41,16 +41,39 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         {
             originalParent = transform.parent;
         }
+
+
+        if (OnHoney)
+        {
+            CreateHoneyDecal();
+        }
     }
 
     private void OnValidate()
     {
-        honeyDecal.SetActive(OnHoney);
+        //CreateHoneyDecal();
+        //honeyDecal.SetActive(OnHoney));
+        
     }
 
+
+    void CreateHoneyDecal()
+    {
+        if (honeyDecal == null)
+        {
+            honeyDecal = Instantiate(GameManager.instance.honeyDecal, transform.position, Quaternion.identity, transform);
+        }
+        
+        else
+        {
+            honeyDecal.SetActive(true);
+        }
+       
+    }
     public void SetupHoney()
     {
-        honeyObject.SetActive(true);
+       // honeyObject.SetActive(true);
+       CreateHoneyDecal();
         StartCoroutine(RemoveHoney());
     }
 
@@ -58,7 +81,11 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
     {
         Debug.LogWarning("Please replace honey cooldown with a GameManager version");
         yield return new WaitForSeconds(honeyCooldown);
-        honeyObject.SetActive(false);
+        //honeyObject.SetActive(false);
+        if (honeyDecal != null)
+        {
+            honeyDecal.SetActive(false);
+        }
     }
     public virtual void SetupGrab(Transform grabPoint)
     {
