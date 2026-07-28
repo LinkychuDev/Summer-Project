@@ -21,7 +21,7 @@ public class PlayerStretch : MonoBehaviour
     public float stretchDistanceTail;
     public float stretchRetractTime = 4f;
 
-
+    
 
     //public float stretchTime = 3f;
     //public bool isStretching;
@@ -60,14 +60,7 @@ public class PlayerStretch : MonoBehaviour
 
 
 
-    [Header("Spring Joint")]
-    private SpringJoint springJoint;
-
-    [SerializeField] private float stiffness = 5000f;
-    [SerializeField] private float damper = 4f;
-    [SerializeField] private float connectedMassStrength = 0.01f;
-
-    [SerializeField] private float pushbackRatio = 0.0001f;
+    public Material stretchMaxMaterial;
     //spherecast detection
     [Header("Collision Detection")]
     [SerializeField] float detectionRadius = 0.5f;
@@ -103,6 +96,8 @@ public class PlayerStretch : MonoBehaviour
     private float sturdyRatio;
 
     private bool isOnHoney;
+    [SerializeField] private bool isAtMaxSpring;
+
     private void OnEnable()
     {
         InputManager.instance.controls.Gameplay.Stretch.started += ctx => OnPlayerStretchedEvent();
@@ -227,7 +222,7 @@ public class PlayerStretch : MonoBehaviour
                 if (other.gameObject.TryGetComponent(out HoneySwingTest honeyTest))
                 {
                     //honeyTest.DisableCollisions();
-                    DestroySpringJoint();
+                   
 
                     PlayerReferenceManager.instance.SetState(PlayerState.Swinging);
 
@@ -388,7 +383,23 @@ public class PlayerStretch : MonoBehaviour
             if (dotProduct > 0)
             {
                 targetVelocity -= dotProduct * dirToBody.normalized;
+
+                if (!isAtMaxSpring)
+                {
+                    isAtMaxSpring = true;
+                    PlayerReferenceManager.instance.headRenderer.material = stretchMaxMaterial;
+                }
+              
             }
+        }
+
+        else
+        {
+            if (isAtMaxSpring)
+            {
+                PlayerReferenceManager.instance.headRenderer.material = PlayerReferenceManager.instance.headMaterial;
+            }
+            isAtMaxSpring = false;
         }
 
 
@@ -537,19 +548,12 @@ public class PlayerStretch : MonoBehaviour
         if (!isStretching)
             return;
         Debug.Log(stretchState);
-        DestroySpringJoint();
+        
 
         StartCoroutine(OnPlayerRetractedEvent());
     }
 
-    private void DestroySpringJoint()
-    {
-        if (springJoint != null)
-        {
-            Destroy(springJoint);
-            springJoint = null;
-        }
-    }
+    
 
     public IEnumerator OnPlayerRetractedEvent()
     {
@@ -668,6 +672,7 @@ public class PlayerStretch : MonoBehaviour
         //add effect
         //yield return new WaitForFixedUpdate();
        
+        PlayerReferenceManager.instance.headRenderer.material = PlayerReferenceManager.instance.headMaterial;
         shouldStretchForward = false;
         //PlayerReferenceManager.instance.Honeyfied(false);
 
@@ -699,14 +704,7 @@ public class PlayerStretch : MonoBehaviour
 
         //Gizmos.DrawWireSphere(headSegment.position, detectionRadius);
         Gizmos.DrawLine(headSegment.transform.position, headSegment.transform.position + headSegment.transform.forward * maxDetectionDistance);
-        if (springJoint != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.TransformPoint(springJoint.connectedAnchor), 0.3f);
-
-            Gizmos.color = Color.blueViolet;
-            Gizmos.DrawWireSphere(transform.TransformPoint(springJoint.anchor), 0.3f);
-        }
+        
         if (positions.Count == 0)
             return;
         Gizmos.color = Color.cyan;

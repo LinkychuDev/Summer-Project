@@ -427,7 +427,7 @@ public class PlayerMovement : MonoBehaviour
                  segments[i].springConnector.UpdateSpringVector(Time.deltaTime, ref pos, ref velocity, desiredPos);
 
                  // segments[i].rb.MovePosition(pos);
-                 segments[i].characterController.Move(velocity * Time.deltaTime);
+                // 
 
                  segments[i].isGrounded = (Physics.CheckSphere(segments[i].groundCheck.position, groundRadius,
                      PlayerReferenceManager.instance.groundMask));
@@ -436,9 +436,11 @@ public class PlayerMovement : MonoBehaviour
                  {
                      if (isGrounded)
                      {
-                         segments[i].characterController.Move(Vector3.up * PlayerReferenceManager.instance.gravity/2);
+                         velocity += Vector3.up * PlayerReferenceManager.instance.gravity * Time.deltaTime;
                      }
                  }
+                 
+                 segments[i].characterController.Move(velocity * Time.deltaTime);
             
             
                 
@@ -478,7 +480,7 @@ public class PlayerMovement : MonoBehaviour
                      Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
 
 
-                     segments[i].t.transform.rotation = (Quaternion.Slerp(segments[i].t.rotation, targetRotation, turnSpeed * movementMultiplier * Time.fixedDeltaTime));
+                     segments[i].t.transform.rotation = (Quaternion.Slerp(segments[i].t.rotation, targetRotation, turnSpeed * movementMultiplier * Time.deltaTime));
 
                  }
 

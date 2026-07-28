@@ -108,7 +108,9 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     
    // public bool isGrounded;
     public bool canStretch = true;
-   
+
+    public Renderer headRenderer;
+    public Material headMaterial;
    
 
 
@@ -144,8 +146,8 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
         
         cachedHeadMovementPositions.Add(new CachedPosition(headClose.position, headSegment.transform.forward, headSegment.velocity));
-      
         
+        headMaterial = headRenderer.material;
         
         
         SetState(PlayerState.Locomotion);

@@ -9,9 +9,11 @@ public class BounceTest : MonoBehaviour
     public bool isActive = true;
 
     public Renderer bounceRenderer;
-    [SerializeField] Material DeadMaterial;
-    [SerializeField] Material ActiveMaterial;
-
+    [SerializeField] Material[] DeadMaterial;
+    [SerializeField] Material[] ActiveMaterial;
+    public Renderer grassRenderer;
+    [SerializeField] Material deadGrassMaterial;
+    [SerializeField] private Material aliveGrassMaterial;
 
     void Start()
     {
@@ -37,13 +39,14 @@ public class BounceTest : MonoBehaviour
     }
     public void Activate()
     {
-        bounceRenderer.material = ActiveMaterial;
-        
+        bounceRenderer.materials = ActiveMaterial;
+        grassRenderer.material = aliveGrassMaterial;
     }
 
     public void Deactivate()
     {
-        bounceRenderer.material = DeadMaterial;   
+        bounceRenderer.materials = DeadMaterial;   
+        grassRenderer.material = deadGrassMaterial;
     }
     private void OnTriggerEnter(Collider other)
     {
