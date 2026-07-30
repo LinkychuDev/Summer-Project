@@ -33,8 +33,10 @@ public class PlayerController : MonoBehaviour
     public static Action<EnvironmentObject> OnGrabEvent;
     public static Action OnReleaseEvent;
     
-    
-    
+    public static event Action<bool> SilkEvent;
+
+
+    public bool isOnSilk;
     
     
     private PlayerState currentState;
@@ -121,5 +123,8 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    
+    public static void OnSilkEvent(bool obj)
+    {
+        SilkEvent?.Invoke(obj);
+    }
 }

@@ -40,7 +40,7 @@ public class PlayerMovement : MonoBehaviour
     private float movementMultiplier;
 
     public static bool isGrounded;
-
+    public bool groundedCheck;
 
     [SerializeField] private float acceleration = 10;
     [SerializeField] private float deceleration = 10;
@@ -62,6 +62,8 @@ public class PlayerMovement : MonoBehaviour
 
     private SphereCollider playerCollider;
     private Vector3 slopeDir;
+    private RaycastHit slopeHit;
+    private RaycastHit groundHit;
 
     //private bool isOnSlope;
     [SerializeField] private float slopeGroundDistance = 0.5f;
@@ -87,7 +89,7 @@ public class PlayerMovement : MonoBehaviour
 
     float timeSinceLastGrounded;
     [SerializeField] private float groundVelocity = -2f;
-    private RaycastHit slopeHit;
+    
 
     private bool isOnSturdy;
 
@@ -100,7 +102,20 @@ public class PlayerMovement : MonoBehaviour
 
     private bool isBounced; 
     Vector3 launchVelocityHead, launchVelocityBody, launchVelocityTail;
-    
+
+
+    private float characterHeight;
+    [Header("Silk")]
+    //public bool isOnSilk;
+    public bool isClimbing;
+    public float detectionRange = 1f;
+    public float maxClimbAngle;
+    public LayerMask silkMask;
+
+    public float slopeAngle;
+
+     private Vector3 climbDir;
+     RaycastHit climbHit;
     /*Vector3 targetBodyPosition;
     Vector3 targetTailPosition;*/
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -144,6 +159,7 @@ public class PlayerMovement : MonoBehaviour
         playerCam = Camera.main.transform;
 
         _characterController.slopeLimit = GroundAngleLimit;
+        characterHeight = _characterController.height;
         //collisionDetection = _rigidbody.transform.GetComponent<CollisionDetection>();
     }
 
@@ -151,11 +167,13 @@ public class PlayerMovement : MonoBehaviour
     {
 
         GroundCheck();
+        
         if (PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
             return;
         HandleInput();
-       
+        CollisionDetection();
         HandleGravity();
+
         HandleRotation();
         HandleDrag();
         Movement();
@@ -177,6 +195,7 @@ public class PlayerMovement : MonoBehaviour
 
         moveDir = input.x * right + input.y * forward;
         moveDir.y = 0;
+        
     }
 
    
@@ -211,27 +230,17 @@ public class PlayerMovement : MonoBehaviour
        
     }
 
-    private bool IsOnSlope()
-    {
-        Vector3 origin = _characterController.transform.position + Vector3.up * 0.1f;
-
-        if (Physics.Raycast(origin, Vector3.down, out slopeHit, _characterController.height * 0.5f + 0.2f, PlayerReferenceManager.instance.groundMask))
-        {
-            float angle = Vector3.Angle(slopeHit.normal, Vector3.up);
-            isOnSlope = angle > 0.1f && angle <= GroundAngleLimit;
-        }
-        else
-        {
-            isOnSlope = false;
-        }
-
-        return isOnSlope;
-    }   
+  
 
     public void GroundCheck()
     {
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundRadius, PlayerReferenceManager.instance.groundMask);
-       // PlayerReferenceManager.instance.isGrounded = isGrounded;
+        //isGrounded = Physics.CheckSphere(groundCheck.position, groundRadius, PlayerReferenceManager.instance.groundMask);
+        
+       isGrounded = Physics.SphereCast(transform.position, groundRadius, -transform.up, out  groundHit, characterHeight * 0.5f + 0.2f,
+            PlayerReferenceManager.instance.groundMask);
+       //== PlayerReferenceManager.instance.isGrounded = isGrounded;
+       
+       groundedCheck = isGrounded;
 
         if (isGrounded)
         {
@@ -239,6 +248,8 @@ public class PlayerMovement : MonoBehaviour
         }
         isOnSlope = IsOnSlope();
         PlayerReferenceManager.instance.isOnSlope = isOnSlope;
+
+      
         if (PlayerReferenceManager.instance.currentState == PlayerState.Locomotion)
         {
             timeSinceLastGrounded = Mathf.Clamp(timeSinceLastGrounded, 0, coyoteTime);
@@ -321,12 +332,14 @@ public class PlayerMovement : MonoBehaviour
         
 
         var currAccel = input.magnitude > 0.01f ? acceleration * sturdyRatio : deceleration;
-        Vector3 targetVelocity = Vector3.MoveTowards(currentVelocity, moveDir * (speed * sturdyRatio * movementMultiplier), currAccel);
+        
+        Vector3 targetVelocity = Vector3.MoveTowards(currentVelocity, GetInputVector() * (speed * sturdyRatio * movementMultiplier), currAccel);
 
 
         //SlopeCheck(targetVelocity);
         
-        moveVelocity = targetVelocity + (Vector3.up * (verticalVelocity));
+        
+        moveVelocity = targetVelocity + (transform.up * (verticalVelocity));
 
 
         if (PlayerReferenceManager.instance.launched)
@@ -355,18 +368,23 @@ public class PlayerMovement : MonoBehaviour
             return;
 
 
+        if(isClimbing)
+            return;
         if (input != Vector2.zero)
         {
-            Vector3 direction = moveDir.normalized;
+            Vector3 direction = GetInputVector().normalized;
+            //direction.y = 0;
+            Quaternion targetRotation = Quaternion.LookRotation(direction, transform.up);
+            transform.rotation = Quaternion.Slerp(_characterController.transform.rotation, targetRotation, turnSpeed * Time.smoothDeltaTime);
 
             
+           
 
-            direction.y = 0;
-            Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
-            transform.rotation = Quaternion.Slerp(_characterController.transform.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime);
+         
             /*body.rotation =  Quaternion.Slerp(body.rotation, transform.rotation, bodyReactTime * Time.deltaTime);
             tail.rotation =  Quaternion.Slerp(tail.rotation, transform.rotation, tailReactTime * Time.deltaTime);*/
         }
+        
 
 
 
@@ -390,8 +408,8 @@ public class PlayerMovement : MonoBehaviour
             return;
         if (PlayerReferenceManager.instance.launched)
         {
-            Vector3 targetVelocityBody = (Vector3.up * verticalVelocity) + launchVelocityBody;
-            Vector3 targetVelocityTail = (Vector3.up * verticalVelocity) + launchVelocityTail;
+            Vector3 targetVelocityBody = (transform.up * verticalVelocity) + launchVelocityBody;
+            Vector3 targetVelocityTail = (transform.up * verticalVelocity) + launchVelocityTail;
             
             PlayerReferenceManager.instance.bodySegment.Move(targetVelocityBody * Time.deltaTime);
             PlayerReferenceManager.instance.tailSegment.Move(targetVelocityTail * Time.deltaTime);
@@ -436,7 +454,7 @@ public class PlayerMovement : MonoBehaviour
                  {
                      if (isGrounded)
                      {
-                         velocity += Vector3.up * PlayerReferenceManager.instance.gravity * Time.deltaTime;
+                         velocity += transform.up * PlayerReferenceManager.instance.gravity * Time.deltaTime;
                      }
                  }
                  
@@ -477,7 +495,7 @@ public class PlayerMovement : MonoBehaviour
                  //rotation
                  if (moveDir.magnitude > 0.001f)
                  {
-                     Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
+                     Quaternion targetRotation = Quaternion.LookRotation(direction, transform.up);
 
 
                      segments[i].t.transform.rotation = (Quaternion.Slerp(segments[i].t.rotation, targetRotation, turnSpeed * movementMultiplier * Time.deltaTime));
@@ -499,11 +517,97 @@ public class PlayerMovement : MonoBehaviour
        
     }
 
-   
+    void CollisionDetection()
+    {
+        if (!isClimbing && moveDir.magnitude > 0.001f)
+        {
+            if (Physics.Raycast(transform.position, transform.forward, out climbHit, detectionRange, silkMask))
+            {
+                // _characterController.Move(hitInfo.point - transform.position);
+
+                if (Vector3.Dot(transform.forward, climbHit.normal) < Mathf.Cos(maxClimbAngle * Mathf.Deg2Rad))
+                {
+                    isClimbing = true;
+                    _characterController.Move(climbHit.point - transform.position);
+                    Quaternion rot  = Quaternion.FromToRotation(transform.up, climbHit.normal) * transform.rotation;
+                    //transform.up = climbHit.normal;
+                }
+               
+            }
+        }
+
+        else if(isClimbing)
+        {
+            if (!isGrounded)
+            {
+                isClimbing = false;
+                transform.localRotation = Quaternion.Euler(0, 0, 0);
+            }
+
+            else
+            {
+                transform.rotation = Quaternion.Euler(90, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                climbHit = groundHit;
+                
+            }
+        }
+        
+        
+       
+    }
+
+    private bool IsOnSlope()
+    {
+        if (Physics.Raycast(transform.position, -transform.up, out slopeHit,
+                characterHeight * 0.5f + 0.2f, PlayerReferenceManager.instance.groundMask))
+        {
+            if(slopeHit.normal != transform.up)
+            {
+                if (isClimbing)
+                {
+                    slopeAngle = Vector3.Angle(transform.up, slopeHit.normal);
+                }
+               
+                slopeAngle = Vector3.Angle(slopeHit.normal, Vector3.up);
+
+                if (slopeAngle > 0)
+                {
+                    if (slopeAngle < GroundAngleLimit)
+                    {
+                        return true;
+                    }
+                }
+               
+
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    Vector3 GetInputVector()
+    {
+        Vector3 inputVector = moveDir;
+        if (IsOnSlope())
+        {
+            inputVector = Vector3.ProjectOnPlane(moveDir, slopeHit.normal);
+        }
+
+        if (isClimbing)
+        {
+            var inputDir = Vector3.ProjectOnPlane(inputVector, climbHit.normal);
+            inputVector = inputDir;
+        }
+        return inputVector;
+    }
 
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(groundCheck.position, groundDistance);
     }
+    
+    
+    
 }

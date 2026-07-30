@@ -1761,7 +1761,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2508313, y: -0.008662761, z: 0.002244747, w: 0.96798944}
-  m_LocalPosition: {x: -25.489048, y: 16.79995, z: 61.598186}
+  m_LocalPosition: {x: -25.489048, y: 6.29995, z: -39.011814}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -15466,6 +15466,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   points: 0
+  honeyDecal: {fileID: 0}
   showFPS: 1
   fpsText: {fileID: 79464934}
   shouldCapFps: 1
@@ -21452,7 +21453,7 @@ Transform:
   m_GameObject: {fileID: 459982468}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -25.5, y: 11.46, z: 71.21}
+  m_LocalPosition: {x: -25.5, y: 0.96000004, z: -29.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
