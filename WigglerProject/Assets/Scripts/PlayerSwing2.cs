@@ -18,9 +18,9 @@ public class PlayerSwing2 : MonoBehaviour
 
     private float currentSwingAngle;
 
-    private CharacterController headSegment;
-    private CharacterController bodySegment;
-    private CharacterController tailSegment;
+    private Rigidbody headSegment;
+    private Rigidbody bodySegment;
+    private Rigidbody tailSegment;
 
     //public InputActionReference swingInputReference;
 
@@ -315,9 +315,17 @@ public class PlayerSwing2 : MonoBehaviour
 
 
 
-        var finalLaunchVelocityHead = launchVelocityHead + Vector3.up * (jumpVel * headLaunchRatio);
-        var finalLaunchVelocityBody = launchVelocityBody + Vector3.up * (jumpVel * bodyLaunchRatio);
-        var finalLaunchVelocityTail = launchVelocityTail + Vector3.up * (jumpVel * tailLaunchRatio);
+        var finalLaunchVelocityHead = launchVelocityHead + headSegment.transform.up * (jumpVel * headLaunchRatio);
+        var finalLaunchVelocityBody = launchVelocityBody + bodySegment.transform.up * (jumpVel * bodyLaunchRatio);
+        var finalLaunchVelocityTail = launchVelocityTail + tailSegment.transform.up * (jumpVel * tailLaunchRatio);
+        
+        
+        PlayerReferenceManager.instance.launched = true;
+        
+        headSegment.AddForce(finalLaunchVelocityHead, ForceMode.VelocityChange);
+        bodySegment.AddForce(finalLaunchVelocityBody, ForceMode.VelocityChange);
+        bodySegment.AddForce(finalLaunchVelocityTail, ForceMode.VelocityChange);
+        
         
         
 
@@ -331,12 +339,15 @@ public class PlayerSwing2 : MonoBehaviour
         trajectoryLine.enabled = false;
 
 
-        PlayerReferenceManager.instance.launched = true;
         
-        PlayerMovement.LaunchVelocity(finalLaunchVelocityHead, finalLaunchVelocityBody, finalLaunchVelocityTail);
+        
+        
         PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
 
         // Apply forces
+        
+        
+        
         // ResetSwing();
     }
 

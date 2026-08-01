@@ -24,9 +24,9 @@ public class PlayerSwing : MonoBehaviour
     private Vector3 swingVelocity;
     private void Start()
     {
-        headSegment = PlayerReferenceManager.instance.headSegment;
-        bodySegment = PlayerReferenceManager.instance.bodySegment;
-        tailSegment = PlayerReferenceManager.instance.tailSegment;
+      //  headSegment = PlayerReferenceManager.instance.headSegment;
+       // bodySegment = PlayerReferenceManager.instance.bodySegment;
+        //tailSegment = PlayerReferenceManager.instance.tailSegment;
         
         StartSwing();
     }

@@ -24,7 +24,7 @@ public class LeverScript : EnvironmentObject
     
     protected override void Awake()
     {
-        rb = GetComponent<Rigidbody>();
+        base.Awake();
         originalPosition = rb.transform.position;
         
     }

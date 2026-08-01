@@ -31,9 +31,9 @@ public class PlayerStretch : MonoBehaviour
     private Vector2 moveInput;
     Vector3 stretchDirection;
 
-    private CharacterController headSegment;
-    private CharacterController bodySegment;
-    private CharacterController tailSegment;
+    private Rigidbody headSegment;
+    private Rigidbody bodySegment;
+    private Rigidbody tailSegment;
 
     private float currentStretchTime;
     Vector3 cachedHeadPosition;
@@ -75,8 +75,6 @@ public class PlayerStretch : MonoBehaviour
 
     private Vector3 slopeDir;
 
-    private float stretchVerticalVelocity;
-
 
     //private bool wasStartingStretchGrounded;
     bool isOnSlope;
@@ -97,6 +95,10 @@ public class PlayerStretch : MonoBehaviour
 
     private bool isOnHoney;
     [SerializeField] private bool isAtMaxSpring;
+    
+    [SerializeField]float yOffset;
+
+    private bool isClimbing;
 
     private void OnEnable()
     {
@@ -104,7 +106,14 @@ public class PlayerStretch : MonoBehaviour
         InputManager.instance.controls.Gameplay.Stretch.canceled += ctx => OnPlayerRetracted();
         PlayerController.isOnSturdyEvent += OnSturdyEvent;
         PlayerController.isOnHoneyEvent += b => isOnHoney = b;
+        PlayerController.ClimbEvent += ClimbEvent;
         
+        
+    }
+
+    private void ClimbEvent(bool obj)
+    {
+        isClimbing = obj;
     }
 
     private void OnSturdyEvent(float arg1, bool arg2)
@@ -120,6 +129,7 @@ public class PlayerStretch : MonoBehaviour
         InputManager.instance.controls.Gameplay.Stretch.canceled -= ctx => OnPlayerRetracted();
         PlayerController.isOnSturdyEvent -= OnSturdyEvent;
         PlayerController.isOnHoneyEvent -= _ => isOnHoney = false;
+        PlayerController.ClimbEvent -=  ClimbEvent;
     }
     void Start()
     {
@@ -130,9 +140,9 @@ public class PlayerStretch : MonoBehaviour
         tailOffset = PlayerReferenceManager.instance.tailOffset;
 
         segments = PlayerReferenceManager.instance.segments.ToArray();
-        headSegment = segments[0].characterController;
-        bodySegment = segments[1].characterController;
-        tailSegment = segments[2].characterController;
+        headSegment = segments[0].rb;
+        bodySegment = segments[1].rb;
+        tailSegment = segments[2].rb;
 
         swing = GetComponent<PlayerSwing2>();
 
@@ -148,13 +158,21 @@ public class PlayerStretch : MonoBehaviour
         //sphere collision
     }
 
-    void Update()
+    private void Update()
     {
         if (PlayerReferenceManager.instance.currentState == PlayerState.Locomotion)
             return;
         if (!PlayerReferenceManager.instance.canStretch)
             return;
         moveInput = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
+    }
+
+    void FixedUpdate()
+    {
+        if (PlayerReferenceManager.instance.currentState == PlayerState.Locomotion)
+            return;
+        if (!PlayerReferenceManager.instance.canStretch)
+            return;
         isStretching = PlayerReferenceManager.instance.currentState == PlayerState.Stretching;
 
         if (!isStretching)
@@ -201,13 +219,7 @@ public class PlayerStretch : MonoBehaviour
 
 
     // Update is called once per frame
-    void FixedUpdate()
-    {
-
-
-       
-    }
-
+   
 
   
     void OnTriggerEnter(Collider other)
@@ -274,6 +286,15 @@ public class PlayerStretch : MonoBehaviour
             {
                 if (other.transform.TryGetComponent(out IStickable stickable))
                 {
+                    Debug.Log(other.name);
+                    stretchState = StretchState.Stuck;
+                    shouldStretchForward = true;
+                   // PlayerReferenceManager.instance.SetState(PlayerState.Stuck);
+                }
+
+                else if(other.transform.CompareTag("Honey"))
+                {
+                    stretchState = StretchState.Stuck;
                     shouldStretchForward = true;
                 }
             }
@@ -341,7 +362,7 @@ public class PlayerStretch : MonoBehaviour
         cachedTailPosition = tailSegment.transform.position;
         currentStretchTime = 0;
 
-        
+        yOffset = cachedHeadPosition.y - cachedBodyPosition.y;
         
         PlayerReferenceManager.instance.SetState(PlayerState.Stretching);
         stretchState = StretchState.Stretching;
@@ -361,16 +382,17 @@ public class PlayerStretch : MonoBehaviour
 
         //  currentStretchDistance = Mathf.Lerp(minDistanceHead, maxDistanceHead, currentStretchTime );
 
-        
+        Vector3 currentVelocity = headSegment.linearVelocity;
 
+        currentVelocity.y = 0;
         Vector3 targetDirection = stretchDirection.normalized;
 
         
         Vector3 targetVelocity = targetDirection * (stretchSpeed * sturdyRatio);
 
+        
 
-
-
+       
         Vector3 dirToBody = (headSegment.transform.position - bodySegment.transform.position);
 
         float distance = dirToBody.magnitude;
@@ -404,49 +426,25 @@ public class PlayerStretch : MonoBehaviour
 
 
 
-        if ((PlayerMovement.isGrounded && stretchVerticalVelocity < 0))
+        /*if ((PlayerMovement.isGrounded && stretchVerticalVelocity < 0))
         {
             stretchVerticalVelocity = -2f;
-        }
-
-        else if(PlayerReferenceManager.instance.isOnSlope) 
-        {
-            stretchVerticalVelocity +=  PlayerReferenceManager.instance.gravity* (1/sturdyRatio) * Time.deltaTime;
-        }
-
-        else
-        {
-            float yOffset = headSegment.transform.position.y - cachedBodyPosition.y;
-
-            if (yOffset > 0)
-            {
-                stretchVerticalVelocity += PlayerReferenceManager.instance.gravity * (1/sturdyRatio) * Time.deltaTime;
-            }
-
-            else
-            {
-                stretchVerticalVelocity = Mathf.Max(stretchVerticalVelocity, 0f);
-            }
-        }
-        
-
-
-        
-        stretchVelocity = targetVelocity + Vector3.up * (stretchVerticalVelocity );
-        
-        
-        
-        
-        headSegment.Move(stretchVelocity * Time.deltaTime);
-
-
-        /*if (headSegment.transform.position.y < cachedBodyPosition.y)
-        {
-            float yOffset = headSegment.transform.position.y - cachedBodyPosition.y;
-            
-            headSegment.Move(Vector3.up * yOffset);
-            
         }*/
+        
+        Vector3 velocityChange = targetVelocity - currentVelocity;
+        
+        
+        velocityChange = Vector3.ClampMagnitude(velocityChange, maxStretchSpeed);
+        
+        headSegment.AddForce(velocityChange, ForceMode.VelocityChange);
+
+        var pos = headSegment.position;
+
+        
+        //make sure this matches current gravity direction
+        pos.y = Mathf.Clamp(headSegment.position.y, yOffset, cachedBodyPosition.y + maxDistanceHead);
+        
+        headSegment.position = pos;
 
     }
 
@@ -508,14 +506,14 @@ public class PlayerStretch : MonoBehaviour
     }
     
     
-    private void OnControllerColliderHit(ControllerColliderHit hit)
+    private void OnCollisionEnter(Collision other)
     {
         if(!isStretching)
             return;
 
         if (isMetal)
         {
-            if (hit.transform.TryGetComponent(out IMetalBreakable breakable))
+            if (other.transform.TryGetComponent(out IMetalBreakable breakable))
             {
                 breakable.MetalBreak();
             }
@@ -523,7 +521,7 @@ public class PlayerStretch : MonoBehaviour
 
         else
         {
-            if (hit.gameObject.TryGetComponent(out IBreakable breakable))
+            if (other.gameObject.TryGetComponent(out IBreakable breakable))
             {
                 breakable.Break();
             }
@@ -531,7 +529,7 @@ public class PlayerStretch : MonoBehaviour
         }
 
         
-        if (hit.transform.TryGetComponent(out EnvironmentObject environmentObject))
+        if (other.transform.TryGetComponent(out EnvironmentObject environmentObject))
         {
             if (isOnHoney || environmentObject.OnHoney)
             {

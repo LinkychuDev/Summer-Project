@@ -39,6 +39,9 @@ public class PlayerController : MonoBehaviour
     public bool isOnSilk;
     
     
+    public static Action<bool> ClimbEvent;
+    
+    
     private PlayerState currentState;
 
     

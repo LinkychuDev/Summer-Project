@@ -20,11 +20,11 @@ public class PlayerMovement : MonoBehaviour
 
     private List<Segment> segments = new List<Segment>();
 
-    private CharacterController _characterController;
+    //private CharacterController _characterController;
 
     private Vector2 input;
 
-    private Vector3 moveDir;
+    [SerializeField]private Vector3 moveDir;
 
     private Transform playerCam;
 
@@ -59,11 +59,12 @@ public class PlayerMovement : MonoBehaviour
 
     public float groundDrag = 6f;
 
+    private float currentDrag;
 
     private SphereCollider playerCollider;
     private Vector3 slopeDir;
     private RaycastHit slopeHit;
-    private RaycastHit groundHit;
+   // private RaycastHit groundHit;
 
     //private bool isOnSlope;
     [SerializeField] private float slopeGroundDistance = 0.5f;
@@ -76,7 +77,7 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] private float slopeOffset = 0.1f;
 
-    private const float slopeDownForce = 80f;
+    [SerializeField]private float slopeDownForce = 150f;
 
     public float coyoteTime = 0.3f;
 
@@ -111,7 +112,8 @@ public class PlayerMovement : MonoBehaviour
     public float detectionRange = 1f;
     public float maxClimbAngle;
     public LayerMask silkMask;
-
+    private Vector3 climbUp;
+    private Vector3 climbRight;
     public float slopeAngle;
 
      private Vector3 climbDir;
@@ -120,16 +122,27 @@ public class PlayerMovement : MonoBehaviour
     Vector3 targetTailPosition;*/
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
+
+    public Transform parent;
+    private Rigidbody rb;
+   
+    [SerializeField] private float minGroundAngle;
+    
+    //public Vector3 gravityDirection = Vector3.down;
+    [SerializeField] private Vector3 groundNormal;
+
     private void OnEnable()
     {
         PlayerController.isOnSturdyEvent += OnSturdyEvent;
         LaunchVelocity += OnSwingLaunch;
+        PlayerController.ClimbEvent += b => isClimbing = b;
     }
 
     private void OnDisable()
     {
         PlayerController.isOnSturdyEvent -= OnSturdyEvent;
         LaunchVelocity -= OnSwingLaunch;
+        PlayerController.ClimbEvent -= b => isClimbing = b;
     }
 
     private void OnSturdyEvent(float arg1, bool arg2)
@@ -148,36 +161,48 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
 
-
+        
         segments.Add(PlayerReferenceManager.instance.segments[0]);
         segments.Add(PlayerReferenceManager.instance.segments[1]);
         segments.Add(PlayerReferenceManager.instance.segments[2]);
 
-        _characterController = segments[0].characterController;
-        playerCollider = _characterController.GetComponent<SphereCollider>();
+        rb = segments[0].rb;
+        playerCollider = rb.GetComponent<SphereCollider>();
         sphereRadius = playerCollider.radius;
         playerCam = Camera.main.transform;
-
-        _characterController.slopeLimit = GroundAngleLimit;
-        characterHeight = _characterController.height;
+        
+        characterHeight = playerCollider.radius;
+        
+        
         //collisionDetection = _rigidbody.transform.GetComponent<CollisionDetection>();
     }
 
-    private void Update()
-    {
 
-        GroundCheck();
-        
+    void Update()
+    {
         if (PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
             return;
         HandleInput();
-        CollisionDetection();
+    }
+    private void FixedUpdate()
+    {
+        
+        GroundCheck();
+        
+        
+        //CollisionDetection();
         HandleGravity();
 
+        
+        
+        
+        if (PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
+            return;
         HandleRotation();
         HandleDrag();
+       // AlignToSurface();
         Movement();
-
+      
 
     }
 
@@ -185,17 +210,15 @@ public class PlayerMovement : MonoBehaviour
     {
 
         input = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
-        Vector3 forward = playerCam.transform.forward;
-        Vector3 right = playerCam.transform.right;
-        forward.y = 0;
-        forward.Normalize();
-        right.y = 0;
-        right.Normalize();
 
 
-        moveDir = input.x * right + input.y * forward;
-        moveDir.y = 0;
-        
+        moveDir = GetInputVector();
+
+        //
+        //moveDir.y = 0;
+
+
+
     }
 
    
@@ -204,31 +227,157 @@ public class PlayerMovement : MonoBehaviour
     {
         if (isGrounded)
         {
-            
-            
-            if (verticalVelocity < 0)
+            PlayerReferenceManager.instance.launched = false;
+
+            /*if (verticalVelocity < 0)
             {
                 verticalVelocity = (groundVelocity);
             }
-            
-            
+
+
             if (PlayerReferenceManager.instance.launched)
             {
                 launchVelocityHead = Vector3.zero;
                 launchVelocityBody = Vector3.zero;
                 launchVelocityTail = Vector3.zero;
                 PlayerReferenceManager.instance.launched = false;
+            }*/
+            
+            
+            if (isOnSlope  && (input.sqrMagnitude > 0.001f))
+            {
+                rb.AddForce(transform.up * -slopeDownForce, ForceMode.Acceleration);
             }
         }
+
+
         else
         {
-            // Full gravity in air
-            verticalVelocity += PlayerReferenceManager.instance.gravity * (1/sturdyRatio) * Time.deltaTime;
+            if (PlayerReferenceManager.instance.useGravity)
+            {
+                Debug.Log("Applying gravity");
+                rb.AddForce(transform.up * (PlayerReferenceManager.instance.gravity), ForceMode.Acceleration);
+            }
         }
 
 
-       
     }
+
+    //separate visuals and character
+    private bool IsGrounded()
+    {
+        
+       
+       
+        if (Physics.CheckSphere(groundCheck.position, groundRadius, PlayerReferenceManager.instance.groundMask, QueryTriggerInteraction.Ignore))
+        {
+            Debug.Log("Ground");
+            
+            if (Physics.Raycast(groundCheck.position, -transform.up, out slopeHit,  groundDistance, PlayerReferenceManager.instance.groundMask))
+            {
+                slopeAngle = Vector3.Angle(slopeHit.normal, transform.up);
+
+                groundNormal = slopeHit.normal;
+                
+                if(groundNormal != transform.up)
+                {
+                
+                    if (slopeAngle > 0)
+                    {
+                        if (slopeAngle < GroundAngleLimit && slopeAngle > minGroundAngle)
+                        {
+                            isOnSlope = true;
+                            return true;
+                        }
+
+                        else if(slopeAngle < GroundAngleLimit && slopeAngle < minGroundAngle)
+                        {
+                            isOnSlope = false;
+                            return true;
+                        }
+
+                        else
+                        {
+                            isOnSlope = false;
+                            return false;
+                        }
+                    
+                    }
+                    
+                }
+                
+                else
+                {
+                    //even flat terrain
+                    isOnSlope = false;
+                
+                    return true;
+                }
+
+            }
+            
+           
+           
+        }
+
+        isOnSlope = false;
+        return false;
+    }
+
+    Vector3 GetInputVector()
+    {
+        /*if (isClimbing)
+        {
+            inputVector = transform.right * input.x + transform.forward * input.y;
+            Debug.Log("Climbing Input: " + inputVector);
+        }*/
+        
+        Vector3 forward = playerCam.transform.forward;
+        Vector3 right = playerCam.transform.right;
+        forward.y = 0;
+        forward.Normalize();
+        right.y = 0;
+        right.Normalize();
+        Vector3 up = playerCam.transform.up;
+       
+
+        if (isClimbing)
+        {
+           
+            //Debug.Log("Right: " + right);
+            
+            Debug.Log("Climb Dir:  " + climbDir);
+            
+            Debug.Log("Player Cam Forward:" + playerCam.transform.forward);
+            Debug.Log("Player Cam Right:" + playerCam.transform.right);
+            forward = playerCam.transform.forward;
+            
+            Debug.Log("Forward Dir:  " + forward);
+
+            right = Vector3.Cross(climbDir, forward);
+            
+            Debug.Log("Right Dir:  " + right);
+
+            right = -Vector3.ProjectOnPlane(right, climbDir);
+            forward = -Vector3.ProjectOnPlane(forward, climbDir);
+
+        }
+
+       
+        var inputVector = right * input.x + forward * input.y;
+
+        
+        if (isOnSlope)
+        {
+            inputVector = Vector3.ProjectOnPlane(inputVector, slopeHit.normal);
+        }
+
+       
+        
+       
+        return inputVector.normalized;
+    }
+
 
   
 
@@ -236,17 +385,16 @@ public class PlayerMovement : MonoBehaviour
     {
         //isGrounded = Physics.CheckSphere(groundCheck.position, groundRadius, PlayerReferenceManager.instance.groundMask);
         
-       isGrounded = Physics.SphereCast(transform.position, groundRadius, -transform.up, out  groundHit, characterHeight * 0.5f + 0.2f,
-            PlayerReferenceManager.instance.groundMask);
        //== PlayerReferenceManager.instance.isGrounded = isGrounded;
        
-       groundedCheck = isGrounded;
-
-        if (isGrounded)
+       isGrounded = groundedCheck = IsGrounded();
+        if (isBounced)
         {
-            isBounced = false;
+            if (rb.linearVelocity.y < 0 && isGrounded)
+            {
+                isBounced = false;
+            }
         }
-        isOnSlope = IsOnSlope();
         PlayerReferenceManager.instance.isOnSlope = isOnSlope;
 
       
@@ -290,7 +438,9 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded)
         {
             movementMultiplier = groundMultiplier;
+            currentDrag = groundDrag;
             airTime = 0;
+          
 
         }
 
@@ -298,66 +448,86 @@ public class PlayerMovement : MonoBehaviour
         {
             airTime += Time.deltaTime;
 
-            if (airTime >= airThreshold)
+            if (airTime >= airThreshold || isBounced)
             {
                 movementMultiplier = airMultiplier;
+                currentDrag = airDrag;
             }
         }
         
         airTime = Mathf.Clamp(airTime, 0, airThreshold);
+        
     }
 
     // Update is called once per frame
     void Movement()
     {
 
-
-
-
-        Vector3 currentVelocity = moveVelocity;
-        //movement
-
-        //Vector3 moveVel = moveDir * (speed * Time.fixedDeltaTime) + (verticalVelocity * Time.fixedDeltaTime * Vector3.up);
-
-        //Vector3 finalVel = collisionDetection.CollideAndSlide(moveVel, _rigidbody.position, 0, true, moveVel);
-
-
-        // _rigidbody.MovePosition(_rigidbody.position + finalVel);
-
-
-        currentVelocity.y = 0;
-        //Vector3 currentVelocity = _rigidbody.linearVelocity;
-
-
         
 
-        var currAccel = input.magnitude > 0.01f ? acceleration * sturdyRatio : deceleration;
+        Vector3 currentVelocity = rb.linearVelocity;
         
-        Vector3 targetVelocity = Vector3.MoveTowards(currentVelocity, GetInputVector() * (speed * sturdyRatio * movementMultiplier), currAccel);
+        //currentVelocity
+        Vector3 targetVelocity = moveDir * (movementMultiplier * input.sqrMagnitude * speed);
 
 
-        //SlopeCheck(targetVelocity);
-        
-        
-        moveVelocity = targetVelocity + (transform.up * (verticalVelocity));
+        //targetVelocity = Vector3.ClampMagnitude(targetVelocity , maxSpeed);
+        //Vector3 velocityChange = AlignToSurface(targetVelocity - currentVelocity);
 
 
-        if (PlayerReferenceManager.instance.launched)
+        Vector3 velocityChange = targetVelocity - currentVelocity;
+
+        velocityChange = Vector3.ClampMagnitude(velocityChange, maxSpeed);
+
+        Debug.Log("VelocityChange: " + velocityChange);
+
+        //velocityChange.y = currentVelocity.y;
+        //Vector3 currentVelocity =  rb.linearVelocity + ( * targetVelocity) ;
+
+
+
+        //targetVelocity = Vector3.ClampMagnitude(targetVelocity, maxSpeed);
+
+
+        //Vector3 velocityChange = targetVelocity - currentVelocity;
+
+        moveVelocity = velocityChange * (1 - currentDrag);
+        //SlopeCheck(targetVelocity)
+        rb.AddForce(moveVelocity, ForceMode.VelocityChange);
+
+        /*var velocity = rb.linearVelocity;
+
+        if (isClimbing)
         {
-            moveVelocity += (launchVelocityHead * Time.deltaTime);
+            velocity.x *= (1 - currentDrag);
+            velocity.y *= (1 - currentDrag);
+            velocity.z *= (1 - currentDrag);
         }
-        //_rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
 
-        _characterController.Move(moveVelocity  * Time.deltaTime);
+        else
+        {
+            velocity.x *= (1 - currentDrag);
+            velocity.z *= (1 - currentDrag);
+        }*/
 
+          
         
+
+        //rb.linearVelocity = velocity;
+            
+        //Debug.Log("Velocity: " + velocity);
+
+
 
         /*body.position = Vector3.Lerp(body.position, transform.position - (bodyHeadSpacing * transform.forward), bodyReactTime * Time.deltaTime);
         tail.position = Vector3.Lerp(tail.position, body.position - (tailBodySpacing * transform.forward), tailReactTime * Time.deltaTime);*/
 
         //PlayerReferenceManager.instance.UpdateCachedHeadPositions(_rigidbody.position, transform.rotation);
 
+       
+
         UpdateSegments();
+        
         //rotation
 
     }
@@ -366,16 +536,16 @@ public class PlayerMovement : MonoBehaviour
     {
         if (PlayerReferenceManager.instance.currentState == PlayerState.Stretching)
             return;
-
-
-        if(isClimbing)
-            return;
+        
+        
         if (input != Vector2.zero)
         {
-            Vector3 direction = GetInputVector().normalized;
-            //direction.y = 0;
-            Quaternion targetRotation = Quaternion.LookRotation(direction, transform.up);
-            transform.rotation = Quaternion.Slerp(_characterController.transform.rotation, targetRotation, turnSpeed * Time.smoothDeltaTime);
+            Vector3 direction = moveDir;
+            var targetRotation =
+                //direction.y = 0;
+                Quaternion.LookRotation(direction, transform.up);
+          
+           transform.rotation = Quaternion.Slerp(rb.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
 
             
            
@@ -394,33 +564,71 @@ public class PlayerMovement : MonoBehaviour
     public void Bounce(float height)
     {
         isBounced = true;
-        verticalVelocity = 0;
-        verticalVelocity += Mathf.Sqrt(-2 * PlayerReferenceManager.instance.gravity * height);
+        //verticalVelocity = 0;
+       
+        float bounceHeight = rb.mass * (Mathf.Sqrt(-2 * PlayerReferenceManager.instance.gravity * height) - (Time.fixedDeltaTime * PlayerReferenceManager.instance.gravity) / 2);
+       // Debug.Log("Bounce height: " + bounceHeight);
+        
+        //Debug.Log(rb.linearDamping);
+        
+        Debug.Log(height);
+        rb.AddForce(transform.up * bounceHeight , ForceMode.VelocityChange);
     }
 
 
     
 
 
+    
+    
+
+    void AlignToSurface()
+    {
+        Debug.Log("Aligning Surface");
+       Quaternion gravityRotation = Quaternion.FromToRotation(transform.up, -transform.up) * rb.transform.rotation;
+       Quaternion surfaceRotation = Quaternion.FromToRotation(transform.up, groundNormal) * rb.transform.rotation;
+       
+       Quaternion finalRotationDelta = Quaternion.Slerp(gravityRotation, surfaceRotation, turnSpeed);
+       
+       transform.rotation = Quaternion.Slerp(transform.rotation, finalRotationDelta, turnSpeed * Time.smoothDeltaTime);
+
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.blue;
+        var tempPosition = transform.position + (Vector3.up * characterHeight) + (Vector3.up * slopeOffset);
+        
+        Gizmos.DrawWireSphere(groundCheck.position, groundRadius);
+
+        if (Application.isPlaying)
+        {
+            Gizmos.DrawWireSphere(segments[1].groundCheck.position, groundRadius);
+            Gizmos.DrawWireSphere(segments[2].groundCheck.position, groundRadius);
+        }
+    }
+    
+    
+    
     void UpdateSegments()
     {
         if (PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
             return;
-        if (PlayerReferenceManager.instance.launched)
+        /*if (PlayerReferenceManager.instance.launched)
         {
             Vector3 targetVelocityBody = (transform.up * verticalVelocity) + launchVelocityBody;
             Vector3 targetVelocityTail = (transform.up * verticalVelocity) + launchVelocityTail;
             
             PlayerReferenceManager.instance.bodySegment.Move(targetVelocityBody * Time.deltaTime);
             PlayerReferenceManager.instance.tailSegment.Move(targetVelocityTail * Time.deltaTime);
-        }
+        }*/
 
         else
         {
              for (int i = 1; i < segments.Count; i++)
              {
-                 Vector3 pos = segments[i].characterController.transform.position;
-                 Vector3 prevPos = segments[i - 1].characterController.transform.position;
+                 Vector3 pos = segments[i].rb.position;
+                 Vector3 prevPos = segments[i - 1].rb.position;
                  //Vector3 forward = segments[i - 1].t.forward;
 
 
@@ -441,24 +649,23 @@ public class PlayerMovement : MonoBehaviour
 
 
                  //check if overshooting
-                 Vector3 velocity = segments[i].characterController.velocity;
-                 segments[i].springConnector.UpdateSpringVector(Time.deltaTime, ref pos, ref velocity, desiredPos);
+                 Vector3 velocity = segments[i].rb.linearVelocity;
+                 segments[i].springConnector.UpdateSpringVector(Time.fixedDeltaTime, ref pos, ref velocity, desiredPos);
 
                  // segments[i].rb.MovePosition(pos);
                 // 
+                segments[i].rb.linearVelocity = velocity;
 
-                 segments[i].isGrounded = (Physics.CheckSphere(segments[i].groundCheck.position, groundRadius,
-                     PlayerReferenceManager.instance.groundMask));
-
+                 segments[i].isGrounded = Physics.CheckSphere(segments[i].groundCheck.position, groundRadius, PlayerReferenceManager.instance.groundMask);
                  if (!segments[i].isGrounded)
                  {
                      if (isGrounded)
                      {
-                         velocity += transform.up * PlayerReferenceManager.instance.gravity * Time.deltaTime;
+                         segments[i].rb.AddForce( transform.up * PlayerReferenceManager.instance.gravity, ForceMode.Acceleration);
                      }
                  }
                  
-                 segments[i].characterController.Move(velocity * Time.deltaTime);
+                
             
             
                 
@@ -516,98 +723,31 @@ public class PlayerMovement : MonoBehaviour
         }
        
     }
+    
+    
 
-    void CollisionDetection()
+    public void ChangeGravity(Vector3 newDir)
     {
-        if (!isClimbing && moveDir.magnitude > 0.001f)
-        {
-            if (Physics.Raycast(transform.position, transform.forward, out climbHit, detectionRange, silkMask))
-            {
-                // _characterController.Move(hitInfo.point - transform.position);
-
-                if (Vector3.Dot(transform.forward, climbHit.normal) < Mathf.Cos(maxClimbAngle * Mathf.Deg2Rad))
-                {
-                    isClimbing = true;
-                    _characterController.Move(climbHit.point - transform.position);
-                    Quaternion rot  = Quaternion.FromToRotation(transform.up, climbHit.normal) * transform.rotation;
-                    //transform.up = climbHit.normal;
-                }
-               
-            }
-        }
-
-        else if(isClimbing)
-        {
-            if (!isGrounded)
-            {
-                isClimbing = false;
-                transform.localRotation = Quaternion.Euler(0, 0, 0);
-            }
-
-            else
-            {
-                transform.rotation = Quaternion.Euler(90, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
-                climbHit = groundHit;
-                
-            }
-        }
         
+        Quaternion rotationDifference = Quaternion.FromToRotation(transform.up, -newDir);
+			
+        rb.transform.rotation = rotationDifference * rb.transform.rotation;
+        //rb.constraints = RigidbodyConstraints.FreezeRotation
+
+        climbDir = -newDir;
         
-       
-    }
+       // Debug.Log(climbHit.normal);
+       // gravityDirection = newDir;
+        //AlignToSurface();
 
-    private bool IsOnSlope()
-    {
-        if (Physics.Raycast(transform.position, -transform.up, out slopeHit,
-                characterHeight * 0.5f + 0.2f, PlayerReferenceManager.instance.groundMask))
-        {
-            if(slopeHit.normal != transform.up)
-            {
-                if (isClimbing)
-                {
-                    slopeAngle = Vector3.Angle(transform.up, slopeHit.normal);
-                }
-               
-                slopeAngle = Vector3.Angle(slopeHit.normal, Vector3.up);
+        /*
+         * If (you are not grounded and there is a wall detected by the raycast) {
 
-                if (slopeAngle > 0)
-                {
-                    if (slopeAngle < GroundAngleLimit)
-                    {
-                        return true;
-                    }
-                }
-               
+            reduce gravity/turn it off;
+            Vector3 projectonplane = Vector3.ProjectOnPlane(rigidbody.velocity, planenormal);
+            addforce to the rigidbody using the what projectonplane spit out; ///use forcemode impulse or VelocityChange
 
-                return false;
             }
-        }
-
-        return false;
+         */
     }
-
-    Vector3 GetInputVector()
-    {
-        Vector3 inputVector = moveDir;
-        if (IsOnSlope())
-        {
-            inputVector = Vector3.ProjectOnPlane(moveDir, slopeHit.normal);
-        }
-
-        if (isClimbing)
-        {
-            var inputDir = Vector3.ProjectOnPlane(inputVector, climbHit.normal);
-            inputVector = inputDir;
-        }
-        return inputVector;
-    }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(groundCheck.position, groundDistance);
-    }
-    
-    
-    
 }

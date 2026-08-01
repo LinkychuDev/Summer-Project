@@ -58,8 +58,8 @@ public class BounceTest : MonoBehaviour
             return;
         Debug.Log("Bounce");
         
-        if(!PlayerMovement.isGrounded)
-            return;
+       // if(!PlayerMovement.isGrounded)
+         //   return;
         player.Bounce(bounceHeight);
     }
 

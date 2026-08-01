@@ -8,7 +8,7 @@ public class PlayerGrab : MonoBehaviour
     
     Collider[] interactionColliders;
     
-    public CharacterController headSegment;
+    public Rigidbody headSegment;
     
     EnvironmentObject targetObject;
 

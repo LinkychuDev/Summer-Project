@@ -30,12 +30,18 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
     public bool isBreakable = false;
 
     private GameObject honeyDecal;
+
+    public bool useGravity = true; 
+    
+    private const float gravity = 9.81f;
+    
+    bool isGrounded;
     //private Transform grabPoint;
     protected virtual void Awake()
     {
         originalLayer = gameObject.layer;
         rb = GetComponent<Rigidbody>();
-        isDynamic = rb.isKinematic;
+        rb.isKinematic = true;
 
         if (transform.parent != null)
         {
@@ -56,6 +62,20 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         
     }
 
+
+    private void FixedUpdate()
+    {
+        isGrounded = Physics.SphereCast(transform.position, 0.2f, Vector3.down, out RaycastHit hit, 0.3f,
+            PlayerReferenceManager.instance.groundMask);
+
+        if (!isGrounded && useGravity)
+        {
+            Vector3 gravityVector = Vector3.up * (gravity * Time.fixedDeltaTime);
+            rb.MovePosition(rb.position + (gravityVector* Time.fixedDeltaTime));
+        }
+        
+        
+    }
 
     void CreateHoneyDecal()
     {
@@ -96,12 +116,9 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
             return;
         }
         
-        rb.isKinematic = false;
+        rb.isKinematic = true;
         grabPointReference = grabPoint;
-        rb.useGravity = false;
-        rb.constraints = RigidbodyConstraints.FreezeRotation;
         transform.parent = grabPointReference;
-        rb.MovePosition(grabPoint.position);
         gameObject.layer = grabPoint.gameObject.layer;
         isGrabbed = true;
         
@@ -112,10 +129,8 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         
         isGrabbed = false;
         gameObject.layer = originalLayer;
-        rb.isKinematic =  isDynamic;
         transform.parent = originalParent;
         grabPointReference = null;
-        rb.useGravity = true;
         rb.constraints = RigidbodyConstraints.FreezeRotation;
 
     }

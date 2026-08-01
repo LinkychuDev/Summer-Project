@@ -32,7 +32,7 @@ public class Segment
     public Transform visual;
      public SegmentType type;
     public float spacingToNextSegment;
-   public CharacterController characterController {get; private set;}
+   public Rigidbody rb {get; private set;}
     public bool isGrounded {get;  set;}
     public Transform groundCheck;
 
@@ -40,7 +40,7 @@ public class Segment
     public PlayerSpringConnector springConnector {get; private set;}
     public void Initialise()
     {
-        characterController = t.GetComponent<CharacterController>();
+        rb = t.GetComponent<Rigidbody>();
         
         if (this.type != SegmentType.Head)
         {
@@ -85,9 +85,9 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     public PlayerState lastState;
     public float gravity = -15f;
     public Sequence sequence;
-    [HideInInspector] public CharacterController headSegment;
-    [HideInInspector] public CharacterController bodySegment;
-    [HideInInspector] public CharacterController tailSegment;
+    [HideInInspector] public Rigidbody headSegment;
+    [HideInInspector] public Rigidbody bodySegment;
+    [HideInInspector] public Rigidbody tailSegment;
     public LayerMask playerCollisionMask;
     
    
@@ -113,7 +113,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     public Material headMaterial;
    
 
-
+    
    // public bool isOnCoyoteTime;
     public bool useCoyoteTime;
 
@@ -124,6 +124,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
 
     public bool launched;
     public bool isOnSlope;
+    public bool useGravity;
 
     private void Awake()
     {
@@ -138,14 +139,14 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
             segment.Initialise();
         }
 
-        headSegment = segments[0].characterController;
-        bodySegment = segments[1].characterController;
-        tailSegment = segments[2].characterController;
+        headSegment = segments[0].rb;
+        bodySegment = segments[1].rb;
+        tailSegment = segments[2].rb;
         
         bodyOffset = Mathf.Abs(segments[1].spacingToNextSegment);
         tailOffset = Mathf.Abs(segments[2].spacingToNextSegment);
         
-        cachedHeadMovementPositions.Add(new CachedPosition(headClose.position, headSegment.transform.forward, headSegment.velocity));
+       cachedHeadMovementPositions.Add(new CachedPosition(headClose.position, headSegment.transform.forward, headSegment.linearVelocity));
         
         headMaterial = headRenderer.material;
         
@@ -160,7 +161,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         //Handle Inputs
         DisplayCharacterCircles();
         
-        UpdateCachedHeadPositions(headClose.position, headSegment.transform.forward, headSegment.velocity);
+        UpdateCachedHeadPositions(headClose.position, headSegment.transform.forward, headSegment.linearVelocity);
     }
     
 
@@ -168,7 +169,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     {
         for(int i = 0; i < segments.Count; i++)
         {
-            if(Physics.Raycast(segments[i].characterController.transform.position, -segments[i].characterController.transform.up, out RaycastHit hit, groundedCircleMaxDistance, groundMask))
+            if(Physics.Raycast(segments[i].rb.transform.position, -segments[i].rb.transform.up, out RaycastHit hit, groundedCircleMaxDistance, groundMask))
             {
                 Vector3 direction = Vector3.ProjectOnPlane(groundedCircle[i].transform.up, hit.normal);
 
@@ -194,31 +195,37 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
 
     public void SetState(PlayerState newState)
     {
+        bool freezeHead = false;
+        bool freezeBodyandTail = false;
         switch (newState)
         {
             case PlayerState.Stretching:
-               
+                useGravity = false;
                 
+                freezeBodyandTail = true;
                 //segments[0].rb.useGravity = false;
                 break;
             case PlayerState.Locomotion:
-               
+                freezeBodyandTail = false;
+                useGravity = true;
                 PlayerStretch.stretchState = PlayerStretch.StretchState.None;
-              
-                
                 //segments[0].rb.useGravity = true;
                 break;
             case PlayerState.Stuck:
-             
+                freezeBodyandTail = true;
                 break;
             case PlayerState.Swinging:
-              
+                useGravity = false;
                 break;
             
                 
         }
 
 
+
+        headSegment.isKinematic = freezeHead;
+        bodySegment.isKinematic = freezeBodyandTail;
+        tailSegment.isKinematic = freezeBodyandTail;
         
         lastState = currentState;
         currentState = newState;
