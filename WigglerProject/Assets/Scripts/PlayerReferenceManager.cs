@@ -111,8 +111,8 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
 
     public Renderer headRenderer;
     public Material headMaterial;
-   
 
+    public Vector3 playerGravityDir = Vector3.up;
     
    // public bool isOnCoyoteTime;
     public bool useCoyoteTime;
@@ -125,6 +125,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     public bool launched;
     public bool isOnSlope;
     public bool useGravity;
+    public bool isGrounded;
 
     private void Awake()
     {
@@ -150,7 +151,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         
         headMaterial = headRenderer.material;
         
-        
+        playerGravityDir = Vector3.up;
         SetState(PlayerState.Locomotion);
 
     }
@@ -308,6 +309,15 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
       
     }
 
+    public Vector3[] GetSegmentPositions()
+    {
+        Vector3[] pos =  new Vector3[3];
+
+        pos[0] = headSegment.position;
+        pos[1] = bodySegment.position;
+        pos[2] = tailSegment.position;
+        return pos;
+    }
    
 
    

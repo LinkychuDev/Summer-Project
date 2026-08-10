@@ -40,8 +40,8 @@ public class PlayerController : MonoBehaviour
     
     
     public static Action<bool> ClimbEvent;
-    
-    
+
+   
     private PlayerState currentState;
 
     

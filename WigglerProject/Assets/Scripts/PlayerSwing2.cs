@@ -405,26 +405,5 @@ public class PlayerSwing2 : MonoBehaviour
         return false;
     }
 
-    private void OnDrawGizmosSelected()
-    {
-        if (isSwinging)
-        {
-            for (var i = 0; i < pathPoints.Count; i++)
-                if (i != pathPoints.Count - 1)
-                {
-                    Gizmos.color = Color.chartreuse;
-                    Gizmos.DrawWireSphere(pathPoints[i], 0.2f);
-                }
-
-                else
-                {
-                    Gizmos.color = Color.crimson;
-                    Gizmos.DrawWireSphere(pathPoints[i], 0.2f);
-                }
-
-
-            Gizmos.color = Color.slateBlue;
-            Gizmos.DrawLine(pathPoints[^1], pathPoints[^1] + Vector3.down * 10000);
-        }
-    }
+   
 }

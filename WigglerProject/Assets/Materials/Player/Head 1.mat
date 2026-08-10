@@ -12,13 +12,12 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - DR_ENABLE_LIGHTMAP_DIR
   - DR_OUTLINE_ON
   - DR_RIM_ON
   - _BASEMAP_PREMULTIPLY
   - _CELPRIMARYMODE_SINGLE
   - _DETAILMAPBLENDINGMODE_MULTIPLY
-  - _GRADIENTSPACE_WORLD
+  - _GRADIENTSPACE_LOCAL
   - _OUTLINESPACE_SCREEN
   - _TEXTUREBLENDINGMODE_MULTIPLY
   m_InvalidKeywords:
@@ -153,11 +152,11 @@ Material:
     - _DstBlendAlpha: 0
     - _EdgeAmount: 1
     - _EnvironmentReflections: 1
-    - _FlatRimEdgeSmoothness: 0.5
+    - _FlatRimEdgeSmoothness: 1
     - _FlatRimLightAlign: 0
-    - _FlatRimSize: 0.5
+    - _FlatRimSize: 0.478
     - _FlatSpecularEdgeSmoothness: 1
-    - _FlatSpecularSize: 0.636
+    - _FlatSpecularSize: 0.874
     - _Flatness: 1
     - _FlatnessExtra: 1
     - _FresnelPower: 2
@@ -165,12 +164,12 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GradientAngle: 0
+    - _GradientAngle: 360
     - _GradientCenterX: 0
     - _GradientCenterY: 0
     - _GradientEnabled: 0
-    - _GradientSize: 10
-    - _GradientSpace: 0
+    - _GradientSize: 0
+    - _GradientSpace: 1
     - _IsStretching: 0
     - _LightContribution: 0
     - _LightFalloffSize: 0
@@ -182,7 +181,7 @@ Material:
     - _OutlineEnabled: 1
     - _OutlineScale: 1
     - _OutlineSpace: 0
-    - _OutlineWidth: 2
+    - _OutlineWidth: 1
     - _OverrideLightmapDir: 0
     - _Parallax: 0.005
     - _QueueControl: 0
@@ -207,7 +206,7 @@ Material:
     - _TextureImpact: 1
     - _UnityShadowMode: 0
     - _UnityShadowOcclusion: 0
-    - _UnityShadowPower: 0.2
+    - _UnityShadowPower: 0.324
     - _UnityShadowSharpness: 1
     - _VertexColorsEnabled: 0
     - _VertexExtrusionSmoothNormals: 0
@@ -215,16 +214,16 @@ Material:
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 0.99999994, g: 0.99999994, b: 0.99999994, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _ColorDim: {r: 0.7196765, g: 0.7196765, b: 0.7196765, a: 1}
+    - _ColorDim: {r: 0.85983825, g: 0.85983825, b: 0.85983825, a: 1}
     - _ColorDimCurve: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
     - _ColorDimExtra: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
     - _ColorDimSteps: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
-    - _ColorGradient: {r: 0.85023, g: 0.85034, b: 0.85045, a: 0.85056}
+    - _ColorGradient: {r: 1, g: 0.6924867, b: 0.34366566, a: 1}
     - _DetailMapColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _FlatRimColor: {r: 1.548833, g: 1.463241, b: 1.8005388, a: 1}
+    - _FlatRimColor: {r: 3.097666, g: 2.926482, b: 3.6010776, a: 1}
     - _FlatSpecularColor: {r: 2, g: 1.8086394, b: 1.5754716, a: 1}
     - _LightmapDirection: {r: 0, g: 1, b: 0, a: 0}
     - _MediumColour: {r: 0.7520215, g: 0.6858889, b: 0.5300635, a: 1}
@@ -234,7 +233,7 @@ Material:
     - _StretchMedium: {r: 0.37314442, g: 0.4077949, b: 1.827451, a: 1}
     - _StretchSmall: {r: 19.69831, g: 0.10313272, b: 0.5032864, a: 1}
     - _UV_TIle: {r: 0, g: 0, b: 0, a: 0}
-    - _UnityShadowColor: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
+    - _UnityShadowColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &4529103661335682145

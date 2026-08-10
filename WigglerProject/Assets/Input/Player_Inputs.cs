@@ -236,7 +236,7 @@ public partial class @Player_Inputs: IInputActionCollection2, IDisposable
                     ""id"": ""5984c9a9-1392-46fe-a556-222ae29bd000"",
                     ""path"": ""2DVector"",
                     ""interactions"": """",
-                    ""processors"": """",
+                    ""processors"": ""DeltaTimeScale"",
                     ""groups"": """",
                     ""action"": ""Look"",
                     ""isComposite"": true,
