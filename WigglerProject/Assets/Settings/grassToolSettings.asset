@@ -29,7 +29,7 @@ MonoBehaviour:
   AdjustedColor: {r: 1, g: 1, b: 1, a: 1}
   paintBlockMask:
     serializedVersion: 2
-    m_Bits: 8183
+    m_Bits: 4087
   hitMask:
     serializedVersion: 2
     m_Bits: 8

@@ -7,7 +7,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Physics = UnityEngine.Physics;
 
-
+public interface IStretchBashable
+{
+    public void StretchBash();
+}
 public class PlayerStretch: MovementBase
 {
     public enum StretchState
@@ -55,10 +58,11 @@ public class PlayerStretch: MovementBase
     public Material stretchMaxMaterial;
     //spherecast detection
     [Header("Collision Detection")]
-    [SerializeField] float detectionRadius = 0.5f;
+    [SerializeField] float detectionOffset = 0.5f;
     [SerializeField] private float maxDetectionDistance = 0.1f;
 
-    public static StretchState stretchState = StretchState.None;
+    private float detectionRadius;
+    public StretchState stretchState = StretchState.None;
 
     [SerializeField] private bool shouldStretchForward;
 
@@ -82,7 +86,7 @@ public class PlayerStretch: MovementBase
 
     public bool isMetal;
    
-
+    public static Action<StretchState> onStretchStateChanged;
     private bool isOnHoney;
     [SerializeField] private bool isAtMaxSpring;
     
@@ -137,7 +141,7 @@ public class PlayerStretch: MovementBase
         
         playerCam = Camera.main.transform;
         colliders = new Collider[1];
-
+        
         bodyOffset = PlayerReferenceManager.instance.bodyOffset;
         tailOffset = PlayerReferenceManager.instance.tailOffset;
 
@@ -155,6 +159,8 @@ public class PlayerStretch: MovementBase
         tailVisual = segments[2].visual;
 
 
+        UpdateStretchState(StretchState.None);
+        detectionRadius = headSegment.GetComponent<SphereCollider>().radius + detectionOffset;
         /*collisionRadius = collisionRadiusOffset + headSegment.GetComponent<SphereCollider>().radius;
         colliders = new Collider[maxColliders];
         collisionMask = PlayerReferenceManager.instance.playerCollisionMask;*/
@@ -232,6 +238,14 @@ public class PlayerStretch: MovementBase
                     swing.StartSwing(honeyTest);
                 }
             }
+
+            else
+            {
+                if (other.TryGetComponent(out IStretchBashable bashable))
+                {
+                    bashable.StretchBash();
+                }
+            }
         }
     }
 
@@ -277,14 +291,14 @@ public class PlayerStretch: MovementBase
                 if (other.transform.TryGetComponent(out IStickable stickable))
                 {
                     Debug.Log(other.name);
-                    stretchState = StretchState.Stuck;
+                    UpdateStretchState(StretchState.Stuck);
                     shouldStretchForward = true;
                    // PlayerReferenceManager.instance.SetState(PlayerState.Stuck);
                 }
 
                 else if(other.transform.CompareTag("Honey"))
                 {
-                    stretchState = StretchState.Stuck;
+                    UpdateStretchState(StretchState.Stuck);
                     shouldStretchForward = true;
                 }
             }
@@ -328,7 +342,7 @@ public class PlayerStretch: MovementBase
     {
         if (shouldStretch)
         {
-            stretchState = StretchState.Stuck;
+            UpdateStretchState(StretchState.Stuck);
 
         }
     }
@@ -360,7 +374,7 @@ public class PlayerStretch: MovementBase
         yOffset = cachedHeadPosition.y - cachedBodyPosition.y;
         
         PlayerReferenceManager.instance.SetState(PlayerState.Stretching);
-        stretchState = StretchState.Stretching;
+        UpdateStretchState(StretchState.Stretching);
         //cachedStretchPositions.Add(headSegment.transform);
 
     }
@@ -513,7 +527,7 @@ public class PlayerStretch: MovementBase
             if (isOnHoney || environmentObject.OnHoney)
             {
                 Debug.Log(environmentObject.name);
-                stretchState = StretchState.Stuck;
+                UpdateStretchState(StretchState.Stuck);
                 PlayerController.OnGrabEvent?.Invoke(environmentObject);
             }
         }
@@ -589,7 +603,7 @@ public class PlayerStretch: MovementBase
         
         Debug.Log(stretchState);
         //yield return new WaitUntil(() => PlayerPlayerReferenceManager.instance.state == PlayerState.Stretching);
-        stretchState = StretchState.Retracting;
+        UpdateStretchState(StretchState.Retracting);
     
         
 
@@ -727,7 +741,7 @@ public class PlayerStretch: MovementBase
             PlayerController.OnReleaseEvent?.Invoke();
         }
         
-        stretchState = StretchState.None;
+        UpdateStretchState(StretchState.None);
         
         PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
 
@@ -743,6 +757,14 @@ public class PlayerStretch: MovementBase
         return shouldStretchForward || isMetal;
     }
 
+
+    public void UpdateStretchState(StretchState newState)
+    {
+        if(stretchState == newState)
+            return;
+        stretchState = newState;
+        onStretchStateChanged?.Invoke(stretchState);
+    }
 
     private void OnDrawGizmosSelected()
     {
@@ -765,4 +787,6 @@ public class PlayerStretch: MovementBase
         }
 
     }
+    
+    
 }

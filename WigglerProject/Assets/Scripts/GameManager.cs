@@ -43,19 +43,6 @@ public class GameManager : MonoBehaviour
     
     private void Start()
     {
-        if (playerReferenceManager == null)
-        {
-            if (PlayerReferenceManager.instance == null)
-            {
-                playerReferenceManager = FindFirstObjectByType<PlayerReferenceManager>();
-            }
-            else
-            {
-                playerReferenceManager = PlayerReferenceManager.instance;
-            }
-            
-            
-        }
         ShowBounds();
         ShowFPS();
         SpawnPlayer();
@@ -63,7 +50,7 @@ public class GameManager : MonoBehaviour
 
     private void OnValidate()
     {
-        Start();
+        ShowBounds();
     }
 
 
@@ -117,9 +104,14 @@ public class GameManager : MonoBehaviour
 
     void SpawnPlayer()
     {
-        for(int i = 0; i < 3; i++)
+        Debug.Log("lastSpawnPositionCount" + lastSpawnPosition.Length);
+        Debug.Log("Player segment Count" + PlayerReferenceManager.instance.segments.Count );
+        
+        lastSpawnPosition = new Vector3[PlayerReferenceManager.instance.segments.Count];
+        
+        for(int i = 0; i < PlayerReferenceManager.instance.segments.Count; i++)
         {
-            lastSpawnPosition[i] = playerReferenceManager.segments[i].rb.position;
+            lastSpawnPosition[i] = PlayerReferenceManager.instance.segments[i].rb.position;
         }
     }
 
@@ -132,13 +124,13 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < 3; i++)
         {
-            playerReferenceManager.segments[i].rb.position = lastSpawnPosition[i];
+            PlayerReferenceManager.instance.segments[i].rb.position = lastSpawnPosition[i];
         }
     }
 
     bool IsOutOfBounds()
     {
-        Vector3 p = playerReferenceManager.headSegment.position;
+        Vector3 p = PlayerReferenceManager.instance.headSegment.position;
 
         if (p.x < xBounds.x || p.x > xBounds.y)
             return true;

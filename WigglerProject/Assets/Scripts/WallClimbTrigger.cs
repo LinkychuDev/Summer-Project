@@ -2,19 +2,12 @@
 using UnityEngine;
 
 
-public enum Direction
-{
-	Forward,
-	Back,
-	Right,
-	Left
-	
-}
+
 public class WallClimbTrigger : CollisionBlock
 {
 	public bool isTrigger = true;
 
-	
+	private Collider collider;
 	private bool hasSwitched;
 	private PlayerReferenceManager playerReferenceManager;
 	
@@ -28,7 +21,10 @@ public class WallClimbTrigger : CollisionBlock
 	public Transform inverseSetPosition;
 	public Transform wallContactPos;
 	public Direction targetDir;
+	
 
+	
+	
 
 	private void Start()
 	{
@@ -40,7 +36,7 @@ public class WallClimbTrigger : CollisionBlock
 		UpdateDirection();
 	}
 
-
+	
 	void UpdateDirection()
 	{
 		switch (targetDir)
@@ -71,7 +67,11 @@ public class WallClimbTrigger : CollisionBlock
 				if (!playerRb.TryGetComponent(out PlayerMovement controller))
 					return;
 				if(PlayerReferenceManager.instance.currentState == PlayerState.Stretching)
+				{
+					Debug.Log("Is Stretching and in contact");
 					return;
+				}
+				
 				//controller.ChangeGravity(transform.forward);
 
 

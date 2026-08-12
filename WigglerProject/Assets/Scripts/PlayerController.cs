@@ -44,20 +44,41 @@ public class PlayerController : MonoBehaviour
    
     private PlayerState currentState;
 
-    
+    private Transform headVisual;
+    private Vector3 scaleEffect = new Vector3(1.5f,  1.5f, 1.5f);
+    private Vector3 previousScale;
 
+    [Header("Collision")] public static Action OnWaterEvent;
+    
     private void OnEnable()
     {
         PlayerReferenceManager.OnStateChange += OnStateChange;
+        PlayerStretch.onStretchStateChanged += OnStretchStateChanged;
+    }
+
+    private void OnStretchStateChanged(PlayerStretch.StretchState obj)
+    {
+        if (obj == PlayerStretch.StretchState.Stuck)
+        {
+            headVisual.localScale = scaleEffect;
+        }
+
+        else
+        {
+            headVisual.localScale = previousScale;
+        }
     }
 
     private void OnDisable()
     {
         PlayerReferenceManager.OnStateChange -= OnStateChange;
+        PlayerStretch.onStretchStateChanged -= OnStretchStateChanged;
     }
 
     private void Start()
     {
+        headVisual = PlayerReferenceManager.instance.segments[0].visual;
+        previousScale = headVisual.localScale;
         Honeyfied(false);
         Sturdy(false);
     }

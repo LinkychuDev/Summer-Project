@@ -78,12 +78,45 @@ public class PlayerMovement : MovementBase
     [SerializeField] private float climbDetectionCDistance;
     public float climbTriggerOffset = 0.5f;
 
+    
 
     protected override void OnEnable()
     {
         PlayerController.isOnSturdyEvent += OnSturdyEvent;
-     
+        PlayerStretch.onStretchStateChanged += OnStretchStateChanged;
         PlayerController.ClimbEvent += ClimbEvent;
+        PlayerController.OnWaterEvent += OnWaterEvent;
+    }
+
+    private void OnWaterEvent()
+    {
+        
+        if (isClimbing)
+        {
+            ChangeGravity(Vector3.down, false);
+        }
+        
+        StartCoroutine(SoakPlayer());
+    }
+    
+    
+    public IEnumerator SoakPlayer()
+    {
+        PlayerReferenceManager.instance.isSoaked = true;
+        yield return new WaitForSeconds(PlayerReferenceManager.instance.soakedDuration);
+        yield return new WaitUntil(() => IsGrounded());
+        PlayerReferenceManager.instance.isSoaked = false;
+    }
+
+    private void OnStretchStateChanged(PlayerStretch.StretchState obj)
+    {
+        if (isClimbing)
+        {
+            if (obj == PlayerStretch.StretchState.Stuck)
+            {
+                ChangeGravity(Vector3.down, false);
+            }
+        }
     }
 
     private void ClimbEvent(bool b)
@@ -94,8 +127,9 @@ public class PlayerMovement : MovementBase
     protected override void OnDisable()
     {
         PlayerController.isOnSturdyEvent -= OnSturdyEvent;
-
+        PlayerStretch.onStretchStateChanged -= OnStretchStateChanged;
         PlayerController.ClimbEvent -= ClimbEvent;
+        PlayerController.OnWaterEvent -= OnWaterEvent;
     }
 
     private void OnSturdyEvent(float arg1, bool arg2)
@@ -391,7 +425,7 @@ public class PlayerMovement : MovementBase
        transform.rotation = Quaternion.Slerp(transform.rotation, finalRotationDelta, turnSpeed * Time.smoothDeltaTime);*/
 
 
-        if (isClimbing)
+        if (isClimbing && !PlayerReferenceManager.instance.isSoaked)
         {
 
             if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -transform.up, out climbHit,
@@ -428,6 +462,8 @@ public class PlayerMovement : MovementBase
            
 
         }
+        
+        
 
        
     }
@@ -489,6 +525,14 @@ public class PlayerMovement : MovementBase
          */
     }
 
+
+    private void OnParticleCollision(GameObject other)
+    {
+        if (other.CompareTag("Water"))
+        {
+            PlayerController.OnWaterEvent?.Invoke();
+        }
+    }
 
     private void OnDrawGizmos()
     {
@@ -552,7 +596,7 @@ public class PlayerMovement : MovementBase
                 // 
                 segments[i].rb.linearVelocity = velocity;
 
-                 segments[i].isGrounded = Physics.CheckSphere(segments[i].groundCheck.position, groundRadius, PlayerReferenceManager.instance.groundMask);
+                 segments[i].isGrounded = Physics.CheckSphere(segments[i].groundCheck.position, groundDistance, PlayerReferenceManager.instance.groundMask);
                  if (!segments[i].isGrounded)
                  {
                      if (isGrounded)

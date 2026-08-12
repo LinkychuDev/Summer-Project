@@ -36,6 +36,7 @@ public class Segment
     public bool isGrounded {get;  set;}
     public Transform groundCheck;
 
+    
     public float mass = 50;
     public PlayerSpringConnector springConnector {get; private set;}
     public void Initialise()
@@ -89,7 +90,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     [HideInInspector] public Rigidbody bodySegment;
     [HideInInspector] public Rigidbody tailSegment;
     public LayerMask playerCollisionMask;
-    
+    public LayerMask playerMask;
    
     [HideInInspector] public float bodyOffset;
     [HideInInspector] public float tailOffset;
@@ -127,6 +128,10 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     public bool useGravity;
     public bool isGrounded;
 
+    private PlayerStretch playerStretch;
+
+    public bool isSoaked;
+    public float soakedDuration = 2f;
     private void Awake()
     {
 
@@ -152,6 +157,10 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         headMaterial = headRenderer.material;
         
         playerGravityDir = Vector3.up;
+
+        playerMask = 1 << headSegment.gameObject.layer;
+        
+        playerStretch = headSegment.GetComponent<PlayerStretch>();
         SetState(PlayerState.Locomotion);
 
     }
@@ -209,7 +218,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
             case PlayerState.Locomotion:
                 freezeBodyandTail = false;
                 useGravity = true;
-                PlayerStretch.stretchState = PlayerStretch.StretchState.None;
+                playerStretch.UpdateStretchState(PlayerStretch.StretchState.None);
                 //segments[0].rb.useGravity = true;
                 break;
             case PlayerState.Stuck:
@@ -290,7 +299,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         // UpdateSegments();
     }
 
-    
+  
     public void ClearCachedHeadPositions()
     {
         cachedHeadMovementPositions.Clear();
