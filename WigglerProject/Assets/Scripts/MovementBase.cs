@@ -308,7 +308,7 @@ public class MovementBase : MonoBehaviour
         }
 
         
-        if (PlayerReferenceManager.instance.useGravity)
+        if (PlayerReferenceManager.instance.useGravity && !isClimbing)
         {
 
             if (isOnSlope)

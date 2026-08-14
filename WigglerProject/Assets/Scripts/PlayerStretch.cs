@@ -329,6 +329,9 @@ public class PlayerStretch: MovementBase
                 return true;
             }
 
+            if (isClimbing)
+                return true;
+
             return false;
         }
 

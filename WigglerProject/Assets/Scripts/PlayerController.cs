@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public interface IBreakable
@@ -12,6 +13,15 @@ public interface IMetalBreakable
     void MetalBreak();
 }
 
+
+public enum PlayerActionEvent
+{
+    NoAction,
+    ClimbAction,
+    StretchAction,
+    ReleaseAction,
+    PullAction
+}
 
 public class PlayerController : MonoBehaviour
 {
@@ -48,13 +58,24 @@ public class PlayerController : MonoBehaviour
     private Vector3 scaleEffect = new Vector3(1.5f,  1.5f, 1.5f);
     private Vector3 previousScale;
 
+    
+    public static Action<PlayerActionEvent> ActionPromptEvent;
+    
+    public Sprite ClimbSprite, StretchSprite, ReleaseSprite, PullSprite;
+    
+    public Canvas promptCanvas;
+    public Image promptSprite;
     [Header("Collision")] public static Action OnWaterEvent;
+    
     
     private void OnEnable()
     {
         PlayerReferenceManager.OnStateChange += OnStateChange;
         PlayerStretch.onStretchStateChanged += OnStretchStateChanged;
+        ActionPromptEvent += DisplayPromptEvent;
     }
+
+    
 
     private void OnStretchStateChanged(PlayerStretch.StretchState obj)
     {
@@ -73,6 +94,7 @@ public class PlayerController : MonoBehaviour
     {
         PlayerReferenceManager.OnStateChange -= OnStateChange;
         PlayerStretch.onStretchStateChanged -= OnStretchStateChanged;
+        ActionPromptEvent -= DisplayPromptEvent;
     }
 
     private void Start()
@@ -144,6 +166,47 @@ public class PlayerController : MonoBehaviour
         }
         SturdyVisualiser.SetActive(false);
         isOnSturdyEvent?.Invoke(1, false);
+    }
+    
+    private void DisplayPromptEvent(PlayerActionEvent obj)
+    {
+        if (obj == PlayerActionEvent.NoAction)
+        {
+            promptCanvas.gameObject.SetActive(false);
+            promptSprite.sprite = null;
+        }
+
+        else
+        {
+            promptCanvas.gameObject.SetActive(true);
+            promptSprite.sprite = GetPromptSprite(obj);
+        }
+    }
+
+    private Sprite GetPromptSprite(PlayerActionEvent playerActionEvent)
+    {
+        Sprite sprite = null;
+        switch (playerActionEvent)
+        {
+            case PlayerActionEvent.NoAction:
+                break;
+            case PlayerActionEvent.ClimbAction:
+                sprite = ClimbSprite;
+                break;
+            case PlayerActionEvent.StretchAction:
+                sprite = StretchSprite;
+                break;
+            case PlayerActionEvent.ReleaseAction:
+                sprite = ReleaseSprite;
+                break;
+            case PlayerActionEvent.PullAction:
+                sprite = PullSprite;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(playerActionEvent), playerActionEvent, null);
+        }
+
+        return sprite;
     }
 
 

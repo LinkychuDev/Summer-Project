@@ -637,6 +637,37 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &1323227041227549444
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3970849276040408321}
+  m_Layer: 6
+  m_Name: ClimbGroundCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 1206586993520771344, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3970849276040408321
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1323227041227549444}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.624, z: 0.75}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1121495103360250260}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1470944878344772116
 GameObject:
   m_ObjectHideFlags: 0
@@ -1029,6 +1060,7 @@ Transform:
   - {fileID: 1847710465127358530}
   - {fileID: 991833730389344106}
   - {fileID: 993815599591354015}
+  - {fileID: 3970849276040408321}
   m_Father: {fileID: 6672189582375385542}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8172203652235140730
@@ -1065,7 +1097,7 @@ MonoBehaviour:
   bounceTime: 0.24
   airDrag: 0.4
   groundDrag: 6
-  climbDetectionDistance: 0.6
+  climbDetectionDistance: 1.5
   slopeGroundDistance: 0.3
   climbForce: 2
   groundLimit: 100
@@ -1075,14 +1107,15 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4096
   climbTime: 0.2
-  climbOffset: 0.2
-  climbSpeed: 5
+  climbOffset: 0.4
+  climbSpeed: 8
+  climbCheckOffset: {fileID: 3970849276040408321}
   climbDetectionRadius: 1
   climbAngle: 0
   climbDetectionCRadius: 0.4
   checkClimbCornerOffset: 1
-  climbDetectionCDistance: 1
-  climbTriggerOffset: 0.5
+  climbDetectionCDistance: 1.2
+  climbTriggerOffset: 3
 --- !u!114 &7418488917715809542
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1277,7 +1310,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73a15adb33f43f84e8dcb7cd1b6b3b87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShaderInteractor
-  radius: 1.3
+  radius: 0.5
 --- !u!1 &2416231633767583862
 GameObject:
   m_ObjectHideFlags: 0
@@ -1608,7 +1641,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   groundMask:
     serializedVersion: 2
-    m_Bits: 4105
+    m_Bits: 9
   segments:
   - t: {fileID: 1121495103360250260}
     visual: {fileID: 4955131442596930542}
@@ -2782,7 +2815,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6341015628333190288}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.123696424, y: 0.000000007842862, z: -9.776423e-10, w: 0.9923201}
+  m_LocalRotation: {x: 0.12369647, y: 1.5997213e-10, z: -1.9941134e-11, w: 0.9923201}
   m_LocalPosition: {x: 0, y: 1.4612246, z: -5.7700577}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3228,6 +3261,8 @@ GameObject:
   - component: {fileID: 816161727696945081}
   - component: {fileID: 6861255167115179325}
   - component: {fileID: 4811248381908700159}
+  - component: {fileID: 3474315881545879523}
+  - component: {fileID: 6637111455162101573}
   m_Layer: 0
   m_Name: FreeLook Camera
   m_TagString: Untagged
@@ -3243,8 +3278,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7285189881839154116}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12369642, y: 0.00000000782518, z: -8.357902e-10, w: 0.9923201}
-  m_LocalPosition: {x: -3.1643887, y: 11.911224, z: 67.93902}
+  m_LocalRotation: {x: 0.12369647, y: 1.5965035e-10, z: -1.735968e-11, w: 0.9923201}
+  m_LocalPosition: {x: -3.1643887, y: 11.911223, z: 67.93902}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3416,7 +3451,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineInputAxisController
   ScanRecursively: 1
   SuppressInputWhileBlending: 1
-  IgnoreTimeScale: 1
+  IgnoreTimeScale: 0
   m_ControllerManager:
     Controllers:
     - Name: Look Orbit X
@@ -3454,6 +3489,62 @@ MonoBehaviour:
         DecelTime: 0
   PlayerIndex: -1
   AutoEnableInputs: 1
+--- !u!114 &3474315881545879523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7285189881839154116}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bb026fafb42b14791938953eaace77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineBasicMultiChannelPerlin
+  NoiseProfile: {fileID: 11400000, guid: 46965f9cbaf525742a6da4c2172a99cd, type: 2}
+  PivotOffset: {x: 0, y: 0, z: 0}
+  AmplitudeGain: 0.2
+  FrequencyGain: 0.5
+  m_NoiseOffsets: {x: 0, y: 0, z: 0}
+--- !u!114 &6637111455162101573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7285189881839154116}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbe43d662878a7c43bcd44d43c9e2094, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineDeoccluder
+  CollideAgainst:
+    serializedVersion: 2
+    m_Bits: 30617
+  IgnoreTag: 
+  TransparentLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  MinimumDistanceFromTarget: 0.3
+  AvoidObstacles:
+    Enabled: 1
+    DistanceLimit: 0
+    MinimumOcclusionTime: 0
+    CameraRadius: 0.4
+    UseFollowTarget:
+      Enabled: 0
+      YOffset: 0
+    Strategy: 0
+    MaximumEffort: 4
+    SmoothingTime: 0
+    Damping: 0.4
+    DampingWhenOccluded: 0.2
+  ShotQualityEvaluation:
+    Enabled: 0
+    OptimalDistance: 10
+    NearLimit: 5
+    FarLimit: 30
+    MaxQualityBoost: 0.2
 --- !u!1 &7373560552096546380
 GameObject:
   m_ObjectHideFlags: 0

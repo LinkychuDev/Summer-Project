@@ -1,5 +1,6 @@
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Playables;
 
 public class BridgeBash : MonoBehaviour, IStretchBashable
 {
@@ -12,6 +13,8 @@ public class BridgeBash : MonoBehaviour, IStretchBashable
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public GameObject[] bridgeColliders;
+    
+    public PlayableDirector playableDirector;
     public void StretchBash()
     {
         if (hasBashed)
@@ -25,6 +28,7 @@ public class BridgeBash : MonoBehaviour, IStretchBashable
 
         else
         {
+            playableDirector.Play();
             transform.DORotate(targetRotation, fallSpeed, RotateMode.Fast).SetEase(ease).OnComplete(() =>
             {
                 foreach (var collider in bridgeColliders)

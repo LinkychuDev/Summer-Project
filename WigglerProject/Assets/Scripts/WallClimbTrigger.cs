@@ -21,13 +21,16 @@ public class WallClimbTrigger : CollisionBlock
 	public Transform inverseSetPosition;
 	public Transform wallContactPos;
 	public Direction targetDir;
-	
+
+
+	private Vector3 WallContactPos;
 
 	
 	
 
 	private void Start()
 	{
+		collider = wall.GetComponent<Collider>();
 		UpdateDirection();
 	}
 
@@ -75,42 +78,75 @@ public class WallClimbTrigger : CollisionBlock
 				//controller.ChangeGravity(transform.forward);
 
 
-				wallContactPos.position = CalculateOffsetPos(wallContactPos.position, playerRb.transform.position);
-
 				
-				inverseSetPosition.position = CalculateOffsetPos(inverseSetPosition.position, playerRb.transform.position);
 				
+				GameManager.CameraClimbSwitch?.Invoke(gravityDirection);
+				playerRb.linearVelocity = Vector3.zero;
 
-				if (controller.isClimbing)
+				Vector3 targetPos = controller.climbCheckOffset.position;
+
+				RaycastHit hit;
+
+				if (Physics.Raycast(playerRb.position, gravityDirection, out hit, controller.climbDetectionDistance,
+					    controller.silkMask))
 				{
-					hasSwitched = false;
-					//GameManager.CameraClimbSwitch?.Invoke( inverseDirection);
-					controller.ChangeGravity(inverseDirection, false, true, true, inverseSetPosition.position);
-					
-					playerRb.AddForce(-transform.up * controller.climbTriggerOffset);
+					Debug.Log("Target Succeeded forward");
+					Vector3 targetForward = hit.point - (gravityDirection *  controller.climbOffset);
+					controller.ChangeGravity(gravityDirection, true, true, true, targetForward, wall.transform);
 
+				}
+				
+				
+				
+				else if(RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(targetPos,  gravityDirection,  out  hit, controller.climbDetectionDistance, controller.silkMask ))
+				{
+					controller.ChangeGravity(gravityDirection, true, true, true, hit.point, wall.transform);
+					Debug.Log("Target Succeeded");
+					hasSwitched = true;
 				}
 
 				else
 				{
-					GameManager.CameraClimbSwitch?.Invoke(gravityDirection);
-					controller.ChangeGravity(gravityDirection, true, true, true, wallContactPos.position, wall.transform);
-					playerRb.AddForce(transform.up * controller.climbTriggerOffset);
-					hasSwitched = true;
+					Debug.Log("Failed to find target");
 				}
+				//playerRb.AddForce(transform.forward * controller.climbTriggerOffset, ForceMode.VelocityChange);
 				
 				
-				
-				
-				
-				
-				
-				
-				
+			
 				
 				//FlipDirection(transform.forward, playerRb);
 			}
 		}
+	}
+
+	
+
+
+	private void OnTriggerExit(Collider other)
+	{
+		if (!other.TryGetComponent(out PlayerMovement controller))
+			return;
+		if(PlayerReferenceManager.instance.currentState == PlayerState.Stretching)
+		{
+			Debug.Log("Is Stretching and in contact");
+			return;
+		}
+
+		if(!controller.isClimbing)
+			return;
+		//controller.ChangeGravity(transform.forward);
+		var playerRb = other.gameObject.GetComponent<Rigidbody>();
+
+
+		Debug.Log("Exiting Collider");
+		WallContactPos = collider.ClosestPointOnBounds(controller.transform.position);
+
+		//GameManager.CameraClimbSwitch?.Invoke(gravityDirection);
+		controller.ChangeGravity(inverseDirection, false, true, false, WallContactPos, wall.transform);
+		playerRb.AddForce(transform.up * controller.climbForce);
+		playerRb.AddForce(transform.forward * controller.climbForce);
+		hasSwitched = false;
+
 	}
 
 	private Vector3 CalculateOffsetPos(Vector3 offset, Vector3 playerPos)

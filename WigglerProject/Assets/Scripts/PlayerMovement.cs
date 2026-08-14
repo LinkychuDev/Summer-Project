@@ -56,7 +56,7 @@ public class PlayerMovement : MovementBase
 
      private bool isClimbingGrounded;
 
-     [SerializeField] private float climbOffset = 0.2f;
+     [SerializeField] public float climbOffset = 0.2f;
 
      [SerializeField] private float climbSpeed = 4f;
     
@@ -66,7 +66,9 @@ public class PlayerMovement : MovementBase
 
 
     private Vector3 gravityDir;
-    
+
+
+    public Transform climbCheckOffset;
     
     //public Vector3 gravityDirection = Vector3.down;
     
@@ -178,11 +180,12 @@ public class PlayerMovement : MovementBase
        
         HandleRotation();
         HandleDrag();
-       
-       
+        AlignToSurface(); 
         Movement(); 
         
-        AlignToSurface();
+      
+        
+       
        //DetermineMovement();
        
        
@@ -214,7 +217,7 @@ public class PlayerMovement : MovementBase
 
     void HandleDrag()
     {
-        if (isGrounded)
+        if (isGrounded || isClimbing)
         {
             movementMultiplier = groundMultiplier;
             currentDrag = groundDrag;
@@ -239,55 +242,9 @@ public class PlayerMovement : MovementBase
     // Update is called once per frame
 
     
-    Vector3 CanMove(Vector3 mv)
-    {
-        if (isClimbing)
-        {
-            if (Physics.Raycast(mv * climbDetectionDistance + groundCheck.position, -gravityDir, out RaycastHit hit,
-                    groundDistance, silkMask, QueryTriggerInteraction.Ignore))
-            {
-                Debug.Log("Detected Something");
-                return mv;
-            }
-
-            else
-            {
-               return Vector3.zero;
-            }
-        }
-        
-        return mv;
-    }
 
     protected override void Movement()
     {
-
-
-
-        /*if (isClimbing)
-        {
-            Vector3 normal = climbHit.normal;
-
-            // Cancel velocity into the wall
-            Vector3 v = rb.linearVelocity;
-            float intoWall = Vector3.Dot(v, normal);
-
-            if (intoWall > 0f)
-            {
-                v -= normal * intoWall;
-                rb.linearVelocity = v;
-            }
-
-            // Cancel movement input into the wall
-            float intoWallInput = Vector3.Dot(moveDir, normal);
-            if (intoWallInput > 0f)
-            {
-                moveDir -= normal * intoWallInput;
-            }
-        }*/
-
-
-        
         Vector3 currentVelocity = rb.linearVelocity;
 
 
@@ -298,7 +255,8 @@ public class PlayerMovement : MovementBase
         Debug.Log("Current Velocity: " + vel);
 
 
-        var targetVelocity = (moveDir) * (movementMultiplier * speed);
+        var _speed = isClimbing ? climbSpeed : speed;
+        var targetVelocity = (moveDir) * (movementMultiplier * _speed);
 
 
         //currentVelocity
@@ -309,21 +267,6 @@ public class PlayerMovement : MovementBase
         velocityChange = Vector3.ClampMagnitude(velocityChange, maxSpeed);
 
         Debug.Log("VelocityChange: " + velocityChange);
-
-        //velocityChange.y = currentVelocity.y;
-        //Vector3 currentVelocity =  rb.linearVelocity + ( * targetVelocity) ;
-
-
-
-        //targetVelocity = Vector3.ClampMagnitude(targetVelocity, maxSpeed);
-
-
-        //Vector3 velocityChange = targetVelocity - currentVelocity;
-
-
-        
-        
-        //SlopeCheck(targetVelocity)
 
 
         if (input.sqrMagnitude > 0.001f)
@@ -339,43 +282,8 @@ public class PlayerMovement : MovementBase
 
         rb.AddForce(moveVelocity, ForceMode.VelocityChange);
         
-        
-        //AlignToSurface();
-
-        /*var velocity = rb.linearVelocity;
-
-        if (isClimbing)
-        {
-            velocity.x *= (1 - currentDrag);
-            velocity.y *= (1 - currentDrag);
-            velocity.z *= (1 - currentDrag);
-        }
-
-        else
-        {
-            velocity.x *= (1 - currentDrag);
-            velocity.z *= (1 - currentDrag);
-        }*/
-
-          
-        
-
-        //rb.linearVelocity = velocity;
-            
-        //Debug.Log("Velocity: " + velocity);
-
-
-
-        /*body.position = Vector3.Lerp(body.position, transform.position - (bodyHeadSpacing * transform.forward), bodyReactTime * Time.deltaTime);
-        tail.position = Vector3.Lerp(tail.position, body.position - (tailBodySpacing * transform.forward), tailReactTime * Time.deltaTime);*/
-
-        //PlayerReferenceManager.instance.UpdateCachedHeadPositions(_rigidbody.position, transform.rotation);
-
-       
-
         UpdateSegments();
         
-        //rotation
 
     }
 
@@ -428,7 +336,7 @@ public class PlayerMovement : MovementBase
         if (isClimbing && !PlayerReferenceManager.instance.isSoaked)
         {
 
-            if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -transform.up, out climbHit,
+            /*if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -transform.up, out climbHit,
                     climbDetectionDistance, silkMask, QueryTriggerInteraction.Ignore, PreviewCondition.Both, 0,
                     Color.aliceBlue, Color.black))
             {
@@ -440,7 +348,7 @@ public class PlayerMovement : MovementBase
                         QueryTriggerInteraction.Ignore, PreviewCondition.Both, 0, Color.chartreuse, Color.crimson))
                 {
                     /*climbAngle = Vector3.Angle(climbHit.normal,  transform.up);
-                    Debug.Log("Climb Hit Normal: " + climbHit.normal);*/
+                    Debug.Log("Climb Hit Normal: " + climbHit.normal);#1#
                     
                     //Debug.Log("OffsetNormalised: " + offSet.normalized);
                     
@@ -454,10 +362,31 @@ public class PlayerMovement : MovementBase
                     Debug.Log("detected nothing");
                     ChangeGravity(Vector3.down, false, false);
                 
-                }*/
+                }#1#
                 
             }
+            */
 
+          
+            
+            
+            //disable climb
+           
+            
+            if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(rb.position, transform.forward,
+                    climbDetectionCDistance, PlayerReferenceManager.instance.groundMask, QueryTriggerInteraction.Ignore,
+                    PreviewCondition.Both))
+            {
+                Debug.Log("Climbing Ground Detected");
+                ChangeGravity(Vector3.down, false);
+            }
+            
+            
+            
+            /*else if (!isGrounded)
+            {
+                ChangeGravity(Vector3.down, false);
+            }*/
            
            
 
@@ -498,6 +427,7 @@ public class PlayerMovement : MovementBase
 
         if (setPos)
         {
+            Debug.Log("Moving Object");
             rb.DOMove(pos, climbTime).SetEase(Ease.InQuad);
         }
 
