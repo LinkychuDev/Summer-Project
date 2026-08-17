@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MoreMountains.Feedbacks;
 using UnityEngine;
 
 public class MovementBase : MonoBehaviour
@@ -71,6 +72,8 @@ public class MovementBase : MonoBehaviour
     public bool isClimbing;
     internal SphereCollider playerCollider;
     internal bool canResetBounce;
+    public Vector3 vertVelocity;
+    [SerializeField] private float groundVelocity = -2f;
 
 
     protected virtual void OnEnable()
@@ -105,8 +108,7 @@ public class MovementBase : MonoBehaviour
         playerCam = Camera.main.transform;
         
         characterHeight = playerCollider.radius;
-
-
+       
     }
 
     protected bool IsGrounded()
@@ -288,51 +290,51 @@ public class MovementBase : MonoBehaviour
         if (isGrounded)
         {
             PlayerReferenceManager.instance.launched = false;
+            
+            Vector3 gravityVelocity = Vector3.Project(rb.linearVelocity, transform.up);
 
-            /*if (verticalVelocity < 0)
+            if (isBounced)
             {
-                verticalVelocity = (groundVelocity);
+                isBounced = false;
             }
-
-
-            if (PlayerReferenceManager.instance.launched)
+            
+            float signedValue = Vector3.Dot(gravityVelocity, transform.up);
+            Debug.Log("signed Value: " + signedValue);
+            
+            if (!isOnSlope)
             {
-                launchVelocityHead = Vector3.zero;
-                launchVelocityBody = Vector3.zero;
-                launchVelocityTail = Vector3.zero;
-                PlayerReferenceManager.instance.launched = false;
-            }*/
-            
-            
+                if (signedValue < 0)
+                {
+                   //vertVelocity = transform.up * groundVelocity;
+                }
            
-        }
-
-        
-        if (PlayerReferenceManager.instance.useGravity && !isClimbing)
-        {
-
-            if (isOnSlope)
-            {
-                //rb.AddForce(-PlayerReferenceManager.instance.playerGravityDir * slopeDownForce, ForceMode.VelocityChange);
+                //rb.AddForce(-PlayerReferenceManager.instanc   e.playerGravityDir * slopeDownForce, ForceMode.VelocityChange);
             }
+            
 
             else
             {
-                Debug.Log("gravity force: " + PlayerReferenceManager.instance.playerGravityDir);
-                rb.AddForce(transform.up * (PlayerReferenceManager.instance.gravity), 
-                    ForceMode.Acceleration);
+                Debug.Log("0'd out movement");
+                if (signedValue < 0)
+                {
+                    //vertVelocity = slopeHit.normal * groundVelocity;
+                }
+                
             }
+          
             
+
+
         }
 
         
-        else if(isBounced)
+        else if (PlayerReferenceManager.instance.useGravity && !isClimbing)
         {
-            rb.AddForce(
-                transform.up * (PlayerReferenceManager.instance.gravity),
-                ForceMode.VelocityChange);
-        }
 
+            
+          rb.AddForce(PlayerReferenceManager.instance.gravity * PlayerReferenceManager.instance.playerGravityDir, ForceMode.Acceleration);
+            
+        }
 
     }
 

@@ -1,8 +1,9 @@
 using DG.Tweening;
+using MoreMountains.Feedbacks;
 using UnityEngine;
 using UnityEngine.Playables;
 
-public class BridgeBash : MonoBehaviour, IStretchBashable
+public class BridgeBash : MonoBehaviour, IStretchBashable, IPlayerHint
 {
     public float fallSpeed = 5f;
     public bool isRepeating = false;
@@ -15,8 +16,23 @@ public class BridgeBash : MonoBehaviour, IStretchBashable
     public GameObject[] bridgeColliders;
     
     public PlayableDirector playableDirector;
-    public void StretchBash()
+
+
+
+    public void BashEvent()
     {
+        //bashPlayer.PlayFeedbacks();
+        playableDirector.Play();
+        transform.DORotate(targetRotation, fallSpeed, RotateMode.Fast).SetEase(ease).OnComplete(() =>
+        {
+            foreach (var collider in bridgeColliders)
+            {
+                collider.SetActive(true);
+            }
+        });
+    }
+    public void StretchBash()
+    {/*
         if (hasBashed)
         {
             if (isRepeating)
@@ -28,6 +44,7 @@ public class BridgeBash : MonoBehaviour, IStretchBashable
 
         else
         {
+            //bashPlayer.PlayFeedbacks();
             playableDirector.Play();
             transform.DORotate(targetRotation, fallSpeed, RotateMode.Fast).SetEase(ease).OnComplete(() =>
             {
@@ -36,6 +53,8 @@ public class BridgeBash : MonoBehaviour, IStretchBashable
                     collider.SetActive(true);
                 }
             });
-        }
+        }*/
     }
+
+    public PlayerActionEvent PlayerActionEvent { get; } = PlayerActionEvent.StretchAction;
 }

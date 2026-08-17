@@ -6,6 +6,6 @@ public class FirstBounceTestWater : BounceTestWater
     public override void OnWetEvent()
     {
         Setup();
-        GameManager.instance.ActivateFirstFlower();
+        GameManager.instance.ActivateGameEvent(GameFlags.FirstFlowerGrown);
     }
 }

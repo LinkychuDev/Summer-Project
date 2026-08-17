@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
+using MoreMountains.Feedbacks;
 using RotaryHeart.Lib.PhysicsExtension;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -99,6 +100,8 @@ public class PlayerStretch: MovementBase
     [SerializeField] private float headShakeStrength = 1, bodyShakeStrength = 1, tailShakeStrength =1;
     private Transform headVisual,  bodyVisual, tailVisual;
     [SerializeField] private float knockbackDelay = -0.5f;
+    
+    public MMF_Player bashPlayer;
 
     protected override void OnEnable()
     {
@@ -191,7 +194,11 @@ public class PlayerStretch: MovementBase
                 break;
             case StretchState.Stretching:
                 GroundCheck();
-                HandleGravity();
+                if (!IsGrounded())
+                {
+                    HandleGravity();
+                }
+
                 HandleRotation();
                 StretchEvent();
                 CollisionDetection();
@@ -243,6 +250,7 @@ public class PlayerStretch: MovementBase
             {
                 if (other.TryGetComponent(out IStretchBashable bashable))
                 {
+                    bashPlayer.PlayFeedbacks();
                     bashable.StretchBash();
                 }
             }
@@ -397,11 +405,14 @@ public class PlayerStretch: MovementBase
 
 
         var vel = Vector3.Project(currentVelocity, PlayerReferenceManager.instance.playerGravityDir);
+        
+        Debug.Log("Stretch Vel: " + vel);
         var hz = currentVelocity - vel;
+        
+        Debug.Log("Stretch HZ: " + hz);
 
         Vector3 targetVelocity = moveDir * (speed * input.sqrMagnitude * sturdyRatio);
-
-       
+        
         Vector3 dirToBody = (headSegment.transform.position - bodySegment.transform.position);
 
         float distance = dirToBody.magnitude;
@@ -446,7 +457,10 @@ public class PlayerStretch: MovementBase
         
         velocityChange = Vector3.ClampMagnitude(velocityChange, maxSpeed);
         
-        headSegment.AddForce(velocityChange, ForceMode.VelocityChange);
+        
+        
+        moveVelocity = velocityChange;
+        headSegment.AddForce(moveVelocity, ForceMode.VelocityChange);
 
         var pos = headSegment.position;
 

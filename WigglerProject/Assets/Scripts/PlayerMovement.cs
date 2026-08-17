@@ -2,9 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
+using MoreMountains.Feedbacks;
 using RotaryHeart.Lib.PhysicsExtension;
+using Unity.VectorGraphics;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityUtils;
 using Physics = UnityEngine.Physics;
 
 
@@ -80,8 +83,9 @@ public class PlayerMovement : MovementBase
     [SerializeField] private float climbDetectionCDistance;
     public float climbTriggerOffset = 0.5f;
 
-    
 
+    public float calculatedDrag;
+    public MMF_Player dustParticle;
     protected override void OnEnable()
     {
         PlayerController.isOnSturdyEvent += OnSturdyEvent;
@@ -155,6 +159,7 @@ public class PlayerMovement : MovementBase
         playerCam = Camera.main.transform;
         
         characterHeight = playerCollider.radius;
+       
 
         //climbDetectionDistance = (Mathf.Abs(transform.localPosition.y - groundCheck.localPosition.y)) + groundDistance;
 
@@ -176,13 +181,14 @@ public class PlayerMovement : MovementBase
         GroundCheck();
         //CollisionDetection();
         //AlignToSurface();
-        HandleGravity();
+       
        
         HandleRotation();
         HandleDrag();
         AlignToSurface(); 
+        HandleGravity();
         Movement(); 
-        
+        UpdateSegments();
       
         
        
@@ -237,6 +243,7 @@ public class PlayerMovement : MovementBase
         
         airTime = Mathf.Clamp(airTime, 0, airThreshold);
         rb.linearDamping = currentDrag;
+        //calculatedDrag = 1 - (Time.deltaTime * currentDrag);
     }
 
     // Update is called once per frame
@@ -245,45 +252,63 @@ public class PlayerMovement : MovementBase
 
     protected override void Movement()
     {
+        
         Vector3 currentVelocity = rb.linearVelocity;
 
+        
 
-        var vel = Vector3.Project(currentVelocity, gravityDir);
-        var hz = currentVelocity - vel;
+       
+        var gravityVel = Vector3.Project(currentVelocity, -groundNormal);
+
+        if (isOnSlope)
+        {
+            gravityVel = Vector3.zero;
+        }
+
+        if (!isGrounded)
+        {
+            gravityVel = Vector3.Project(currentVelocity, PlayerReferenceManager.instance.playerGravityDir);
+        }
 
 
-        Debug.Log("Current Velocity: " + vel);
-
+        var hz = currentVelocity - gravityVel;
+        Debug.Log("RB Velocity: " + currentVelocity);
+        Debug.Log("Gravity Velocity: " + gravityVel);
+        Debug.Log(" HZ Velocity: " + hz);
 
         var _speed = isClimbing ? climbSpeed : speed;
         var targetVelocity = (moveDir) * (movementMultiplier * _speed);
 
-
+        
         //currentVelocity
         //targetVelocity = Vector3.ClampMagnitude(targetVelocity , maxSpeed);
         //Vector3 velocityChange = AlignToSurface(targetVelocity - currentVelocity);
+        
+        
+        
         Vector3 velocityChange = targetVelocity - hz;
+        
+        
+        Debug.Log("VelocityChange: " + velocityChange);
 
         velocityChange = Vector3.ClampMagnitude(velocityChange, maxSpeed);
 
-        Debug.Log("VelocityChange: " + velocityChange);
+        Debug.Log("VelocityChangeClamped: " + velocityChange);
+
+        
+
+       
+
+      
 
 
-        if (input.sqrMagnitude > 0.001f)
-        {
+        moveVelocity = velocityChange;
 
-            moveVelocity = velocityChange;
-        }
-
-        else
-        {
-            moveVelocity = Vector3.zero;
-        }
-
+      
+        
         rb.AddForce(moveVelocity, ForceMode.VelocityChange);
         
-        UpdateSegments();
-        
+        //dustParticle.PlayFeedbacks();
 
     }
 
@@ -304,11 +329,11 @@ public class PlayerMovement : MovementBase
         canResetBounce = false;
         rb.linearVelocity = Vector3.zero;
         //isClimbing = false;
-        ChangeGravity(Vector3.down, false);
+        //ChangeGravity(Vector3.down, false);
         
         
         Debug.Log("bouncing!");
-        rb.AddForce(bounceHeight * Vector3.up, ForceMode.Impulse);
+        rb.AddForce( PlayerReferenceManager.instance.playerGravityDir * bounceHeight, ForceMode.Impulse);
         isBounced = true;
         
         //rb.DOMove(rb.position + (Vector3.up * height), bounceTime).OnComplete(() => canResetBounce = true);
@@ -373,9 +398,8 @@ public class PlayerMovement : MovementBase
             //disable climb
            
             
-            if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(rb.position, transform.forward,
-                    climbDetectionCDistance, PlayerReferenceManager.instance.groundMask, QueryTriggerInteraction.Ignore,
-                    PreviewCondition.Both))
+            if (Physics.Raycast(rb.position, transform.forward,
+                    climbDetectionCDistance, PlayerReferenceManager.instance.groundMask, QueryTriggerInteraction.Ignore))
             {
                 Debug.Log("Climbing Ground Detected");
                 ChangeGravity(Vector3.down, false);
@@ -460,6 +484,8 @@ public class PlayerMovement : MovementBase
     {
         if (other.CompareTag("Water"))
         {
+            if(PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
+                return;
             PlayerController.OnWaterEvent?.Invoke();
         }
     }
@@ -531,7 +557,7 @@ public class PlayerMovement : MovementBase
                  {
                      if (isGrounded)
                      {
-                         segments[i].rb.AddForce( gravityDir * PlayerReferenceManager.instance.gravity, ForceMode.Acceleration);
+                         segments[i].rb.AddForce( PlayerReferenceManager.instance.gravity * PlayerReferenceManager.instance.playerGravityDir, ForceMode.Acceleration);
                      }
                  }
                  
@@ -566,9 +592,8 @@ public class PlayerMovement : MovementBase
 
 
 
-                 Vector3 direction = targetPos.normalized;
-                 
-                 direction.y = 0;
+                 Vector3 direction = VectorMath.RemoveDotVector(targetPos.normalized,
+                     PlayerReferenceManager.instance.playerGravityDir);
 
                  //rotation
                  if (moveDir.magnitude > 0.001f)

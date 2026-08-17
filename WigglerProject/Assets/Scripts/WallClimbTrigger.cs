@@ -3,7 +3,7 @@ using UnityEngine;
 
 
 
-public class WallClimbTrigger : CollisionBlock
+public class WallClimbTrigger : CollisionBlock, IPlayerHint
 {
 	public bool isTrigger = true;
 
@@ -98,7 +98,7 @@ public class WallClimbTrigger : CollisionBlock
 				
 				
 				
-				else if(RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(targetPos,  gravityDirection,  out  hit, controller.climbDetectionDistance, controller.silkMask ))
+				else if(Physics.Raycast(targetPos,  gravityDirection,  out  hit, controller.climbDetectionDistance, controller.silkMask ))
 				{
 					controller.ChangeGravity(gravityDirection, true, true, true, hit.point, wall.transform);
 					Debug.Log("Target Succeeded");
@@ -203,4 +203,6 @@ public class WallClimbTrigger : CollisionBlock
 		Gizmos.color = Color.red;
 		Gizmos.DrawWireSphere(inverseSetPosition.position, 0.1f);
 	}
+
+	public PlayerActionEvent PlayerActionEvent { get; } = PlayerActionEvent.ClimbAction;
 }

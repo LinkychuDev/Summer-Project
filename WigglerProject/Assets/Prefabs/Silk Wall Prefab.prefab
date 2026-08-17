@@ -48,6 +48,7 @@ GameObject:
   - component: {fileID: 6386067738239412482}
   - component: {fileID: 6542679122306682415}
   - component: {fileID: 7078490461344658286}
+  - component: {fileID: 3482632367693238516}
   m_Layer: 12
   m_Name: Silk Wall Prefab
   m_TagString: Untagged
@@ -65,7 +66,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -21.02, y: 4.25, z: 2.1749}
-  m_LocalScale: {x: 6.0001, y: 7.6585636, z: 0.30562425}
+  m_LocalScale: {x: 8.039445, y: 9.199619, z: 0.5821688}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6067348132149947921}
@@ -149,6 +150,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3482632367693238516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3232084127185608001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6c9ed4539374e18be6eec123023d3df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WallClimbCollider
 --- !u!1 &3259950027578689201
 GameObject:
   m_ObjectHideFlags: 0
@@ -314,7 +327,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: -0.017999984, y: -0.4489708, z: -0.508821}
-  m_LocalScale: {x: 0.93913877, y: 0.013565534, z: 0.13334247}
+  m_LocalScale: {x: 1.0100437, y: 0.013565534, z: 0.13334247}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1233812883798376908}
@@ -697,8 +710,8 @@ Transform:
   m_GameObject: {fileID: 7975034005484859540}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0.016666451, y: 0.4920338, z: -0.5300029}
-  m_LocalScale: {x: 0.9259597, y: 0.05811397, z: -0.016911825}
+  m_LocalPosition: {x: -0.001, y: 0.4920338, z: -0.5300029}
+  m_LocalScale: {x: 0.9964252, y: 0.05811397, z: -0.016911825}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2817695282006465563}

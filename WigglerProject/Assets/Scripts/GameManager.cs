@@ -1,13 +1,54 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using MoreMountains.Feedbacks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
-public delegate void GameEvent();
+
+public enum GameFlags
+{
+    FirstFlowerGrown,
+    HasUsedFirstStretch,
+    HasUsedFirstWallClimb,
+    HasUsedFirstPulling,
+    HasUsedFirstSticking,
+    CollectedFirstBerries
+    
+}
+public class GameEventSystem
+{
+    public Action<GameFlags> OnEventCompleted;
+    private HashSet<GameFlags> CompletedFlags = new HashSet<GameFlags>();
+
+    public void CompletedEvent(GameFlags flags)
+    {
+        CompletedFlags.Add(flags);
+        OnEventCompleted?.Invoke(flags);
+    }
+    
+    public bool IsEventCompleted(GameFlags flags)
+    {
+        return CompletedFlags.Contains(flags);
+    }
+}
+
+[Serializable]
+public class GiantBerries
+{
+    public Image sprite;
+    public GiantBerryScript  berryScript;
+    public bool isCollected;
+    
+}
+
+
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
     public int points;
-    public GameEvent FirstFlowerGrownEvent;
+    public static GameEventSystem GameEvents = new GameEventSystem();
 
     public GameObject honeyDecal;
     public bool showFPS;
@@ -24,6 +65,17 @@ public class GameManager : MonoBehaviour
 
     private Rigidbody headRb;
     public Vector2 xBounds = new Vector2(-1000, 1000), yBounds = new Vector2(-1000, 1000), zBounds = new Vector2(-1000, 1000);
+    public TextMeshProUGUI berryText;
+    public MMF_Player textPlayer;
+
+    public MMF_Player berryPlayer;
+    public List<GiantBerries>  giantBerriesList = new List<GiantBerries>();
+    public Dictionary< int, GiantBerries> GiantBerriesDict = new Dictionary<int, GiantBerries>();
+    public int totalAmountOfBerries;
+    public int berriesCollected;
+    public List<GameFlags> Achievements = new List<GameFlags>();
+    public Color berryColor;
+    public float inGameTime;
     void Awake()
     {
         if (instance == null)
@@ -40,12 +92,58 @@ public class GameManager : MonoBehaviour
         
     }
 
+
+  
+
+ 
     
+    
+    
+
     private void Start()
     {
         ShowBounds();
         ShowFPS();
         SpawnPlayer();
+        AddPoints(0);
+        SetUpGiantBerryCount();
+    }
+    
+    
+
+
+    void SetUpGiantBerryCount()
+    {
+        for (int i = 0; i < giantBerriesList.Count; i++)
+        {
+            giantBerriesList[i].berryScript.berryId = i;
+            GiantBerriesDict.Add(i, giantBerriesList[i]);
+            giantBerriesList[i].sprite.color = berryColor;
+        }
+       
+        totalAmountOfBerries = giantBerriesList.Count;
+        berriesCollected = 0;
+
+    }
+
+    public void UpdateGiantBerryCount(int id)
+    {
+
+        if (GiantBerriesDict.TryGetValue(id, out var value))
+        {
+            if(value.isCollected)
+                return;
+            value.isCollected = true;
+            berriesCollected++;
+            berryPlayer.GetFeedbackOfType<MMF_Image>().BoundImage = value.sprite;
+            berryPlayer.PlayFeedbacks();
+        }
+        
+        
+        if (berriesCollected == totalAmountOfBerries)
+        {
+            ActivateGameEvent(GameFlags.CollectedFirstBerries);
+        }
     }
 
     private void OnValidate()
@@ -81,13 +179,20 @@ public class GameManager : MonoBehaviour
     public void AddPoints(int amount)
     {
         points+= amount;
+        berryText.text = "x" + points.ToString();
+        textPlayer.PlayFeedbacks();
     }
 
-    public void ActivateFirstFlower()
+  
+
+    public void ActivateGameEvent(GameFlags flags)
     {
-        FirstFlowerGrownEvent?.Invoke();
+        GameEvents.CompletedEvent(flags);
+        if (!Achievements.Contains(flags))
+        {
+            Achievements.Add(flags);
+        }
     }
-
     private void Update()
     {
         if (showFPS)
@@ -100,6 +205,9 @@ public class GameManager : MonoBehaviour
         {
             ResetPlayerPosition();
         }
+        
+        
+        inGameTime += Time.deltaTime;
     }
 
     void SpawnPlayer()

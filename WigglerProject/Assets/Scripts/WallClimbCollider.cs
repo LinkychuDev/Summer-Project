@@ -11,10 +11,10 @@ public enum Direction
     Left
 	
 }
-public class WallClimbCollider : MonoBehaviour
+public class WallClimbCollider : MonoBehaviour, IPlayerHint
 {
     
-    public Direction targetDir;
+    /*public Direction targetDir;
     private Vector3 gravityDirection;
     private Vector3 inverseGravityDirection = Vector3.down;
 
@@ -125,5 +125,6 @@ public class WallClimbCollider : MonoBehaviour
                 }
             }
         }
-    }
+    }*/
+    public PlayerActionEvent PlayerActionEvent { get; } = PlayerActionEvent.ClimbAction;
 }

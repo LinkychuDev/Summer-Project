@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class ZoneTransitioner : MonoBehaviour
 {
-   public SceneAsset sceneToLoad;
+   /*public SceneAsset sceneToLoad;
    public SceneAsset sceneToUnload;
 
    private bool hasHitTrigger;
@@ -30,5 +30,5 @@ public class ZoneTransitioner : MonoBehaviour
          }
 
       }
-   }
+   }*/
 }
