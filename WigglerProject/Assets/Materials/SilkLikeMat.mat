@@ -189,7 +189,7 @@ Material:
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _Cull: 2
-    - _Cutoff: 0.392
+    - _Cutoff: 0
     - _DetailAlbedoMapScale: 1
     - _DetailMapBlendingMode: 0
     - _DetailMapImpact: 0
@@ -253,7 +253,7 @@ Material:
     - _SrcBlendAlpha: 1
     - _Surface: 0
     - _TextureBlendingMode: 1
-    - _TextureImpact: 0.08
+    - _TextureImpact: 0.107
     - _UnityShadowMode: 0
     - _UnityShadowOcclusion: 0
     - _UnityShadowPower: 0.2

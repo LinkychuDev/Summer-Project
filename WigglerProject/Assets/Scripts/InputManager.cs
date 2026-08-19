@@ -17,7 +17,7 @@ public class InputManager : MonoBehaviour
     private InputDevice lastInputDevice;
     //private bool isClimbing;
 
-
+    
     public CurrentDevice currentDevice {get; private set;}
     private void Awake()
     {
@@ -34,6 +34,8 @@ public class InputManager : MonoBehaviour
         }
     }
 
+    
+    
     private void OnEnable()
     {
         controls?.Enable();

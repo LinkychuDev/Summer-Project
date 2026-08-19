@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using RotaryHeart.Lib.PhysicsExtension;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Physics = UnityEngine.Physics;
 
@@ -135,15 +136,22 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     public bool isSoaked;
     public float soakedDuration = 2f;
 
-    
+    public Transform playerCam;
     private void Awake()
     {
 
         if (instance == null)
         {
             instance = this;
-            DontDestroyOnLoad(this);
+            DontDestroyOnLoad(gameObject);
+            
         }
+
+        else
+        {
+            Destroy(gameObject);
+        }
+        
         foreach (Segment segment in segments)
         {
             segment.Initialise();
@@ -169,7 +177,31 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
 
     }
 
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += SceneManagerOnsceneLoaded;
+    }
 
+    private void SceneManagerOnsceneLoaded(Scene arg0, LoadSceneMode arg1)
+    {
+        playerCam = Camera.main.transform;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= SceneManagerOnsceneLoaded;
+    }
+
+    public void DisableInput()
+    {
+        InputManager.instance.controls.Gameplay.Disable();
+    }
+
+    public void EnableInput()
+    {
+        InputManager.instance.controls.Gameplay.Enable();
+    }
+    
     private void Update()
     {
         //Handle Inputs

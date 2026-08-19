@@ -67,7 +67,7 @@ public class PlayerStretch: MovementBase
 
     [SerializeField] private bool shouldStretchForward;
 
-    private PlayerSwing2 swing;
+    private PlayerSwing swing;
 
 
     private float currentStretchDistance;
@@ -105,9 +105,9 @@ public class PlayerStretch: MovementBase
 
     protected override void OnEnable()
     {
+        base.OnEnable();
         InputManager.instance.controls.Gameplay.Stretch.started += ctx => OnPlayerStretchedEvent();
         InputManager.instance.controls.Gameplay.Stretch.canceled += ctx => OnPlayerRetracted();
-        PlayerController.isOnSturdyEvent += OnSturdyEvent;
         PlayerController.isOnHoneyEvent += b => isOnHoney = b;
         PlayerController.ClimbEvent += ClimbEvent;
         
@@ -133,16 +133,15 @@ public class PlayerStretch: MovementBase
 
     protected override void OnDisable()
     {
+        base.OnDisable();
         InputManager.instance.controls.Gameplay.Stretch.started -= ctx => OnPlayerStretchedEvent();
         InputManager.instance.controls.Gameplay.Stretch.canceled -= ctx => OnPlayerRetracted();
-        PlayerController.isOnSturdyEvent -= OnSturdyEvent;
         PlayerController.isOnHoneyEvent -= _ => isOnHoney = false;
         PlayerController.ClimbEvent -=  ClimbEvent;
     }
     protected override void Start()
     {
         
-        playerCam = Camera.main.transform;
         colliders = new Collider[1];
         
         bodyOffset = PlayerReferenceManager.instance.bodyOffset;
@@ -154,7 +153,7 @@ public class PlayerStretch: MovementBase
         tailSegment = segments[2].rb;
 
         rb = headSegment;
-        swing = GetComponent<PlayerSwing2>();
+        swing = GetComponent<PlayerSwing>();
 
         maxDistanceHead = bodyOffset + stretchDistanceHead;
         headVisual = segments[0].visual;
@@ -276,26 +275,21 @@ public class PlayerStretch: MovementBase
             
             if (isOnHoney)
             {
-                if (other.TryGetComponent(out Rigidbody rb))
+                if (other.gameObject.isStatic)
                 {
-                    if (rb.isKinematic)
-                    {
-                        shouldStretchForward = true;
-                    }
-
-                }
-
-                else
-                {
-                    if (other.gameObject.isStatic)
-                    {
-                        shouldStretchForward = true;
-                    }
+                    shouldStretchForward = true;
                 }
             }
 
             else
             {
+                
+                if (other.TryGetComponent(out IStretchBashable bashable))
+                {
+                    bashPlayer.PlayFeedbacks();
+                    bashable.StretchBash();
+                }
+                
                 if (other.transform.TryGetComponent(out IStickable stickable))
                 {
                     Debug.Log(other.name);
@@ -563,13 +557,13 @@ public class PlayerStretch: MovementBase
 
     internal override Vector3 GetInputVector()
     {
-        Vector3 forward = playerCam.transform.forward;
-        Vector3 right = playerCam.transform.right;
+        Vector3 forward = PlayerReferenceManager.instance.playerCam.transform.forward;
+        Vector3 right = PlayerReferenceManager.instance.playerCam.transform.right;
         forward.y = 0;
         forward.Normalize();
         right.y = 0;
         right.Normalize();
-        Vector3 up = playerCam.transform.up;
+        Vector3 up = PlayerReferenceManager.instance.playerCam.transform.up;
        
 
         if (isClimbing)
@@ -593,8 +587,8 @@ public class PlayerStretch: MovementBase
             right = -Vector3.ProjectOnPlane(right, climbDir);
             forward = -Vector3.ProjectOnPlane(forward, climbDir);*/
 
-            right = playerCam.transform.right;
-            forward = playerCam.transform.up;
+            right = PlayerReferenceManager.instance.playerCam.transform.right;
+            forward = PlayerReferenceManager.instance.playerCam.transform.up;
 
         }
 

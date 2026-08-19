@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AYellowpaper.SerializedCollections;
 using MoreMountains.Feedbacks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
@@ -24,8 +26,10 @@ public class GameEventSystem
 
     public void CompletedEvent(GameFlags flags)
     {
-        CompletedFlags.Add(flags);
-        OnEventCompleted?.Invoke(flags);
+        if (CompletedFlags.Add(flags))
+        {
+            OnEventCompleted?.Invoke(flags);
+        }
     }
     
     public bool IsEventCompleted(GameFlags flags)
@@ -33,17 +37,18 @@ public class GameEventSystem
         return CompletedFlags.Contains(flags);
     }
 }
-
-[Serializable]
-public class GiantBerries
+[System.Serializable]
+public class GiantBerryData
 {
-    public Image sprite;
-    public GiantBerryScript  berryScript;
+    public int id;
     public bool isCollected;
-    
+
+    public GiantBerryData(int id)
+    {
+        this.id = id;
+        isCollected = false;
+    }
 }
-
-
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
@@ -68,14 +73,19 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI berryText;
     public MMF_Player textPlayer;
 
-    public MMF_Player berryPlayer;
-    public List<GiantBerries>  giantBerriesList = new List<GiantBerries>();
-    public Dictionary< int, GiantBerries> GiantBerriesDict = new Dictionary<int, GiantBerries>();
+   
+   
     public int totalAmountOfBerries;
-    public int berriesCollected;
     public List<GameFlags> Achievements = new List<GameFlags>();
     public Color berryColor;
     public float inGameTime;
+    
+    
+    
+    public SerializedDictionary<string, List<GiantBerryData>> GiantBerriesDict = new SerializedDictionary<string, List<GiantBerryData>>();
+    public SerializedDictionary<string, int> CollectedOrbs = new SerializedDictionary<string, int>();
+    public int orbCount;
+  
     void Awake()
     {
         if (instance == null)
@@ -93,57 +103,37 @@ public class GameManager : MonoBehaviour
     }
 
 
-  
-
- 
-    
-    
-    
-
-    private void Start()
+    public void LevelBoot()
     {
         ShowBounds();
         ShowFPS();
         SpawnPlayer();
         AddPoints(0);
-        SetUpGiantBerryCount();
-    }
-    
-    
-
-
-    void SetUpGiantBerryCount()
-    {
-        for (int i = 0; i < giantBerriesList.Count; i++)
-        {
-            giantBerriesList[i].berryScript.berryId = i;
-            GiantBerriesDict.Add(i, giantBerriesList[i]);
-            giantBerriesList[i].sprite.color = berryColor;
-        }
        
-        totalAmountOfBerries = giantBerriesList.Count;
-        berriesCollected = 0;
-
     }
 
-    public void UpdateGiantBerryCount(int id)
+
+
+
+
+    public void CollectOrb(string id)
+    {
+        CollectedOrbs.Add(id, 1);
+        orbCount++;
+    }
+    public void SaveGiantBerryData(string levelName, int berryId)
     {
 
-        if (GiantBerriesDict.TryGetValue(id, out var value))
+        
+        if (GiantBerriesDict.TryGetValue(levelName, out var value))
         {
-            if(value.isCollected)
+            if(value[berryId].isCollected)
                 return;
-            value.isCollected = true;
-            berriesCollected++;
-            berryPlayer.GetFeedbackOfType<MMF_Image>().BoundImage = value.sprite;
-            berryPlayer.PlayFeedbacks();
+            value[berryId].isCollected = true;
         }
         
         
-        if (berriesCollected == totalAmountOfBerries)
-        {
-            ActivateGameEvent(GameFlags.CollectedFirstBerries);
-        }
+        
     }
 
     private void OnValidate()
@@ -216,13 +206,25 @@ public class GameManager : MonoBehaviour
         Debug.Log("Player segment Count" + PlayerReferenceManager.instance.segments.Count );
         
         lastSpawnPosition = new Vector3[PlayerReferenceManager.instance.segments.Count];
-        
-        for(int i = 0; i < PlayerReferenceManager.instance.segments.Count; i++)
-        {
-            lastSpawnPosition[i] = PlayerReferenceManager.instance.segments[i].rb.position;
-        }
-    }
 
+        var spawnPoint = FindFirstObjectByType<SpawnPoint>();
+        Debug.Log("LevelDefiner.instance");
+
+       
+        lastSpawnPosition[0] = spawnPoint.transform.position;
+        lastSpawnPosition[1] = spawnPoint.transform.position - PlayerReferenceManager.instance.headSegment.transform.forward * PlayerReferenceManager.instance.bodyOffset;
+        lastSpawnPosition[2] = spawnPoint.transform.position - PlayerReferenceManager.instance.headSegment.transform.forward * (PlayerReferenceManager.instance.tailOffset + PlayerReferenceManager.instance.bodyOffset);
+
+        if(LevelDefiner.instance.debuggingMode)
+            return;
+
+        PlayerReferenceManager.instance.transform.position = lastSpawnPosition[0];
+        PlayerReferenceManager.instance.headSegment.position = lastSpawnPosition[0];
+        PlayerReferenceManager.instance.bodySegment.position = lastSpawnPosition[1];
+        PlayerReferenceManager.instance.tailSegment.position = lastSpawnPosition[2];
+
+    }
+    
     public void SavePlayerPosition(Vector3[] positions)
     {
         lastSpawnPosition = positions;

@@ -7,16 +7,25 @@ public class GiantBerryScript : BerryScript
 {
 
     public int berryId;
-
+    public bool isCollected;
+  
+    void Start()
+    {
+       
+    }
     protected override void OnTriggerEnter(Collider other)
     {
         if (other.TryGetComponent(out PlayerController player))
         {
-          
+            CollectEvent();
             GameManager.instance.AddPoints(PointToGive);     
-            GameManager.instance.UpdateGiantBerryCount(berryId);
-            Destroy(gameObject, 0);
-            
+            LevelDefiner.instance.UpdateGiantBerryCount(berryId);
         }
+    }
+
+    public void CollectEvent()
+    {
+        isCollected = true;
+        gameObject.SetActive(false);
     }
 }

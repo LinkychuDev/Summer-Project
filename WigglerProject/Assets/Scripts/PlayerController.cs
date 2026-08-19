@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
@@ -60,7 +62,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 previousScale;
 
     
-  
+    
     
 
     [Header("Collision")] public static Action OnWaterEvent;
@@ -70,10 +72,17 @@ public class PlayerController : MonoBehaviour
     {
         PlayerReferenceManager.OnStateChange += OnStateChange;
         PlayerStretch.onStretchStateChanged += OnStretchStateChanged;
+        InputManager.instance.controls.Gameplay.Return.started += ReturnOnstarted;
        
     }
 
-    
+    private void ReturnOnstarted(InputAction.CallbackContext obj)
+    {
+        if(SceneManager.GetActiveScene().name == "HubWord")
+            return;
+        SceneManager.LoadScene("HubWorld");
+    }
+
 
     private void OnStretchStateChanged(PlayerStretch.StretchState obj)
     {
@@ -92,6 +101,7 @@ public class PlayerController : MonoBehaviour
     {
         PlayerReferenceManager.OnStateChange -= OnStateChange;
         PlayerStretch.onStretchStateChanged -= OnStretchStateChanged;
+        InputManager.instance.controls.Gameplay.Return.started -= ReturnOnstarted;
       
     }
 

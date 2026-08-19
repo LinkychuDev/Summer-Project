@@ -88,7 +88,7 @@ public class PlayerMovement : MovementBase
     public MMF_Player dustParticle;
     protected override void OnEnable()
     {
-        PlayerController.isOnSturdyEvent += OnSturdyEvent;
+        
         PlayerStretch.onStretchStateChanged += OnStretchStateChanged;
         PlayerController.ClimbEvent += ClimbEvent;
         PlayerController.OnWaterEvent += OnWaterEvent;
@@ -132,7 +132,7 @@ public class PlayerMovement : MovementBase
 
     protected override void OnDisable()
     {
-        PlayerController.isOnSturdyEvent -= OnSturdyEvent;
+       
         PlayerStretch.onStretchStateChanged -= OnStretchStateChanged;
         PlayerController.ClimbEvent -= ClimbEvent;
         PlayerController.OnWaterEvent -= OnWaterEvent;
@@ -156,7 +156,7 @@ public class PlayerMovement : MovementBase
         rb = segments[0].rb;
         playerCollider = rb.GetComponent<SphereCollider>();
         sphereRadius = playerCollider.radius;
-        playerCam = Camera.main.transform;
+       
         
         characterHeight = playerCollider.radius;
        

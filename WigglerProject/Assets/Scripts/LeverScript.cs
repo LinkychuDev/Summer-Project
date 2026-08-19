@@ -21,6 +21,7 @@ public class LeverScript : EnvironmentObject
     public LineRenderer pullLineRenderer;
 
     private float originalOffset;
+    [SerializeField] private float pullResetTime = 3f;
     
     protected override void Awake()
     {
@@ -31,6 +32,7 @@ public class LeverScript : EnvironmentObject
     void Start()
     {
         StartupEvent?.Invoke();
+        originalOffset = Vector3.Distance(rb.position, leverOrigin.position);
         maxPullDistance = pullDistance + originalOffset;
         
     }
@@ -59,11 +61,13 @@ public class LeverScript : EnvironmentObject
             {
                 OnLeverPulledEvent?.Invoke();
                 activated = true;
-                
+
+               
                
             }
             
         }
+        
         
         
         
@@ -81,9 +85,17 @@ public class LeverScript : EnvironmentObject
 
     public override void GrabIdle()
     {
-        
-        Vector3 targetPosition = Vector3.MoveTowards(rb.position, leverOrigin.transform.position, resetTime * Time.deltaTime );
-        rb.MovePosition(targetPosition);
+        if (isRepeating)
+        {
+            useGravity = false;
+            rb.DOMove(originalPosition, pullResetTime).OnComplete(() =>
+            {
+                useGravity = true;
+                activated = false;
+                StartupEvent?.Invoke();
+            });
+        }
+      
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 }

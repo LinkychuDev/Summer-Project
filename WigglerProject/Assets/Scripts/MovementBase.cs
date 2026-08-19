@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using MoreMountains.Feedbacks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MovementBase : MonoBehaviour
 {
@@ -13,8 +14,7 @@ public class MovementBase : MonoBehaviour
     internal Vector2 input;
 
     internal Vector3 moveDir;
-
-    internal Transform playerCam;
+    
 
     public Vector3 moveVelocity;
     
@@ -79,13 +79,16 @@ public class MovementBase : MonoBehaviour
     protected virtual void OnEnable()
     {
         PlayerController.isOnSturdyEvent += OnSturdyEvent;
-       
+        
       //  PlayerController.ClimbEvent += ClimbEvent;
     }
+
+    
 
     protected virtual void OnDisable()
     {
         PlayerController.isOnSturdyEvent -= OnSturdyEvent;
+    
        // PlayerController.ClimbEvent -= b => isClimbing = b;
     }
     
@@ -105,7 +108,7 @@ public class MovementBase : MonoBehaviour
         rb = segments[0].rb;
         playerCollider = rb.GetComponent<SphereCollider>();
         sphereRadius = playerCollider.radius;
-        playerCam = Camera.main.transform;
+   
         
         characterHeight = playerCollider.radius;
        
@@ -181,13 +184,13 @@ public class MovementBase : MonoBehaviour
             Debug.Log("Climbing Input: " + inputVector);
         }*/
         
-        Vector3 forward = playerCam.transform.forward;
-        Vector3 right = playerCam.transform.right;
+        Vector3 forward = PlayerReferenceManager.instance.playerCam.forward;
+        Vector3 right = PlayerReferenceManager.instance.playerCam.right;
         forward.y = 0;
         forward.Normalize();
         right.y = 0;
         right.Normalize();
-        Vector3 up = playerCam.transform.up;
+        Vector3 up = PlayerReferenceManager.instance.playerCam.up;
        
 
         if (isClimbing)
@@ -197,11 +200,11 @@ public class MovementBase : MonoBehaviour
             
             Debug.Log("Climb Dir:  " + climbDir);
            
-            forward = Vector3.ProjectOnPlane(playerCam.transform.up, climbDir);
+            forward = Vector3.ProjectOnPlane(PlayerReferenceManager.instance.playerCam.transform.up, climbDir);
             
             Debug.Log("Forward Dir:  " + forward);
 
-            right = Vector3.ProjectOnPlane(playerCam.transform.right, climbDir);
+            right = Vector3.ProjectOnPlane(PlayerReferenceManager.instance.playerCam.transform.right, climbDir);
             
             Debug.Log("Right Dir:  " + right);
             

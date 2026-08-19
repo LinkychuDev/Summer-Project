@@ -35,13 +35,16 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
     
     private const float gravity = 9.81f;
     
-    bool isGrounded;
+    public bool isGrounded;
     //private Transform grabPoint;
+
+    public float groundOffset;
+    public float groundRadius;
     protected virtual void Awake()
     {
         originalLayer = gameObject.layer;
         rb = GetComponent<Rigidbody>();
-        rb.isKinematic = true;
+        rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
 
         if (transform.parent != null)
         {
@@ -49,10 +52,7 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         }
 
 
-        if (OnHoney)
-        {
-            CreateHoneyDecal();
-        }
+        honeyObject.SetActive(OnHoney);
     }
 
     private void OnValidate()
@@ -65,21 +65,21 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
 
     private void FixedUpdate()
     {
-        isGrounded = Physics.SphereCast(transform.position, 0.2f, Vector3.down, out RaycastHit hit, 0.3f,
-            PlayerReferenceManager.instance.groundMask);
+         /*isGrounded = Physics.CheckSphere((transform.position - (PlayerReferenceManager.instance.playerGravityDir * groundOffset)),
+            groundRadius, PlayerReferenceManager.instance.groundMask);
 
         if (!isGrounded && useGravity)
         {
-            Vector3 gravityVector = Vector3.up * (gravity * Time.fixedDeltaTime);
+            Vector3 gravityVector = Vector3.down * (gravity * Time.fixedDeltaTime);
             rb.MovePosition(rb.position + (gravityVector* Time.fixedDeltaTime));
-        }
+        }*/
         
         
     }
 
     void CreateHoneyDecal()
     {
-        if (honeyDecal == null)
+        /*if (honeyDecal == null)
         {
             honeyDecal = Instantiate(GameManager.instance.honeyDecal, transform.position, Quaternion.identity, transform);
         }
@@ -87,13 +87,15 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         else
         {
             honeyDecal.SetActive(true);
-        }
+        }*/
+        
+        honeyObject.SetActive(OnHoney);
        
     }
     public void SetupHoney()
     {
        // honeyObject.SetActive(true);
-       CreateHoneyDecal();
+        CreateHoneyDecal();
         StartCoroutine(RemoveHoney());
     }
 
@@ -115,7 +117,8 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         {
             return;
         }
-        
+
+        rb.interpolation = RigidbodyInterpolation.None;
         rb.isKinematic = true;
         grabPointReference = grabPoint;
         transform.parent = grabPointReference;
@@ -125,13 +128,14 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
     }
     public virtual void ResetGrab()
     {
-       
-        
+
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
         isGrabbed = false;
         gameObject.layer = originalLayer;
         transform.parent = originalParent;
         grabPointReference = null;
-        rb.constraints = RigidbodyConstraints.FreezeRotation;
+        rb.isKinematic = false;
+        rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
 
     }
 
