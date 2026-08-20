@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
@@ -99,8 +100,9 @@ public class PlayerSwing : MonoBehaviour
 
 
     [SerializeField] private float swingSpringStrength, swingSpringDamper, swingSpringMassScale;
-    
-    
+
+
+   
 
     private void Start()
     {
@@ -218,8 +220,7 @@ public class PlayerSwing : MonoBehaviour
         if (isSwinging)
         {
             swingInput = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
-            isHeldDown = !InputManager.instance.controls.Gameplay.Stretch.WasReleasedThisFrame();
-
+            isHeldDown = InputManager.instance.isStretchHeldDown;
         }
 
         
@@ -295,6 +296,8 @@ public class PlayerSwing : MonoBehaviour
        
         Destroy(bodyJoint);
 
+        cachedSwingVelocity = bodySegment.linearVelocity;
+
         headClose.localPosition = new Vector3(headClosePos.x, headClosePos.y, headClosePos.z);
         bodyOpen.localPosition = new Vector3(bodyOpenPos.x, bodyOpenPos.y, bodyOpenPos.z);
         bodyClose.localPosition = new Vector3(bodyClosePos.x, bodyClosePos.y, bodyClosePos.z);
@@ -348,54 +351,42 @@ public class PlayerSwing : MonoBehaviour
         
         Debug.Log("Final Launch Velocitty Body: " + finalLaunchVelocityBody);
        
-        headSegment.AddForce(finalLaunchVelocityHead, ForceMode.VelocityChange);
+        headSegment.AddForce(finalLaunchVelocityHead + (cachedSwingVelocity * headLaunchRatio), ForceMode.VelocityChange);
         bodySegment.AddForce(finalLaunchVelocityBody, ForceMode.VelocityChange);
-        bodySegment.AddForce(finalLaunchVelocityTail, ForceMode.VelocityChange);
+        bodySegment.AddForce(finalLaunchVelocityTail + (cachedSwingVelocity * tailLaunchRatio), ForceMode.VelocityChange);
         
         
 
         
         hookReference = null;
         hookPoint = null;
- 
 
-        
-        
-        
-       // PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
+        StartCoroutine(ResetSwing());
+
+
+
+        // PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
 
         // Apply forces
-        
-        
-        
+
+
+
         // ResetSwing();
     }
     
 
 
-    private void ResetSwing()
+    private IEnumerator ResetSwing()
     {
-        headClose.localPosition = new Vector3(headClosePos.x, headClosePos.y, headClosePos.z);
-        bodyOpen.localPosition = new Vector3(bodyOpenPos.x, bodyOpenPos.y, bodyOpenPos.z);
-        bodyClose.localPosition = new Vector3(bodyClosePos.x, bodyClosePos.y, bodyClosePos.z);
-        tailOpen.localPosition = new Vector3(tailOpenPos.x, tailOpenPos.y, tailOpenPos.z);
-
-
-        bodySegment.transform.forward = Vector3.right;
-        tailSegment.transform.forward = Vector3.right;
-
-
-        hookReference = null;
-        hookPoint = null;
+        yield return new WaitForSeconds(airTime);
         
         var sequence = DOTween.Sequence();
         sequence.Append(headSegment.transform.DOMove(
-            tailSegment.transform.position + tailSegment.transform.forward *
-            (PlayerReferenceManager.instance.bodyOffset + PlayerReferenceManager.instance.tailOffset), downTime));
-        sequence.Join(bodySegment.transform.DOMove(
-            tailSegment.transform.position + tailSegment.transform.forward * PlayerReferenceManager.instance.bodyOffset,
+            bodySegment.transform.position + bodySegment.transform.forward *
+            (PlayerReferenceManager.instance.bodyOffset + PlayerReferenceManager.instance.bodyOffset), downTime));
+        sequence.Join(tailSegment.transform.DOMove(
+            bodySegment.transform.position - bodySegment.transform.forward * PlayerReferenceManager.instance.tailOffset,
             downTime));
-        sequence.Play();
 
 
         sequence.OnComplete(() => { PlayerReferenceManager.instance.SetState(PlayerState.Locomotion); });

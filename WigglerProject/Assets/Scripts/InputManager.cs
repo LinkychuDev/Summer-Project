@@ -15,6 +15,8 @@ public class InputManager : MonoBehaviour
     public static InputManager instance {get; private set;}
     public Player_Inputs controls {get; private set;}
     private InputDevice lastInputDevice;
+
+    public bool isStretchHeldDown;
     //private bool isClimbing;
 
     
@@ -34,8 +36,11 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    
-    
+    private void Update()
+    {
+        isStretchHeldDown = controls.Gameplay.Stretch.ReadValue<float>() > 0.1f;
+    }
+
     private void OnEnable()
     {
         controls?.Enable();
