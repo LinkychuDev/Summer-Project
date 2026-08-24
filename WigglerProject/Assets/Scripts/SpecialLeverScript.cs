@@ -8,11 +8,9 @@ public class SpecialLeverScript : LeverScript
 
 
     
-    public override void GrabMove()
+    internal override void RetractedEvent()
     {
-        //rb.transform.forward = forwardVector;
-        //base.GrabMove(headRigidbodyPosition, forwardVector, grabSpeed);
-       
+     
         var distance = Vector3.Distance(rb.position, leverOrigin.transform.position);
          
         Debug.Log($"Lever Distance: " + distance);

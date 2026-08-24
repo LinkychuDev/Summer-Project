@@ -31,16 +31,19 @@ public class LeverScript : EnvironmentObject
     
     //only in editor
     [SerializeField] private bool deactivate;
+    
+    Tweener tweener;
     protected override void Awake()
     {
         base.Awake();
         originalPosition = transform.position;
         resetTime = pullResetTime;
-
+        rb.useGravity = false;
+        
 
     }
 
-  
+    
 
     public void ActivateLever()
     {
@@ -86,22 +89,7 @@ public class LeverScript : EnvironmentObject
        
          if(!canGrab)
              return;
-         var distance = Vector3.Distance(rb.position, leverOrigin.transform.position);
-         
-         Debug.Log($"Lever Distance: " + distance);
        
-        if (distance > maxPullDistance)
-        {
-            if (!activated)
-            {
-                OnLeverPulledEvent?.Invoke();
-                activated = true;
-                resetTime = CalculatePullResetTime();
-
-
-            }
-            
-        }
         
         
         
@@ -115,7 +103,29 @@ public class LeverScript : EnvironmentObject
     public override void ResetGrab()
     {
         base.ResetGrab();
+        
+        RetractedEvent();
         GrabIdle();
+    }
+
+    internal virtual void RetractedEvent()
+    {
+        var distance = Vector3.Distance(rb.position, leverOrigin.transform.position);
+         
+        Debug.Log($"Lever Distance: " + distance);
+       
+        if (distance > maxPullDistance)
+        {
+            if (!activated)
+            {
+                OnLeverPulledEvent?.Invoke();
+                activated = true;
+                resetTime = CalculatePullResetTime();
+
+
+            }
+            
+        }
     }
 
     public override void GrabIdle()
@@ -123,7 +133,17 @@ public class LeverScript : EnvironmentObject
         if (isRepeating)
         {
             rb.useGravity = false;
-            rb.DOMove(originalPosition, resetTime).OnComplete(() =>
+
+
+            if (tweener != null)
+            {
+                if (tweener.IsPlaying())
+                {
+                    tweener.Kill();
+                }
+            }
+            
+            tweener = rb.DOMove(originalPosition, resetTime).OnComplete(() =>
             {
                 rb.useGravity = true;
                 activated = false;
@@ -131,6 +151,8 @@ public class LeverScript : EnvironmentObject
                 OnLeverRetracted?.Invoke();
                 resetTime = pullResetTime;
             });
+
+            tweener.Play();
         }
       
     }

@@ -44,7 +44,7 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
     {
         originalLayer = gameObject.layer;
         rb = GetComponent<Rigidbody>();
-        rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ |  RigidbodyConstraints.FreezeRotation;
+        rb.isKinematic = true;
         rb.freezeRotation = true;
 
         if (transform.parent != null)
@@ -125,13 +125,12 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
     public virtual void ResetGrab()
     {
 
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.interpolation = RigidbodyInterpolation.None;
         isGrabbed = false;
         gameObject.layer = originalLayer;
         transform.parent = originalParent;
         grabPointReference = null;
         rb.isKinematic = false;
-        rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
         isGrabbed = false;
 
     }
