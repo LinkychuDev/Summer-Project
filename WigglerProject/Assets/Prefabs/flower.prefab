@@ -198,6 +198,8 @@ MonoBehaviour:
   aliveGrassMaterial: {fileID: 2100000, guid: 4facc934a290f01419c25dc45935a642, type: 2}
   waterThreshold: 20
   currentWaterAmount: 0
+  waterTest: {fileID: 0}
+  shouldCheckForDryness: 0
 --- !u!54 &8789807129018675227
 Rigidbody:
   m_ObjectHideFlags: 0

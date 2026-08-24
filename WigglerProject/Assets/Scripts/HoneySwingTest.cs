@@ -13,11 +13,19 @@ public class HoneySwingTest : MonoBehaviour
 
     public float distance;
 
+  
+    public LineRenderer lineRenderer;
+   
     public void OnValidate()
     {
         distance = Vector3.Distance(transform.position, swingAnchor.transform.position);
+        
+        lineRenderer?.SetPosition(0, lineRenderer.transform.InverseTransformPoint(swingAnchor.transform.position));
+        lineRenderer?.SetPosition(1, lineRenderer.transform.InverseTransformPoint(hookRigidbody.position));
     }
 
+    
+    
     void Start()
     {
         hookRigidbody = GetComponent<Rigidbody>();
@@ -27,8 +35,17 @@ public class HoneySwingTest : MonoBehaviour
         
         
     }
-    
-    
+
+    void Update()
+    {
+        lineRenderer.SetPosition(0, lineRenderer.transform.InverseTransformPoint(swingAnchor.transform.position));
+        lineRenderer.SetPosition(1, lineRenderer.transform.InverseTransformPoint(hookRigidbody.position));
+    }
+
+
+   
+
+
     public void DisableCollisions()
     {
         gameObject.GetComponent<Collider>().enabled = false;

@@ -24,7 +24,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1052467806911082286}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 30.946718}
   m_LocalScale: {x: 1, y: 1, z: 62.893074}
   m_ConstrainProportionsScale: 0
@@ -35,7 +35,7 @@ Transform:
   - {fileID: 7516701576231930114}
   - {fileID: 3707284845710633311}
   m_Father: {fileID: 4021889324519254057}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
 --- !u!1 &3232084127185608001
 GameObject:
   m_ObjectHideFlags: 0
@@ -66,7 +66,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -21.02, y: 4.25, z: 2.1749}
-  m_LocalScale: {x: 8.039445, y: 9.199619, z: 0.5821688}
+  m_LocalScale: {x: 20.67731, y: 15.949571, z: 0.5821688}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6067348132149947921}
@@ -190,15 +190,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3259950027578689201}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0.017999984, y: 0.02336, z: -0.508821}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.508821}
   m_LocalScale: {x: 0.93913877, y: 0.020115852, z: 1.07801}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5711675846976301}
   - {fileID: 7867082360687205434}
   m_Father: {fileID: 6067348132149947921}
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1906272499268244109
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -218,8 +218,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1.0710847, y: 49.03, z: 0.026575284}
+  m_Center: {x: -0.0044577033, y: 0, z: 0.011712372}
 --- !u!114 &6475248120110288349
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -239,7 +239,9 @@ MonoBehaviour:
     m_Bits: 0
   inverseSetPosition: {fileID: 5711675846976301}
   wallContactPos: {fileID: 7867082360687205434}
-  targetDir: 0
+  targetDir: 3
+  maxClimbAngle: 30
+  usePreset: 0
 --- !u!33 &2808274773392175087
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -375,6 +377,8 @@ MonoBehaviour:
   inverseSetPosition: {fileID: 1233812883798376908}
   wallContactPos: {fileID: 5177515350001846225}
   targetDir: 0
+  maxClimbAngle: 0
+  usePreset: 0
 --- !u!33 &359957527894089545
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -759,6 +763,8 @@ MonoBehaviour:
   inverseSetPosition: {fileID: 7475992323304422735}
   wallContactPos: {fileID: 2817695282006465563}
   targetDir: 0
+  maxClimbAngle: 0
+  usePreset: 0
 --- !u!33 &7627367342283991720
 MeshFilter:
   m_ObjectHideFlags: 0

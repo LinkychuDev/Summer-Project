@@ -53,7 +53,7 @@ public class DoorCanvasScript : MonoBehaviour
             Debug.Log("list count: " + list.Count);
             for (int i = 0; i < berryImages.Length; i++)
             {
-                berryImages[i].color = list[i].isCollected ? berryCollectedColor * _uc : berryNotCollectedColor;
+                berryImages[i].color = list[i].isCollected ? berryCollectedColor : berryNotCollectedColor;
             }
         }
 

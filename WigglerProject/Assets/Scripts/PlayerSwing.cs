@@ -39,7 +39,7 @@ public class PlayerSwing : MonoBehaviour
 
     [SerializeField] public float swingDamp;
 
-    [SerializeField] private Vector3 headTargetRotation = new(-90f, 0f, 0f);
+    //[SerializeField] private Vector3 headTargetRotation = new(-90f, 0f, 0f);
 
     [SerializeField] private float launchSpeed;
 
@@ -107,6 +107,8 @@ public class PlayerSwing : MonoBehaviour
 
     private Vector3 originalHookPosition;
     private Rigidbody hookRigidBody;
+
+    public float dotProduct;
    
 
     private void Start()
@@ -129,6 +131,9 @@ public class PlayerSwing : MonoBehaviour
         //make this a sequence
         //stretchState = StretchState.Swinging;
         //Vector3 anchorPoint = hook.transform.position - hook.swingAnchor;
+        
+        
+      
 
 
         hookReference = hook;
@@ -138,9 +143,13 @@ public class PlayerSwing : MonoBehaviour
 
         hookReference.OnValidate();
 
-        var direction = (headSegment.transform.position - hookRigidBody.position).normalized;
+        var direction = ( hookRigidBody.position -headSegment.transform.position).normalized;
+        
+         dotProduct = Vector3.Dot(direction, hookRigidBody.transform.forward);
+        
+        Debug.Log("DotProduct: " + dotProduct);
         //headSegment.isKinematic = true;
-        headSegment.transform.rotation = hookRigidBody.rotation;
+        headSegment.transform.forward = hookRigidBody.transform.forward * Mathf.Sign(dotProduct);
       
         
 
@@ -200,9 +209,10 @@ public class PlayerSwing : MonoBehaviour
             hookJoint.autoConfigureConnectedAnchor = false;
             hookJoint.connectedAnchor = hookPoint.position;
 
+            hookJoint.axis = headSegment.transform.right;
 
             hookRigidBody.linearDamping = swingDamp;
-
+            
 
             hookJoint.spring = swingSpringStrength;
             hookJoint.damper = swingSpringDamper;
@@ -374,9 +384,9 @@ public class PlayerSwing : MonoBehaviour
         
         Debug.Log("Final Launch Velocitty Body: " + finalLaunchVelocityBody);
        
-        headSegment.AddForce(finalLaunchVelocityHead + (cachedSwingVelocity * headLaunchRatio), ForceMode.VelocityChange);
-       bodySegment.AddForce(finalLaunchVelocityBody + (cachedSwingVelocity * bodyLaunchRatio), ForceMode.VelocityChange);
-        tailSegment.AddForce(finalLaunchVelocityTail + (cachedSwingVelocity * tailLaunchRatio), ForceMode.VelocityChange);
+        headSegment.AddForce(finalLaunchVelocityHead * cachedSwingVelocity.magnitude * swingInput.magnitude , ForceMode.VelocityChange);
+       bodySegment.AddForce(finalLaunchVelocityBody * cachedSwingVelocity.magnitude * swingInput.magnitude , ForceMode.VelocityChange);
+        tailSegment.AddForce(finalLaunchVelocityTail * cachedSwingVelocity.magnitude * swingInput.magnitude, ForceMode.VelocityChange);
         
         
         
@@ -401,7 +411,7 @@ public class PlayerSwing : MonoBehaviour
 
     private IEnumerator ResetSwing()
     {
-       // Destroy(hookJoint);
+       Destroy(hookJoint);
         yield return new WaitForSeconds(airTime);
         
         

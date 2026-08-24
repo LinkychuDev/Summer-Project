@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3446772126775390210
 Transform:
   m_ObjectHideFlags: 0
@@ -195,8 +195,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09645da2120c47269e10efabca90bf3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GiantBerryScript
-  PointToGive: 1
-  berrySprite: {fileID: 0}
+  PointToGive: 20
+  berryId: 0
+  isCollected: 0
 --- !u!1001 &6812939313485097393
 PrefabInstance:
   m_ObjectHideFlags: 0

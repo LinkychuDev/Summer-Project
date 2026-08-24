@@ -16,7 +16,8 @@ public enum GameFlags
     HasUsedFirstWallClimb,
     HasUsedFirstPulling,
     HasUsedFirstSticking,
-    CollectedFirstBerries
+    CollectedFirstBerries,
+    CollectedSecondBerries
     
 }
 public class GameEventSystem
@@ -219,9 +220,37 @@ public class GameManager : MonoBehaviour
             return;
 
         PlayerReferenceManager.instance.transform.position = lastSpawnPosition[0];
+        
+        PlayerReferenceManager.instance.headSegment.linearVelocity = Vector3.zero;
+        PlayerReferenceManager.instance.headSegment.angularVelocity = Vector3.zero;
+        
+        PlayerReferenceManager.instance.bodySegment.linearVelocity = Vector3.zero;
+        PlayerReferenceManager.instance.bodySegment.angularVelocity = Vector3.zero;
+        
+        PlayerReferenceManager.instance.tailSegment.linearVelocity = Vector3.zero;
+        PlayerReferenceManager.instance.tailSegment.angularVelocity = Vector3.zero;
+
+
+
+        if (PlayerReferenceManager.instance.currentState == PlayerState.Stretching)
+        {
+            if (PlayerReferenceManager.instance.playerStretch.stretchState == PlayerStretch.StretchState.Stretching ||
+                PlayerReferenceManager.instance.playerStretch.stretchState == PlayerStretch.StretchState.Stuck)
+            {
+                PlayerReferenceManager.instance.playerStretch.StartCoroutine(PlayerReferenceManager.instance
+                    .playerStretch.OnPlayerRetractedEvent());
+            }
+        }
+        
+        
+        PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
+        
+        
         PlayerReferenceManager.instance.headSegment.position = lastSpawnPosition[0];
         PlayerReferenceManager.instance.bodySegment.position = lastSpawnPosition[1];
         PlayerReferenceManager.instance.tailSegment.position = lastSpawnPosition[2];
+        
+        
 
     }
     

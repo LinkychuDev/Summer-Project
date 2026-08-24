@@ -10,6 +10,8 @@ public enum CurrentDevice
     Gamepad
 }
 
+
+
 public class InputManager : MonoBehaviour
 {
     public static InputManager instance {get; private set;}
@@ -18,6 +20,8 @@ public class InputManager : MonoBehaviour
 
     public bool isStretchHeldDown;
     //private bool isClimbing;
+
+    public static Action<CurrentDevice> OnInputChanged;
 
     
     public CurrentDevice currentDevice {get; private set;}
@@ -72,6 +76,8 @@ public class InputManager : MonoBehaviour
             {
                 currentDevice = CurrentDevice.Keyboard;
             }
+            
+            OnInputChanged?.Invoke(currentDevice);
         }
     }
     

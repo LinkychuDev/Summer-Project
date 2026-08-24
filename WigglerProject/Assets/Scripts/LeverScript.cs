@@ -5,9 +5,9 @@ using UnityEngine.Events;
 
 public class LeverScript : EnvironmentObject
 {
-    public UnityEvent OnLeverPulledEvent, StartupEvent;
+    public UnityEvent OnLeverPulledEvent, OnLeverRetracted;
     public bool isRepeating;
-    private float maxPullDistance;
+    internal float maxPullDistance;
     public float pullDistance;
     public Transform leverOrigin;
     Vector3 originalPosition;
@@ -23,15 +23,48 @@ public class LeverScript : EnvironmentObject
     private float originalOffset;
     [SerializeField] private float pullResetTime = 3f;
     
+    
+    [SerializeField] private Material deactiveMaterial;
+    [SerializeField] private Material activeMaterial;
+    [SerializeField] Renderer rend;
+    [SerializeField] Renderer leverOriginRenderer;
+    
+    //only in editor
+    [SerializeField] private bool deactivate;
     protected override void Awake()
     {
         base.Awake();
-        originalPosition = rb.transform.position;
+        originalPosition = transform.position;
+        resetTime = pullResetTime;
+
+
+    }
+
+  
+
+    public void ActivateLever()
+    {
+        leverOriginRenderer.material = activeMaterial;
+        rend.material = activeMaterial;
+        canGrab = true;
         
+    }
+
+    public void DeactivateLever()
+    {
+        leverOriginRenderer.material = deactiveMaterial;
+        rend.material = deactiveMaterial;
+        canGrab = false;
+        if (activated)
+        {
+            activated = false;
+            OnLeverRetracted?.Invoke();
+           
+        }
     }
     void Start()
     {
-        StartupEvent?.Invoke();
+        //StartupEvent?.Invoke();
         originalOffset = Vector3.Distance(rb.position, leverOrigin.position);
         maxPullDistance = pullDistance + originalOffset;
         
@@ -42,8 +75,8 @@ public class LeverScript : EnvironmentObject
     protected override void Update()
     {
         base.Update();
-        pullLineRenderer.SetPosition(0, leverOrigin.transform.position);
-        pullLineRenderer.SetPosition(1, rb.position);
+        pullLineRenderer.SetPosition(0, pullLineRenderer.transform.InverseTransformPoint(leverOrigin.transform.position));
+        pullLineRenderer.SetPosition(1, pullLineRenderer.transform.InverseTransformPoint(rb.position));
     }
 
     public override void GrabMove()
@@ -51,6 +84,8 @@ public class LeverScript : EnvironmentObject
         //rb.transform.forward = forwardVector;
          //base.GrabMove(headRigidbodyPosition, forwardVector, grabSpeed);
        
+         if(!canGrab)
+             return;
          var distance = Vector3.Distance(rb.position, leverOrigin.transform.position);
          
          Debug.Log($"Lever Distance: " + distance);
@@ -61,9 +96,9 @@ public class LeverScript : EnvironmentObject
             {
                 OnLeverPulledEvent?.Invoke();
                 activated = true;
+                resetTime = CalculatePullResetTime();
 
-               
-               
+
             }
             
         }
@@ -87,15 +122,33 @@ public class LeverScript : EnvironmentObject
     {
         if (isRepeating)
         {
-            useGravity = false;
-            rb.DOMove(originalPosition, pullResetTime).OnComplete(() =>
+            rb.useGravity = false;
+            rb.DOMove(originalPosition, resetTime).OnComplete(() =>
             {
-                useGravity = true;
+                rb.useGravity = true;
                 activated = false;
-                StartupEvent?.Invoke();
+                Debug.Log("Activation");
+                OnLeverRetracted?.Invoke();
+                resetTime = pullResetTime;
             });
         }
       
+    }
+
+
+    int CalculatePullResetTime()
+    {
+        //if at max position pullreset time is standard
+        
+        float distance = Vector3.Distance(rb.position, leverOrigin.transform.position);
+
+
+        float t = Mathf.Clamp01(distance / maxPullDistance);
+        float x = Mathf.Lerp(0, pullResetTime, t);
+        
+        return (int)x;
+
+
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 }

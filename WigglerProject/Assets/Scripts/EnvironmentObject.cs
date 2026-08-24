@@ -44,7 +44,8 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
     {
         originalLayer = gameObject.layer;
         rb = GetComponent<Rigidbody>();
-        rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
+        rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ |  RigidbodyConstraints.FreezeRotation;
+        rb.freezeRotation = true;
 
         if (transform.parent != null)
         {
@@ -55,12 +56,7 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         honeyObject.SetActive(OnHoney);
     }
 
-    private void OnValidate()
-    {
-        //CreateHoneyDecal();
-        //honeyDecal.SetActive(OnHoney));
-        
-    }
+   
 
 
     private void FixedUpdate()
@@ -135,7 +131,8 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         transform.parent = originalParent;
         grabPointReference = null;
         rb.isKinematic = false;
-        rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
+        rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
+        isGrabbed = false;
 
     }
 

@@ -79,6 +79,9 @@ public class CachedPosition
 #endregion
 
 
+
+
+
 public class PlayerReferenceManager : MonoBehaviour, IStickable
 {
 
@@ -131,12 +134,15 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     public bool useGravity;
     public bool isGrounded;
 
-    private PlayerStretch playerStretch;
+    public PlayerStretch playerStretch;
 
     public bool isSoaked;
     public float soakedDuration = 2f;
 
     public Transform playerCam;
+
+    
+    
     private void Awake()
     {
 
@@ -266,6 +272,8 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
             
                 
         }
+        
+        
 
 
 
@@ -280,6 +288,8 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         {
             OnStateChange?.Invoke(currentState);
         }
+        
+        
     }
 
     public PlayerState GetLastState()

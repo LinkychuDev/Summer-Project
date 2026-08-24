@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 5257907469713058727}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.749}
+  m_LocalPosition: {x: 0, y: 0, z: -0.047245562}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -139,7 +139,7 @@ LineRenderer:
     textureScale: {x: 1, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
-  m_UseWorldSpace: 1
+  m_UseWorldSpace: 0
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
 --- !u!1 &7766295505107060524
@@ -204,8 +204,8 @@ Transform:
   m_GameObject: {fileID: 7877165456291794270}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.72}
-  m_LocalScale: {x: 0.41, y: 0.41, z: 0.41}
+  m_LocalPosition: {x: 0, y: 0.762, z: 1.544}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 4821421182461046914}
@@ -243,7 +243,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 8b60c73aba1bad24ebdd002f910a5ecc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -299,15 +299,13 @@ GameObject:
   - component: {fileID: 4558588057909123008}
   - component: {fileID: 4580486364863856158}
   - component: {fileID: 3567221530666871858}
-  - component: {fileID: 4386916150591137650}
-  - component: {fileID: 4961357600391568230}
   m_Layer: 0
   m_Name: Sphere (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4558588057909123008
 Transform:
   m_ObjectHideFlags: 0
@@ -316,13 +314,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8835239621480257833}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.1869, y: 1.1869, z: 1.1869}
+  m_LocalScale: {x: 1.03, y: 1.03, z: 1.03}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 2168890808633614823}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!33 &4580486364863856158
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -356,7 +354,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0ac41798dea8e4c40ba0bdbc2d8a47d4, type: 2}
+  - {fileID: 2100000, guid: 617dcf953e0b2c54c9909f4c5d5a8bdc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -380,54 +378,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &4386916150591137650
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8835239621480257833}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &4961357600391568230
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8835239621480257833}
-  serializedVersion: 5
-  m_Mass: 10
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 112
-  m_CollisionDetection: 0
 --- !u!1 &9059857221566664006
 GameObject:
   m_ObjectHideFlags: 0
@@ -499,7 +449,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 8b60c73aba1bad24ebdd002f910a5ecc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -583,34 +533,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b2c2f026ac1ed745b5e9eab017790eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LeverScript
-  OnHoney: 0
+  OnHoney: 1
   honeyObject: {fileID: 8835239621480257833}
   honeyCooldown: 4
   canGrab: 1
   isBreakable: 0
-  honeyDecal: {fileID: 4337535382833053833}
+  useGravity: 1
+  isGrounded: 0
+  groundOffset: 1
+  groundRadius: 0.2
   OnLeverPulledEvent:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
-  StartupEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
+        m_TargetAssemblyTypeName: MoreMountains.Feedbacks.MMF_Player, MoreMountains.Tools
+        m_MethodName: PlayFeedbacks
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -619,12 +557,33 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  isRepeating: 1
+  OnLeverRetracted:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: MoreMountains.Feedbacks.MMF_Player, MoreMountains.Tools
+        m_MethodName: PlayFeedbacksInReverse
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  isRepeating: 0
   pullDistance: 4
   leverOrigin: {fileID: 5776691409203639005}
   activated: 0
   resetTime: 0.5
   pullLineRenderer: {fileID: 6752414483252096688}
+  pullResetTime: 3
+  deactiveMaterial: {fileID: 0}
+  activeMaterial: {fileID: 0}
+  rend: {fileID: 0}
+  leverOriginRenderer: {fileID: 0}
+  deactivate: 0
 --- !u!1001 &2242568103288444786
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -636,6 +595,10 @@ PrefabInstance:
     - target: {fileID: 2534742354470033403, guid: b31ad3a8804ed2b44b28c00b93246dc0, type: 3}
       propertyPath: m_Name
       value: Honey Decal
+      objectReference: {fileID: 0}
+    - target: {fileID: 2534742354470033403, guid: b31ad3a8804ed2b44b28c00b93246dc0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8778686711486041012, guid: b31ad3a8804ed2b44b28c00b93246dc0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -682,11 +645,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b31ad3a8804ed2b44b28c00b93246dc0, type: 3}
---- !u!1 &4337535382833053833 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2534742354470033403, guid: b31ad3a8804ed2b44b28c00b93246dc0, type: 3}
-  m_PrefabInstance: {fileID: 2242568103288444786}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &7407043439473220806 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8778686711486041012, guid: b31ad3a8804ed2b44b28c00b93246dc0, type: 3}

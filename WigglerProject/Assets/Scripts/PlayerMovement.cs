@@ -404,9 +404,18 @@ public class PlayerMovement : MovementBase
                 Debug.Log("Climbing Ground Detected");
                 ChangeGravity(Vector3.down, false);
             }
-            
-            
-            
+
+            else if (transform.up == gravityDir)
+            {
+                if(!Physics.Raycast(rb.position, -gravityDir, climbDetectionCDistance, silkMask, QueryTriggerInteraction.Ignore))
+                {
+                    ChangeGravity(Vector3.down, false);
+                }
+            }
+
+
+
+
             /*else if (!isGrounded)
             {
                 ChangeGravity(Vector3.down, false);

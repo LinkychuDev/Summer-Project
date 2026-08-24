@@ -39,9 +39,14 @@ public class StateCameraMachine : MonoBehaviour
    }
 
    
-   private void OnCameraSwitch(Vector3 arg3)
+   private void OnCameraSwitch(Vector3 gravityDir)
    {
-      cinemachineFollow.FollowOffset = arg3 * offset;
+      cinemachineFollow.FollowOffset = gravityDir * offset;
+      
+      float yaw = Mathf.Atan2(gravityDir.x, gravityDir.z) * Mathf.Rad2Deg;
+      
+      Camera.main.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+      CinemachineClimbCamera.transform.rotation = Quaternion.Euler(0, yaw, 0);
      // CinemachineGroupCamera.transform.rotation = Quaternion.FromToRotation(transform.up, arg3);   
       
    }

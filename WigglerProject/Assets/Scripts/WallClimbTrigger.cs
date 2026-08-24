@@ -23,8 +23,12 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 	public Direction targetDir;
 
 
+	[SerializeField] private float maxClimbAngle;
+
 	private Vector3 WallContactPos;
 
+
+	public bool usePreset;
 	
 	
 
@@ -42,22 +46,30 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 	
 	void UpdateDirection()
 	{
-		switch (targetDir)
+		if (usePreset)
 		{
-			case Direction.Forward:
-				gravityDirection = Vector3.forward;
-				break;
-			case Direction.Back:
-				gravityDirection = Vector3.back;
-				break;
-			case Direction.Right:
-				gravityDirection = Vector3.right;
-				break;
-			case Direction.Left:
-				gravityDirection = Vector3.left;
-				break;
-			default:
-				throw new ArgumentOutOfRangeException();
+			switch (targetDir)
+			{
+				case Direction.Forward:
+					gravityDirection = Vector3.forward;
+					break;
+				case Direction.Back:
+					gravityDirection = Vector3.back;
+					break;
+				case Direction.Right:
+					gravityDirection = Vector3.right;
+					break;
+				case Direction.Left:
+					gravityDirection = Vector3.left;
+					break;
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		else
+		{
+			gravityDirection = transform.forward;
 		}
 	}
 
@@ -75,11 +87,11 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 					return;
 				}
 				
-				//controller.ChangeGravity(transform.forward);
-
-
 				
 				
+				if(controller.isClimbing)
+					return;
+
 				GameManager.CameraClimbSwitch?.Invoke(gravityDirection);
 				playerRb.linearVelocity = Vector3.zero;
 
@@ -109,6 +121,12 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 				{
 					Debug.Log("Failed to find target");
 				}
+				//controller.ChangeGravity(transform.forward);
+
+
+				
+				GameManager.CameraClimbSwitch?.Invoke(gravityDirection);
+				
 				//playerRb.AddForce(transform.forward * controller.climbTriggerOffset, ForceMode.VelocityChange);
 				
 				
@@ -135,19 +153,22 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 		if(!controller.isClimbing)
 			return;
 		//controller.ChangeGravity(transform.forward);
-		var playerRb = other.gameObject.GetComponent<Rigidbody>();
+		
 
+		
+		
 
 		Debug.Log("Exiting Collider");
 		WallContactPos = collider.ClosestPointOnBounds(controller.transform.position);
 
-		//GameManager.CameraClimbSwitch?.Invoke(gravityDirection);
+		
 		controller.ChangeGravity(inverseDirection, false, true, false, WallContactPos, wall.transform);
-		playerRb.AddForce(transform.up * controller.climbForce);
-		playerRb.AddForce(transform.forward * controller.climbForce);
+		controller.rb.AddForce(transform.up * controller.climbForce);
+		controller.rb.AddForce(transform.forward * controller.climbForce);
 		hasSwitched = false;
-
 	}
+
+
 
 	private Vector3 CalculateOffsetPos(Vector3 offset, Vector3 playerPos)
 	{

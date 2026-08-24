@@ -11,6 +11,7 @@ public class WaterFallParticleTest : MonoBehaviour
     ParticleSystem particles;
     
     public float wetAmount;
+   
     List<ParticleSystem.Particle> enter = new List<ParticleSystem.Particle>();
 
     private void Awake()
@@ -21,7 +22,7 @@ public class WaterFallParticleTest : MonoBehaviour
     private void OnParticleTrigger()
     {
         int numEnter = particles.GetTriggerParticles(ParticleSystemTriggerEventType.Enter, enter, out var colliderDataEnter);
-       
+        
 
         for (int i = 0; i < numEnter; i++)
         {
@@ -34,4 +35,6 @@ public class WaterFallParticleTest : MonoBehaviour
         
         
     }
+    
+    
 }
