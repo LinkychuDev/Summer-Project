@@ -32,7 +32,6 @@ public class LeverScript : EnvironmentObject
     //only in editor
     [SerializeField] private bool deactivate;
     
-    Tweener tweener;
     protected override void Awake()
     {
         base.Awake();
@@ -43,7 +42,21 @@ public class LeverScript : EnvironmentObject
 
     }
 
-    
+    public override void SetupGrab(Transform grabPoint)
+    {
+        base.SetupGrab(grabPoint);
+        if (isRepeating)
+        {
+            if (pullTween != null)
+            {
+                if (pullTween.IsPlaying())
+                {
+                    pullTween.Kill();
+                }
+            }
+        }
+    }
+
 
     public void ActivateLever()
     {
@@ -133,17 +146,8 @@ public class LeverScript : EnvironmentObject
         if (isRepeating)
         {
             rb.useGravity = false;
-
-
-            if (tweener != null)
-            {
-                if (tweener.IsPlaying())
-                {
-                    tweener.Kill();
-                }
-            }
             
-            tweener = rb.DOMove(originalPosition, resetTime).OnComplete(() =>
+            pullTween = rb.transform.DOMove(originalPosition, resetTime).OnComplete(() =>
             {
                 rb.useGravity = true;
                 activated = false;
@@ -152,7 +156,7 @@ public class LeverScript : EnvironmentObject
                 resetTime = pullResetTime;
             });
 
-            tweener.Play();
+          
         }
       
     }

@@ -130,7 +130,7 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         gameObject.layer = originalLayer;
         transform.parent = originalParent;
         grabPointReference = null;
-        rb.isKinematic = false;
+        rb.isKinematic = true;
         isGrabbed = false;
 
     }
