@@ -31,6 +31,8 @@ Transform:
   m_Children:
   - {fileID: 4223691275116794633}
   - {fileID: 8645298636942087955}
+  - {fileID: 833445493400380729}
+  - {fileID: 4968751449133265366}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &240596400501466584
@@ -46,6 +48,7 @@ GameObject:
   - component: {fileID: 145827819890824819}
   - component: {fileID: 7157897610797600915}
   - component: {fileID: 6677989326777838529}
+  - component: {fileID: 5216807973923892018}
   m_Layer: 0
   m_Name: Orb
   m_TagString: Untagged
@@ -159,6 +162,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OrbCollection
   orbSequence: {fileID: 1102271117818742490}
+  playableDirector: {fileID: 2012221799051163927}
+--- !u!95 &5216807973923892018
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 240596400501466584}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: fa23e0d62007620479e67d61bee39741, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &632743452432567442
 GameObject:
   m_ObjectHideFlags: 0
@@ -797,3 +823,147 @@ MonoBehaviour:
           ConditionPropertyName: 
           EnumConditionPropertyName: 
           EnumConditions: 0000000000000000000000000000000000000000000000000000000000000000
+--- !u!1 &3013859280776197986
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4968751449133265366}
+  - component: {fileID: 4333142350091164675}
+  m_Layer: 0
+  m_Name: CinemachineCamera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &4968751449133265366
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3013859280776197986}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.1424152, y: -0.61829257, z: 0.09497156, w: 0.76708055}
+  m_LocalPosition: {x: 7.43, y: 1.33, z: -2.2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8430942649630168465}
+  m_LocalEulerAnglesHint: {x: 19.629, y: -78.06, z: -1.85}
+--- !u!114 &4333142350091164675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3013859280776197986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
+  Priority:
+    Enabled: 0
+    m_Value: 0
+  OutputChannel: 1
+  StandbyUpdate: 2
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
+  Target:
+    TrackingTarget: {fileID: 0}
+    LookAtTarget: {fileID: 0}
+    CustomLookAtTarget: 0
+  Lens:
+    FieldOfView: 60.000004
+    OrthographicSize: 5
+    NearClipPlane: 0.3
+    FarClipPlane: 1000
+    Dutch: 0
+    ModeOverride: 0
+    PhysicalProperties:
+      GateFit: 2
+      SensorSize: {x: 21.946, y: 16.002}
+      LensShift: {x: 0, y: 0}
+      FocusDistance: 10
+      Iso: 200
+      ShutterSpeed: 0.005
+      Aperture: 16
+      BladeCount: 5
+      Curvature: {x: 2, y: 11}
+      BarrelClipping: 0.25
+      Anamorphism: 0
+  BlendHint: 0
+--- !u!1 &4647394195819625654
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 833445493400380729}
+  - component: {fileID: 2012221799051163927}
+  m_Layer: 0
+  m_Name: OrbCutscene
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &833445493400380729
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4647394195819625654}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8430942649630168465}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!320 &2012221799051163927
+PlayableDirector:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4647394195819625654}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_PlayableAsset: {fileID: 11400000, guid: db30ec6b25ff8bd4d81fd98a81dabbd6, type: 2}
+  m_InitialState: 0
+  m_WrapMode: 2
+  m_DirectorUpdateMode: 2
+  m_InitialTime: 0
+  m_SceneBindings:
+  - key: {fileID: -1539115662646254384, guid: db30ec6b25ff8bd4d81fd98a81dabbd6, type: 2}
+    value: {fileID: 0}
+  - key: {fileID: -3024894947014475589, guid: db30ec6b25ff8bd4d81fd98a81dabbd6, type: 2}
+    value: {fileID: 0}
+  - key: {fileID: 4439188860186225927, guid: db30ec6b25ff8bd4d81fd98a81dabbd6, type: 2}
+    value: {fileID: 0}
+  - key: {fileID: -5541792193780182223, guid: db30ec6b25ff8bd4d81fd98a81dabbd6, type: 2}
+    value: {fileID: 5216807973923892018}
+  - key: {fileID: -8372385787021609096, guid: db30ec6b25ff8bd4d81fd98a81dabbd6, type: 2}
+    value: {fileID: 240596400501466584}
+  - key: {fileID: -8129919059238522632, guid: db30ec6b25ff8bd4d81fd98a81dabbd6, type: 2}
+    value: {fileID: 0}
+  - key: {fileID: -4855466563271065780, guid: db30ec6b25ff8bd4d81fd98a81dabbd6, type: 2}
+    value: {fileID: 0}
+  - key: {fileID: -90397102096253923, guid: db30ec6b25ff8bd4d81fd98a81dabbd6, type: 2}
+    value: {fileID: 0}
+  m_ExposedReferences:
+    m_References:
+    - 5a5b162a9be235940945d79a2dd7a7f6: {fileID: 0}
+    - 95397b3e02d4ce047893713549fe619b: {fileID: 4333142350091164675}
+    - b58da48c44acc1a46824194ce201ebcc: {fileID: 0}
+    - 6e7402688de6e724196b849d2ced0e15: {fileID: 0}

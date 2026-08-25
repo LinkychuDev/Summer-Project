@@ -10,11 +10,15 @@ public class SwitchScript : MonoBehaviour
 
     public EnvironmentObject obj;
 
+    private Collider triggerCollider;
+    public int stayCount;
     void Start()
     {
         //onDeactivatedEvent?.Invoke();
     }
+
     
+
     private void OnTriggerStay(Collider other)
     {
         if (isActivated)
@@ -42,6 +46,8 @@ public class SwitchScript : MonoBehaviour
             isActivated = true;
             onActivatedEvent.Invoke();
         }
+        
+        
     }
 
     private void OnTriggerExit(Collider other)
