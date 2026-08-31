@@ -13,7 +13,8 @@ public class CinemachineFindAutomaticTarget : MonoBehaviour
 
    private void OnValidate()
    {
-      
+      if(targetFollow == null)
+         return;
       targetName = targetFollow?.name;
    }
 

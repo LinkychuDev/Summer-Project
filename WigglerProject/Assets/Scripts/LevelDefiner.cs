@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using MoreMountains.Feedbacks;
+using MoreMountains.Tools;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -23,13 +25,28 @@ public class LevelDefiner : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        
     }
 
-    private void Start()
+    private void OnEnable()
     {
         
-        SetUpGiantBerryCount();
+    }
+
+    IEnumerator Start()
+    {
+        yield return null;
+
+
+        if (giantBerriesList.Count > 0)
+        {
+            SetUpGiantBerryCount();
+
+        }
+        yield return null;
         GameManager.instance.LevelBoot();
+
+        yield return null;
     }
 
 
@@ -46,7 +63,7 @@ public class LevelDefiner : MonoBehaviour
 
     public void SetUpGiantBerryCount()
     {
-     
+        
         for (int i = 0; i < giantBerriesList.Count; i++)
         {
             

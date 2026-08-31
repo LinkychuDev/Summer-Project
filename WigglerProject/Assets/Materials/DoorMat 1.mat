@@ -7,11 +7,12 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DoorMat
+  m_Name: DoorMat 1
   m_Shader: {fileID: 4800000, guid: bee44b4a58655ee4cbff107302a3e131, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - DR_ENABLE_LIGHTMAP_DIR
   - DR_OUTLINE_ON
   - DR_RIM_ON
   - _CELPRIMARYMODE_SINGLE
@@ -180,7 +181,7 @@ Material:
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.6844871, g: 0.7717285, b: 0.86522907, a: 1}
+    - _BaseColor: {r: 0.6760265, g: 0.65080994, b: 0.7075472, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorDim: {r: 1, g: 1, b: 1, a: 1}
     - _ColorDimCurve: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}

@@ -7,7 +7,7 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 {
 	public bool isTrigger = true;
 
-	private Collider collider;
+	private Collider wallCollider;
 	private bool hasSwitched;
 	private PlayerReferenceManager playerReferenceManager;
 	
@@ -34,7 +34,7 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 
 	private void Start()
 	{
-		collider = wall.GetComponent<Collider>();
+		wallCollider = wall.GetComponent<Collider>();
 		UpdateDirection();
 	}
 
@@ -159,7 +159,7 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 		
 
 		Debug.Log("Exiting Collider");
-		WallContactPos = collider.ClosestPointOnBounds(controller.transform.position);
+		WallContactPos = wallCollider.ClosestPointOnBounds(controller.transform.position);
 
 		
 		controller.ChangeGravity(inverseDirection, false, true, false, WallContactPos, wall.transform);

@@ -1,0 +1,140 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &48874984865521087
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1233200910585197617, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1233200910585197617, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 652de1e3dd13aa74586d0cb80356cf71, type: 2}
+    - target: {fileID: 1233200910585197617, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 935914853539e1c469a123fd5fb1bda2, type: 2}
+    - target: {fileID: 1233200910585197617, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 0e025c526e31a1d4b873b7370ffa60bf, type: 2}
+    - target: {fileID: 2134990714724397701, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 4facc934a290f01419c25dc45935a642, type: 2}
+    - target: {fileID: 6691055084465874992, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: isActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6691055084465874992, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: currentWaterAmount
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 18.587875
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.43
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 15.960436
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421248426052756391, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7905579533980236061, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      propertyPath: m_Name
+      value: flower Variant
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 6691055084465874992, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7905579533980236061, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8708850998127569976}
+  m_SourcePrefab: {fileID: 100100000, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+--- !u!23 &1274683878641084814 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1233200910585197617, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+  m_PrefabInstance: {fileID: 48874984865521087}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &2093225173186015034 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2134990714724397701, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+  m_PrefabInstance: {fileID: 48874984865521087}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7862125211400971426 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7905579533980236061, guid: 0ca10edeee3c4954e9a0f9f9804bd1a2, type: 3}
+  m_PrefabInstance: {fileID: 48874984865521087}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8708850998127569976
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7862125211400971426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba4db71052ad432eaac4c0b3bdce6f76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BounceTestWater
+  bounceHeight: 13
+  isActive: 1
+  bounceRenderer: {fileID: 1274683878641084814}
+  DeadMaterial:
+  - {fileID: 2100000, guid: d7f40a9696c67b141b884c9123d28041, type: 2}
+  - {fileID: 2100000, guid: 0304e61f2820747438b590c803ea7765, type: 2}
+  - {fileID: 2100000, guid: ffffba77fec00b146ba5a1856d9333cd, type: 2}
+  ActiveMaterial:
+  - {fileID: 2100000, guid: 652de1e3dd13aa74586d0cb80356cf71, type: 2}
+  - {fileID: 2100000, guid: 935914853539e1c469a123fd5fb1bda2, type: 2}
+  - {fileID: 2100000, guid: 0e025c526e31a1d4b873b7370ffa60bf, type: 2}
+  grassRenderer: {fileID: 2093225173186015034}
+  deadGrassMaterial: {fileID: 2100000, guid: 568a013687027a244be80711f7ddcc22, type: 2}
+  aliveGrassMaterial: {fileID: 2100000, guid: 4facc934a290f01419c25dc45935a642, type: 2}
+  waterThreshold: 20
+  currentWaterAmount: 20
+  waterTest: {fileID: 0}
+  shouldCheckForDryness: 0

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba0ba7a94022a1b4fa0faf06dec90c27, type: 3}
+  m_Name: Third Level
+  m_EditorClassIdentifier: Assembly-CSharp::LevelInfoSO
+  levelName: Hey Honey! Still Sticking Around?
+  orbCount: 1
+  berryCount: 300
+  isCompleted: 0
+  sceneAsset: {fileID: 102900000, guid: e7c28a3bf123e0d4f8e6d591cc84705d, type: 3}
+  SceneName: Third Level
+  OrbRequirement: 2

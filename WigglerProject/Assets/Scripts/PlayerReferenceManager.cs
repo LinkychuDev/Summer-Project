@@ -121,7 +121,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
 
     public Vector3 playerGravityDir = Vector3.up;
     
-   // public bool isOnCoyoteTime;
+    public bool isOnCoyoteTime;
     public bool useCoyoteTime;
 
 
@@ -149,14 +149,10 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         if (instance == null)
         {
             instance = this;
-            DontDestroyOnLoad(gameObject);
+        
             
         }
 
-        else
-        {
-            Destroy(gameObject);
-        }
         
         foreach (Segment segment in segments)
         {

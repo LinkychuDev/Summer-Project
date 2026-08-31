@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using MoreMountains.Tools;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -78,9 +79,7 @@ public class PlayerController : MonoBehaviour
 
     private void ReturnOnstarted(InputAction.CallbackContext obj)
     {
-        if(SceneManager.GetActiveScene().name == "HubWord")
-            return;
-        SceneManager.LoadScene("HubWorld");
+        MMAdditiveSceneLoadingManager.LoadScene("HubWorld");
     }
 
 

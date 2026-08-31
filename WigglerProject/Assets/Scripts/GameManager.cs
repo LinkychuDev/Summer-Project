@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
 using MoreMountains.Feedbacks;
+using MoreMountains.Tools;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -103,12 +105,15 @@ public class GameManager : MonoBehaviour
         
     }
 
+    private void OnEnable()
+    {
+    }
 
     public void LevelBoot()
     {
         ShowBounds();
         ShowFPS();
-        SpawnPlayer();
+        StartCoroutine(SpawnPlayer());
         AddPoints(0);
        
     }
@@ -201,56 +206,84 @@ public class GameManager : MonoBehaviour
         inGameTime += Time.deltaTime;
     }
 
-    void SpawnPlayer()
+    IEnumerator SpawnPlayer()
     {
-        Debug.Log("lastSpawnPositionCount" + lastSpawnPosition.Length);
-        Debug.Log("Player segment Count" + PlayerReferenceManager.instance.segments.Count );
-        
-        lastSpawnPosition = new Vector3[PlayerReferenceManager.instance.segments.Count];
 
-        var spawnPoint = FindFirstObjectByType<SpawnPoint>();
-        Debug.Log("LevelDefiner.instance");
-
-       
-        lastSpawnPosition[0] = spawnPoint.transform.position;
-        lastSpawnPosition[1] = spawnPoint.transform.position - PlayerReferenceManager.instance.headSegment.transform.forward * PlayerReferenceManager.instance.bodyOffset;
-        lastSpawnPosition[2] = spawnPoint.transform.position - PlayerReferenceManager.instance.headSegment.transform.forward * (PlayerReferenceManager.instance.tailOffset + PlayerReferenceManager.instance.bodyOffset);
-
-        if(LevelDefiner.instance.debuggingMode)
-            return;
-
-        PlayerReferenceManager.instance.transform.position = lastSpawnPosition[0];
-        
-        PlayerReferenceManager.instance.headSegment.linearVelocity = Vector3.zero;
-        PlayerReferenceManager.instance.headSegment.angularVelocity = Vector3.zero;
-        
-        PlayerReferenceManager.instance.bodySegment.linearVelocity = Vector3.zero;
-        PlayerReferenceManager.instance.bodySegment.angularVelocity = Vector3.zero;
-        
-        PlayerReferenceManager.instance.tailSegment.linearVelocity = Vector3.zero;
-        PlayerReferenceManager.instance.tailSegment.angularVelocity = Vector3.zero;
-
-
-
-        if (PlayerReferenceManager.instance.currentState == PlayerState.Stretching)
+        if (!LevelDefiner.instance.debuggingMode)
         {
-            if (PlayerReferenceManager.instance.playerStretch.stretchState == PlayerStretch.StretchState.Stretching ||
-                PlayerReferenceManager.instance.playerStretch.stretchState == PlayerStretch.StretchState.Stuck)
+            PlayerReferenceManager.instance.headSegment.isKinematic = true;
+            PlayerReferenceManager.instance.bodySegment.isKinematic = true;
+            PlayerReferenceManager.instance.tailSegment.isKinematic = true;
+
+            Debug.Log("lastSpawnPositionCount" + lastSpawnPosition.Length);
+            Debug.Log("Player segment Count" + PlayerReferenceManager.instance.segments.Count);
+
+            lastSpawnPosition = new Vector3[PlayerReferenceManager.instance.segments.Count];
+
+            var spawnPoint = LevelDefiner.instance.spawnPoint;
+            
+            Debug.Log("LevelDefiner.instance:  " + LevelDefiner.instance.spawnPoint.position);
+
+
+
+
+
+
+
+            lastSpawnPosition[0] = spawnPoint.transform.position;
+            lastSpawnPosition[1] = spawnPoint.transform.position -
+                                   Vector3.forward * PlayerReferenceManager.instance.bodyOffset;
+            lastSpawnPosition[2] = spawnPoint.transform.position - Vector3.forward *
+                (PlayerReferenceManager.instance.tailOffset + PlayerReferenceManager.instance.bodyOffset);
+
+            PlayerReferenceManager.instance.transform.position = lastSpawnPosition[0];
+
+            PlayerReferenceManager.instance.headSegment.linearVelocity = Vector3.zero;
+            PlayerReferenceManager.instance.headSegment.angularVelocity = Vector3.zero;
+
+
+            PlayerReferenceManager.instance.headSegment.transform.rotation = Quaternion.identity;
+            PlayerReferenceManager.instance.bodySegment.transform.rotation = Quaternion.identity;
+            PlayerReferenceManager.instance.tailSegment.transform.rotation = Quaternion.identity;
+
+            PlayerReferenceManager.instance.bodySegment.linearVelocity = Vector3.zero;
+            PlayerReferenceManager.instance.bodySegment.angularVelocity = Vector3.zero;
+
+            PlayerReferenceManager.instance.tailSegment.linearVelocity = Vector3.zero;
+            PlayerReferenceManager.instance.tailSegment.angularVelocity = Vector3.zero;
+
+
+
+            /*
+            if (PlayerReferenceManager.instance.currentState == PlayerState.Stretching)
             {
-                PlayerReferenceManager.instance.playerStretch.StartCoroutine(PlayerReferenceManager.instance
-                    .playerStretch.OnPlayerRetractedEvent());
+                if (PlayerReferenceManager.instance.playerStretch.stretchState == PlayerStretch.StretchState.Stretching ||
+                    PlayerReferenceManager.instance.playerStretch.stretchState == PlayerStretch.StretchState.Stuck)
+                {
+                    PlayerReferenceManager.instance.playerStretch.StartCoroutine(PlayerReferenceManager.instance
+                        .playerStretch.OnPlayerRetractedEvent());
+                }
             }
+            */
+
+
+            PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
+
+            yield return new WaitForFixedUpdate();
+            PlayerReferenceManager.instance.headSegment.transform.position = lastSpawnPosition[0];
+            PlayerReferenceManager.instance.bodySegment.transform.position = lastSpawnPosition[1];
+            PlayerReferenceManager.instance.tailSegment.transform.position = lastSpawnPosition[2];
+            yield return null;
         }
-        
-        
-        PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
-        
-        
-        PlayerReferenceManager.instance.headSegment.position = lastSpawnPosition[0];
-        PlayerReferenceManager.instance.bodySegment.position = lastSpawnPosition[1];
-        PlayerReferenceManager.instance.tailSegment.position = lastSpawnPosition[2];
-        
-        
+
+        PlayerReferenceManager.instance.headSegment.gameObject.SetActive(true);
+        PlayerReferenceManager.instance.bodySegment.gameObject.SetActive(true);
+        PlayerReferenceManager.instance.tailSegment.gameObject.SetActive(true);
+        yield return null;
+        PlayerReferenceManager.instance.headSegment.isKinematic = false;
+        PlayerReferenceManager.instance.bodySegment.isKinematic = false;
+        PlayerReferenceManager.instance.tailSegment.isKinematic = false;
+
 
     }
     
@@ -281,5 +314,12 @@ public class GameManager : MonoBehaviour
             return true;
 
         return false;
+    }
+
+    public void StartSpecialCutscene()
+    {
+        PlayerReferenceManager.instance.headSegment.gameObject.SetActive(false);
+        PlayerReferenceManager.instance.bodySegment.gameObject.SetActive(false);
+        PlayerReferenceManager.instance.tailSegment.gameObject.SetActive(false);
     }
 }
