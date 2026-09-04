@@ -19,7 +19,8 @@ public enum GameFlags
     HasUsedFirstPulling,
     HasUsedFirstSticking,
     CollectedFirstBerries,
-    CollectedSecondBerries
+    CollectedSecondBerries,
+    CollectedThirdBerries
     
 }
 public class GameEventSystem

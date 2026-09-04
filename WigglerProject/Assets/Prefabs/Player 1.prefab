@@ -606,10 +606,6 @@ Transform:
   - {fileID: 2104763656842464092}
   - {fileID: 8940471533418561908}
   - {fileID: 896056118544061535}
-  - {fileID: 5385927553563800124}
-  - {fileID: 8729801157863566203}
-  - {fileID: 3459178773807865148}
-  - {fileID: 5546360319928205092}
   - {fileID: 2368933703840676959}
   - {fileID: 8301183892073542207}
   - {fileID: 8390202028376383018}
@@ -676,6 +672,7 @@ MonoBehaviour:
   headRenderer: {fileID: 3642447100718868975}
   headMaterial: {fileID: 0}
   playerGravityDir: {x: 0, y: 1, z: 0}
+  isOnCoyoteTime: 0
   useCoyoteTime: 0
   groundedCircle:
   - {fileID: 283483036500534386}
@@ -739,12 +736,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1401967234667188126}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -2.33}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -1.3300018}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2716661296886046361}
+  m_Father: {fileID: 8940471533418561908}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &876973999232197328
 MonoBehaviour:
@@ -1251,6 +1248,7 @@ MonoBehaviour:
   maxDetectionDistance: 0.1
   stretchState: 0
   shouldStretchForward: 0
+  currentStretchDistance: 0
   springVisualConnection: {fileID: 398399024604190859}
   isMetal: 0
   isAtMaxSpring: 0
@@ -1374,6 +1372,8 @@ MonoBehaviour:
   sturdyCooldown: 5
   sturdyRatio: 0.5
   isOnSilk: 0
+  honeyCanvas: {fileID: 0}
+  honeyImage: {fileID: 0}
 --- !u!54 &8524137340886240146
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -6988,7 +6988,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5985590163553618644
 Transform:
   m_ObjectHideFlags: 0
@@ -6998,7 +6998,7 @@ Transform:
   m_GameObject: {fileID: 3517813568513363418}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.038, y: 0.069, z: 0.069}
+  m_LocalPosition: {x: -0.038, y: 0.032, z: 0.069}
   m_LocalScale: {x: 1.0758, y: 1.0758, z: 1.0758}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7878,6 +7878,10 @@ Transform:
   - {fileID: 7165133447836565900}
   - {fileID: 2040026330448842439}
   - {fileID: 977244734271819302}
+  - {fileID: 5385927553563800124}
+  - {fileID: 8729801157863566203}
+  - {fileID: 5546360319928205092}
+  - {fileID: 3459178773807865148}
   m_Father: {fileID: 2716661296886046361}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!135 &8582469790394774622
@@ -8675,12 +8679,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6294760291662940417}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -2.3}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -1.2999992}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2716661296886046361}
+  m_Father: {fileID: 8940471533418561908}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7488774905066696996
 MonoBehaviour:
@@ -9607,12 +9611,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7544524034779538558}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2716661296886046361}
+  m_Father: {fileID: 8940471533418561908}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8809635157664909858
 MonoBehaviour:
@@ -10182,11 +10186,11 @@ Transform:
   m_GameObject: {fileID: 8215104954571034168}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -3.6000023, y: -0.96, z: 18.550001}
+  m_LocalPosition: {x: -3.6000023, y: -0.96, z: 19.550003}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2716661296886046361}
+  m_Father: {fileID: 8940471533418561908}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &398399024604190859
 MonoBehaviour:

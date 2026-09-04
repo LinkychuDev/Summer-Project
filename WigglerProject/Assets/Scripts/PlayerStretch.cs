@@ -25,7 +25,7 @@ public class PlayerStretch: MovementBase
     public float stretchDistanceTail;
     public float stretchRetractTime = 4f;
 
-    
+  
 
     //public float stretchTime = 3f;
     //public bool isStretching;
@@ -65,12 +65,12 @@ public class PlayerStretch: MovementBase
     private float detectionRadius;
     public StretchState stretchState = StretchState.None;
 
-    [SerializeField] private bool shouldStretchForward;
+    public bool shouldStretchForward;
 
     private PlayerSwing swing;
 
 
-    private float currentStretchDistance;
+    public float currentStretchDistance;
     //private bool wasStartingStretchGrounded;
 
     //spring joint values
@@ -550,7 +550,11 @@ public class PlayerStretch: MovementBase
         if (!IsStretching())
             return;
         Debug.Log(stretchState);
-        
+
+        if (stretchState == StretchState.Stuck)
+        {
+            PlayerController.OnPreReleaseEvent?.Invoke();
+        }
 
         StartCoroutine(OnPlayerRetractedEvent());
     }
@@ -607,6 +611,11 @@ public class PlayerStretch: MovementBase
         return inputVector.normalized;
     }
 
+
+    void WaypointChanged(int  waypointIndex)
+    {
+        
+    }
     public IEnumerator OnPlayerRetractedEvent()
     {
         yield return new WaitForEndOfFrame();
@@ -642,24 +651,23 @@ public class PlayerStretch: MovementBase
             //Vector3 targetHeadPosition = bodySegment.transform.position + (bodySegment.transform.forward * bodyOffset);
 
 
+            headSegment.transform.parent = bodySegment.transform;
 
-
+            positions.Clear();
+            
             for (int i = amount - 1; i > -1; i--)
             {
-                listOfPositions.Add(stretchPositions[i]);
+                listOfPositions.Add((bodySegment.transform.InverseTransformPoint(stretchPositions[i])));
             }
 
-          //  listOfPositions.Add(bodySegment.transform.position + (bodySegment.transform.forward * bodyOffset));
+            //listOfPositions.Add(bodySegment.transform.position + (bodySegment.transform.forward * bodyOffset));
 
             positions = listOfPositions;
+            var pathArray = positions.ToArray();
 
 
-
-
-
-            stretchSequence.Append(headSegment.transform.DOPath(listOfPositions.ToArray(), stretchRetractTime,
+            stretchSequence.Append(headSegment.transform.DOLocalPath(pathArray, stretchRetractTime,
                 PathType.CatmullRom, PathMode.Full3D)).SetEase(Ease.OutQuad);
-
 
 
         }
@@ -667,9 +675,12 @@ public class PlayerStretch: MovementBase
         else
         {
 
+            tailSegment.transform.parent = headSegment.transform;
+            bodySegment.transform.parent = headSegment.transform;
+
             for (int i = 0; i < amount; i++)
             {
-                listOfPositions.Add(stretchPositions[i]);
+                listOfPositions.Add(headSegment.transform.InverseTransformPoint(stretchPositions[i]));
             }
 
 
@@ -681,14 +692,14 @@ public class PlayerStretch: MovementBase
             for (int i = 0; i < tailPositions.Count; i++)
             {
                 var pos = tailPositions[i];
-                tailPositions[i] = pos - (tailOffset * bodySegment.transform.forward);
+                tailPositions[i] = headSegment.transform.InverseTransformPoint(headSegment.transform.TransformPoint(pos - (tailOffset * bodySegment.transform.forward)));
             }
 
 
-            stretchSequence.Append(bodySegment.transform.DOPath(listOfPositions.ToArray(), stretchRetractTime,
+            stretchSequence.Append(bodySegment.transform.DOLocalPath(listOfPositions.ToArray(), stretchRetractTime,
                 PathType.CatmullRom, PathMode.Full3D)).SetEase(Ease.OutQuad); ;
 
-            stretchSequence.Join(tailSegment.transform.DOPath(tailPositions.ToArray(), stretchRetractTime,
+            stretchSequence.Join(tailSegment.transform.DOLocalPath(tailPositions.ToArray(), stretchRetractTime,
                 PathType.CatmullRom, PathMode.Full3D)).SetEase(Ease.OutQuad); ;
 
 
@@ -740,9 +751,12 @@ public class PlayerStretch: MovementBase
       
         //add effect
         
-        //yield return new WaitForFixedUpdate();
+        yield return new WaitForFixedUpdate();
 
-        
+
+        headSegment.transform.parent = PlayerReferenceManager.instance.transform;
+        bodySegment.transform.parent = PlayerReferenceManager.instance.transform;
+        tailSegment.transform.parent = PlayerReferenceManager.instance.transform;
         PlayerReferenceManager.instance.headRenderer.material = PlayerReferenceManager.instance.headMaterial;
         shouldStretchForward = false;
         //PlayerReferenceManager.instance.Honeyfied(false);
@@ -753,6 +767,10 @@ public class PlayerStretch: MovementBase
         }
         
         UpdateStretchState(StretchState.None);
+        
+        
+        
+        
         
         PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
 

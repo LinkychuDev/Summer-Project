@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using DG.Tweening;
 using MoreMountains.Tools;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -43,9 +44,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float sturdyCooldown;
     public float sturdyRatio = 0.5f;
     public static event Action<float, bool> isOnSturdyEvent;
+    
+    
 
     public static Action<EnvironmentObject> OnGrabEvent;
     public static Action OnReleaseEvent;
+    
+    public static Action OnPreReleaseEvent;
     
     public static event Action<bool> SilkEvent;
 
@@ -62,8 +67,9 @@ public class PlayerController : MonoBehaviour
     private Vector3 scaleEffect = new Vector3(1.5f,  1.5f, 1.5f);
     private Vector3 previousScale;
 
-    
-    
+
+    [SerializeField] private GameObject honeyCanvas;
+    [SerializeField] private Image honeyImage;
     
 
     [Header("Collision")] public static Action OnWaterEvent;
@@ -129,6 +135,7 @@ public class PlayerController : MonoBehaviour
         SturdyVisualiser.SetActive(val);
         if (val)
         {
+           
             StartCoroutine(SturdyCooldown());
         }
     }
@@ -140,6 +147,9 @@ public class PlayerController : MonoBehaviour
         isOnHoneyEvent?.Invoke(val);
         if (val)
         {
+            honeyCanvas.gameObject.SetActive(true);
+            honeyImage.fillAmount = 1;
+            DOVirtual.Float(1, 0, honeyCooldown, value =>  honeyImage.fillAmount = value );
             StartCoroutine(HoneyCooldown());
         }
         
@@ -158,7 +168,8 @@ public class PlayerController : MonoBehaviour
         
         HoneyVisualiser.SetActive(false);
         isOnHoneyEvent?.Invoke(false);
-        
+        honeyImage.fillAmount = 0;
+        honeyCanvas.gameObject.SetActive(false);
         //Honeyfied(false);
     }
 

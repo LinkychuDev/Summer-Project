@@ -38,6 +38,12 @@ public class PlayerGrab : MonoBehaviour
         PlayerReferenceManager.OnStateChange += OnStateChange;
         PlayerController.OnGrabEvent += OnGrabEvent;
         PlayerController.OnReleaseEvent += OnReleaseEvent;
+        PlayerController.OnPreReleaseEvent += OnPreReleaseEvent;
+    }
+
+    private void OnPreReleaseEvent()
+    {
+        targetObject.PreReleaseGrab();
     }
 
     private void OnReleaseEvent()
@@ -74,6 +80,7 @@ public class PlayerGrab : MonoBehaviour
         PlayerController.isOnHoneyEvent -= OnHoneyStateChanged;
         PlayerController.OnGrabEvent -= OnGrabEvent;
         PlayerController.OnReleaseEvent -= OnReleaseEvent;
+        PlayerController.OnPreReleaseEvent -= OnPreReleaseEvent;
     }
 
     private void OnStateChange(PlayerState state)

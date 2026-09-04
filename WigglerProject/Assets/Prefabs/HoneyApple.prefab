@@ -28,8 +28,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -16.82, y: 1.06, z: -3.83}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2165353926018736240}
   m_Father: {fileID: 0}
@@ -67,6 +67,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50d3aa58c791a6242a0fdf1cc1f2e69f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HoneyApplePowerup
+  shakeDuration: 0.1
+  endYValue: 0.5
+  upDuration: 1
 --- !u!1001 &1839254878357374875
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -52,7 +52,7 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
             originalParent = transform.parent;
         }
 
-
+        
         honeyObject.SetActive(OnHoney);
     }
 
@@ -173,5 +173,10 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         {
             Destroy(gameObject);
         }
+    }
+
+    public virtual void PreReleaseGrab()
+    {
+        
     }
 }
