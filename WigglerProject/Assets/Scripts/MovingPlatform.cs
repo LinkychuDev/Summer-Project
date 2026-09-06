@@ -32,6 +32,7 @@ public class MovingPlatform : MonoBehaviour
 
     public bool freezePlayer;
 
+    public List<Rigidbody> overlappingBodies = new List<Rigidbody>();
     private void OnValidate()
     {
         waypoints = new List<Vector3>();
@@ -112,36 +113,38 @@ public class MovingPlatform : MonoBehaviour
             rb.transform.position += movement;
         }
 
+        if(trigger.overlappingRigidbodies.Count == 0)
+            return;
         foreach (var overlappingRigidbody in trigger.overlappingRigidbodies)
         {
             
-            overlappingRigidbody.MovePosition(overlappingRigidbody.position + movement);
+            overlappingRigidbody?.MovePosition(overlappingRigidbody.position + movement);
         }
-        
+
+        overlappingBodies = trigger.overlappingRigidbodies.ToList();
+
     }
 
     void UpdateWaypoint()
     {
         
         
+        if (waypointIndex == 0 && inverseDirection || waypointIndex == waypoints.Count - 1 && !inverseDirection)
+        {
+            StartCoroutine(CooldownTime());
+                
+        }
+
+
         if (inverseDirection)
         {
-            if (waypointIndex == 0)
-            {
-                StartCoroutine(CooldownTime());
-                
-            }
+            
             
             waypointIndex = (waypointIndex - 1) % waypoints.Count;
         }
 
         else
         {
-            if (waypointIndex == waypoints.Count - 1)
-            {
-                StartCoroutine(CooldownTime());
-            }
-            
             
             waypointIndex = (waypointIndex + 1) % waypoints.Count;
         }
@@ -157,7 +160,7 @@ public class MovingPlatform : MonoBehaviour
     {
         isWaiting = true;
         yield return new WaitForSeconds(waitTime);
-        isWaiting = false;
         inverseDirection = !inverseDirection;
+        isWaiting = false;
     }
 }

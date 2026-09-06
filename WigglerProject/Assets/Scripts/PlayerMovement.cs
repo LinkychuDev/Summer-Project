@@ -23,7 +23,7 @@ public class PlayerMovement : MovementBase
 
     //private CharacterController _characterController;
 
-    
+    [SerializeField] private Animator bubblyAnimatorHead, bubblyAnimatorBody, bubblyAnimatorTail;
     [SerializeField] private float groundMultiplier = 1f;
     [SerializeField] private float airMultiplier = 0.2f;
     private float movementMultiplier;
@@ -84,8 +84,11 @@ public class PlayerMovement : MovementBase
     public float climbTriggerOffset = 0.5f;
 
 
+    bool isWalking;
     public float calculatedDrag;
-    public MMF_Player dustParticle;
+    public MMF_Player walkSound;
+    public MMF_Player honeySound;
+
     protected override void OnEnable()
     {
         
@@ -169,10 +172,15 @@ public class PlayerMovement : MovementBase
 
     void Update()
     {
-        if (PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
-            return;
-        HandleInput();
+        if (PlayerReferenceManager.instance.currentState == PlayerState.Locomotion)
+        {
+            HandleInput();
+        }
+
+        HandleAnimations();
     }
+    
+    
     private void FixedUpdate()
     {
         Debug.Log("Current State: " + PlayerReferenceManager.instance.currentState);
@@ -248,7 +256,53 @@ public class PlayerMovement : MovementBase
 
     // Update is called once per frame
 
-    
+    void HandleAnimations()
+    {
+        if (PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
+        {
+            isWalking = false;
+        }
+
+        else
+        {
+            if (isGrounded)
+            {
+                if (moveDir.magnitude > 0)
+                {
+                    isWalking = true;
+                }
+
+                else
+                {
+                    isWalking = false;
+                }
+            }
+
+            else
+            {
+                isWalking = false;
+            }
+        }
+
+
+
+        if (isWalking)
+        {
+            if (isClimbing)
+            {
+                honeySound.PlayFeedbacks();
+            }
+
+            else
+            {
+                walkSound.PlayFeedbacks();
+            }
+            
+        }
+        bubblyAnimatorHead.SetBool("isWalking", isWalking);
+        bubblyAnimatorBody.SetBool("isWalking", isWalking);
+        bubblyAnimatorHead.SetBool("isWalking", isWalking);
+    }
 
     protected override void Movement()
     {

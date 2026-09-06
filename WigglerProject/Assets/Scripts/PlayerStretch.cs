@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using MoreMountains.Feedbacks;
+using MoreMountains.Tools;
 using RotaryHeart.Lib.PhysicsExtension;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -103,6 +104,18 @@ public class PlayerStretch: MovementBase
     
     public MMF_Player bashPlayer;
 
+    private bool isSoundPaused;
+
+    private bool activatedMaxHead;
+    
+    float holdDuration;
+
+    public MMF_Player stretchWindUp, stretchWindDown;
+    private MMF_MMSoundManagerSoundControl windUpControl;
+    private MMF_MMSoundManagerSound windUpSound;
+
+    public MMF_Player bashEffect, stickEffect;
+  
     protected override void OnEnable()
     {
         base.OnEnable();
@@ -163,6 +176,11 @@ public class PlayerStretch: MovementBase
 
         UpdateStretchState(StretchState.None);
         detectionRadius = headSegment.GetComponent<SphereCollider>().radius + detectionOffset;
+
+        windUpSound = stretchWindUp.GetFeedbackOfType<MMF_MMSoundManagerSound>();
+        windUpControl = stretchWindUp.GetFeedbackOfType<MMF_MMSoundManagerSoundControl>();
+        stretchWindDown.GetFeedbackOfType<MMF_MMSoundManagerSound>().PlaybackDuration =
+            new Vector2(stretchRetractTime, stretchRetractTime);
         /*collisionRadius = collisionRadiusOffset + headSegment.GetComponent<SphereCollider>().radius;
         colliders = new Collider[maxColliders];
         collisionMask = PlayerReferenceManager.instance.playerCollisionMask;*/
@@ -179,6 +197,45 @@ public class PlayerStretch: MovementBase
             return;
         input = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
         moveDir = GetInputVector();
+        if(stretchState == StretchState.Retracting)
+            return;
+        ImplementSounds();
+    }
+
+    void ImplementSounds()
+    {
+        if (moveDir.magnitude > 0)
+        {
+            if (windUpSound.IsPlaying)
+            {
+                if (isSoundPaused)
+                {
+                    if (activatedMaxHead)
+                    {
+                        windUpControl.ControlMode = MMSoundManagerSoundControlEventTypes.Pause;
+                    }
+
+                    else
+                    {
+                        windUpControl.ControlMode = MMSoundManagerSoundControlEventTypes.Resume;
+                        isSoundPaused = false;
+                    }
+                }
+            }
+
+
+        }
+
+        else
+        {
+            if (windUpSound.IsPlaying)
+            {
+                if(isSoundPaused)
+                    return;
+                windUpControl.ControlMode = MMSoundManagerSoundControlEventTypes.Resume;
+                isSoundPaused = true;
+            }
+        }
     }
 
     void FixedUpdate()
@@ -250,6 +307,7 @@ public class PlayerStretch: MovementBase
                 if (other.TryGetComponent(out IStretchBashable bashable))
                 {
                     bashPlayer.PlayFeedbacks();
+                    bashEffect.PlayFeedbacks();
                     bashable.StretchBash();
                 }
             }
@@ -265,11 +323,10 @@ public class PlayerStretch: MovementBase
 
         shouldStretchForward = false;
         
-        if (Physics.OverlapSphereNonAlloc(headSegment.transform.position, detectionRadius,  colliders, PlayerReferenceManager.instance.playerCollisionMask) > 0)
+        if (Physics.Raycast(headSegment.position, headSegment.transform.forward,  out RaycastHit hit, detectionRadius, PlayerReferenceManager.instance.playerCollisionMask, QueryTriggerInteraction.Ignore))
         {
-            var other = colliders[0].transform;
-            
-            Debug.Log(other.gameObject.name);
+            var other = hit.transform;
+            Debug.Log("Collided Object: " + other.gameObject.name);
 
             
             
@@ -294,6 +351,7 @@ public class PlayerStretch: MovementBase
                 {
                     Debug.Log(other.name);
                     UpdateStretchState(StretchState.Stuck);
+                    stickEffect.PlayFeedbacks();
                     shouldStretchForward = true;
                    // PlayerReferenceManager.instance.SetState(PlayerState.Stuck);
                 }
@@ -380,6 +438,8 @@ public class PlayerStretch: MovementBase
         
         PlayerReferenceManager.instance.SetState(PlayerState.Stretching);
         UpdateStretchState(StretchState.Stretching);
+        windUpControl.ControlMode = MMSoundManagerSoundControlEventTypes.Free;
+        stretchWindUp.PlayFeedbacks();
         //cachedStretchPositions.Add(headSegment.transform);
 
     }
@@ -424,6 +484,7 @@ public class PlayerStretch: MovementBase
                 if (!isAtMaxSpring)
                 {
                     isAtMaxSpring = true;
+                    activatedMaxHead = true;
                     PlayerReferenceManager.instance.headRenderer.material = stretchMaxMaterial;
                 }
               
@@ -439,19 +500,15 @@ public class PlayerStretch: MovementBase
             isAtMaxSpring = false;
         }
 
-
-
-        /*if ((PlayerMovement.isGrounded && stretchVerticalVelocity < 0))
-        {
-            stretchVerticalVelocity = -2f;
-        }*/
+        
+        
         
         Vector3 velocityChange = targetVelocity - currentVelocity;
         
         
         velocityChange = Vector3.ClampMagnitude(velocityChange, maxSpeed);
-        
-        
+
+
         
         moveVelocity = velocityChange;
         headSegment.AddForce(moveVelocity, ForceMode.VelocityChange);
@@ -527,6 +584,7 @@ public class PlayerStretch: MovementBase
         {
             if (other.gameObject.TryGetComponent(out IBreakable breakable))
             {
+                bashEffect.PlayFeedbacks();
                 breakable.Break();
             }
 
@@ -539,6 +597,7 @@ public class PlayerStretch: MovementBase
             {
                 Debug.Log(environmentObject.name);
                 UpdateStretchState(StretchState.Stuck);
+                stickEffect.PlayFeedbacks(environmentObject.transform.position);
                 PlayerController.OnGrabEvent?.Invoke(environmentObject);
             }
         }
@@ -618,9 +677,11 @@ public class PlayerStretch: MovementBase
     }
     public IEnumerator OnPlayerRetractedEvent()
     {
+        
         yield return new WaitForEndOfFrame();
-        
-        
+        isSoundPaused = false;
+        activatedMaxHead = false;
+        windUpControl.ControlMode = MMSoundManagerSoundControlEventTypes.Free;
         Debug.Log(stretchState);
         //yield return new WaitUntil(() => PlayerPlayerReferenceManager.instance.state == PlayerState.Stretching);
         UpdateStretchState(StretchState.Retracting);
@@ -643,8 +704,10 @@ public class PlayerStretch: MovementBase
         var stretchPositions = springVisualConnection.GetPositions();
 
         int amount = stretchPositions.Length;
+        
+        stretchWindDown.PlayFeedbacks();
 
-        ;
+        
         if (!ForwardCheck())
         {
             //Vector3 targetHeadDir = (bodySegment.transform.position + bodySegment.transform.forward) -headSegment.transform.position;
@@ -758,7 +821,7 @@ public class PlayerStretch: MovementBase
         bodySegment.transform.parent = PlayerReferenceManager.instance.transform;
         tailSegment.transform.parent = PlayerReferenceManager.instance.transform;
         PlayerReferenceManager.instance.headRenderer.material = PlayerReferenceManager.instance.headMaterial;
-        shouldStretchForward = false;
+      
         //PlayerReferenceManager.instance.Honeyfied(false);
 
         if (stretchState == StretchState.Stuck)
@@ -773,7 +836,7 @@ public class PlayerStretch: MovementBase
         
         
         PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
-
+        shouldStretchForward = false;
 
 
 

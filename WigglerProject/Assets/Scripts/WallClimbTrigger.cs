@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 
 
@@ -81,51 +82,14 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 			{
 				if (!playerRb.TryGetComponent(out PlayerMovement controller))
 					return;
-				if(PlayerReferenceManager.instance.currentState == PlayerState.Stretching)
-				{
-					Debug.Log("Is Stretching and in contact");
-					return;
-				}
-				
-				
-				
 				if(controller.isClimbing)
 					return;
-
-				GameManager.CameraClimbSwitch?.Invoke(gravityDirection);
-				playerRb.linearVelocity = Vector3.zero;
-
-				Vector3 targetPos = controller.climbCheckOffset.position;
-
-				RaycastHit hit;
-
-				if (Physics.Raycast(playerRb.position, gravityDirection, out hit, controller.climbDetectionDistance,
-					    controller.silkMask))
-				{
-					Debug.Log("Target Succeeded forward");
-					Vector3 targetForward = hit.point - (gravityDirection *  controller.climbOffset);
-					controller.ChangeGravity(gravityDirection, true, true, true, targetForward, wall.transform);
-
-				}
+				StartCoroutine(SetUpClimbing(playerRb, controller));
 				
 				
-				
-				else if(Physics.Raycast(targetPos,  gravityDirection,  out  hit, controller.climbDetectionDistance, controller.silkMask ))
-				{
-					controller.ChangeGravity(gravityDirection, true, true, true, hit.point, wall.transform);
-					Debug.Log("Target Succeeded");
-					hasSwitched = true;
-				}
-
-				else
-				{
-					Debug.Log("Failed to find target");
-				}
-				//controller.ChangeGravity(transform.forward);
-
+			
 
 				
-				GameManager.CameraClimbSwitch?.Invoke(gravityDirection);
 				
 				//playerRb.AddForce(transform.forward * controller.climbTriggerOffset, ForceMode.VelocityChange);
 				
@@ -137,6 +101,49 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 		}
 	}
 
+
+	IEnumerator SetUpClimbing(Rigidbody playerRb, PlayerMovement controller)
+	{
+		
+		yield return new WaitUntil(() =>
+			PlayerReferenceManager.instance.playerStretch.stretchState == PlayerStretch.StretchState.None);
+		GameManager.CameraClimbSwitch?.Invoke(gravityDirection);
+		playerRb.linearVelocity = Vector3.zero;
+
+		Vector3 targetPos = controller.climbCheckOffset.position;
+
+		RaycastHit hit;
+
+		if (Physics.Raycast(playerRb.position, gravityDirection, out hit, controller.climbDetectionDistance,
+			    controller.silkMask))
+		{
+			Debug.Log("Target Succeeded forward");
+			Vector3 targetForward = hit.point - (gravityDirection *  controller.climbOffset);
+			yield return new WaitForFixedUpdate();
+			controller.ChangeGravity(gravityDirection, true, true, true, targetForward, wall.transform);
+
+		}
+				
+				
+				
+		else if(Physics.Raycast(targetPos,  gravityDirection,  out  hit, controller.climbDetectionDistance, controller.silkMask ))
+		{
+			yield return new WaitForFixedUpdate();
+			controller.ChangeGravity(gravityDirection, true, true, true, hit.point, wall.transform);
+			Debug.Log("Target Succeeded");
+			hasSwitched = true;
+		}
+
+		else
+		{
+			Debug.Log("Failed to find target");
+		}
+		//controller.ChangeGravity(transform.forward);
+
+
+				
+		GameManager.CameraClimbSwitch?.Invoke(gravityDirection);
+	}
 	
 
 

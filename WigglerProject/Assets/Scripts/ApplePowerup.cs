@@ -1,8 +1,10 @@
 using System;
+using MoreMountains.Feedbacks;
 using UnityEngine;
 
 public class ApplePowerup : MonoBehaviour
 {
+    public MMF_Player biteFeedback;
     private void OnTriggerEnter(Collider other)
     {
         if(!other.CompareTag( "Player"))
@@ -13,7 +15,8 @@ public class ApplePowerup : MonoBehaviour
                 return;
             if(PlayerReferenceManager.instance.canStretch)
                 return;
-         
+            biteFeedback.PlayFeedbacks(other.transform.position);
+            
         }
     }
 }

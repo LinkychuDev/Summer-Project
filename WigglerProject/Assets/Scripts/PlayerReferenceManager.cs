@@ -369,6 +369,20 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
         pos[2] = tailSegment.position;
         return pos;
     }
+
+
+    public void SpawnPlayerAtPosition(Vector3 position)
+    {
+        headSegment.position = position;
+        bodySegment.position = position - (headSegment.transform.forward * bodyOffset);
+        tailSegment.position = position - (headSegment.transform.forward * (bodyOffset + tailOffset));
+    }
+    public void SpawnPlayerAtPosition(Vector3 position, Vector3 forwardVector)
+    {
+        headSegment.position = position;
+        bodySegment.position = position - (forwardVector * bodyOffset);
+        tailSegment.position = position - (forwardVector* (bodyOffset + tailOffset));
+    }
    
 
    

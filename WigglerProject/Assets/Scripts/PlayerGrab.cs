@@ -43,7 +43,8 @@ public class PlayerGrab : MonoBehaviour
 
     private void OnPreReleaseEvent()
     {
-        targetObject.PreReleaseGrab();
+        
+        targetObject?.PreReleaseGrab();
     }
 
     private void OnReleaseEvent()

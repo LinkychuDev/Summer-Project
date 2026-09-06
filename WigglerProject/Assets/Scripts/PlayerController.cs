@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using DG.Tweening;
+using MoreMountains.Feedbacks;
 using MoreMountains.Tools;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -61,7 +62,7 @@ public class PlayerController : MonoBehaviour
     public static Action<bool> ClimbEvent;
 
    
-    private PlayerState currentState;
+    public PlayerState currentState;
 
     private Transform headVisual;
     private Vector3 scaleEffect = new Vector3(1.5f,  1.5f, 1.5f);
@@ -72,9 +73,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Image honeyImage;
     
 
+    public MMF_Player honeyTimerPlayer;
     [Header("Collision")] public static Action OnWaterEvent;
     
-    
+    private Coroutine honeyCoroutine;
     private void OnEnable()
     {
         PlayerReferenceManager.OnStateChange += OnStateChange;
@@ -142,7 +144,10 @@ public class PlayerController : MonoBehaviour
 
     public void Honeyfied(bool val)
     {
-        StopCoroutine(HoneyCooldown());
+        if (honeyCoroutine != null)
+        {
+            StopCoroutine(honeyCoroutine);
+        }
         HoneyVisualiser.SetActive(val);
         isOnHoneyEvent?.Invoke(val);
         if (val)
@@ -150,7 +155,10 @@ public class PlayerController : MonoBehaviour
             honeyCanvas.gameObject.SetActive(true);
             honeyImage.fillAmount = 1;
             DOVirtual.Float(1, 0, honeyCooldown, value =>  honeyImage.fillAmount = value );
-            StartCoroutine(HoneyCooldown());
+            honeyTimerPlayer.GetFeedbackOfType<MMF_MMSoundManagerSound>().PlaybackDuration =
+                new Vector2(honeyCooldown, honeyCooldown);
+            honeyTimerPlayer.PlayFeedbacks();
+            honeyCoroutine = StartCoroutine(HoneyCooldown());
         }
         
     }
