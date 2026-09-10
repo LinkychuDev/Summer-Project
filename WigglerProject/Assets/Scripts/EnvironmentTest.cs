@@ -16,6 +16,6 @@ public class EnvironmentTest : MonoBehaviour
 
     public void Hit()
     {
-        Debug.Log("Stretch Hit");
+       
     }
 }

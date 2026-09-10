@@ -73,21 +73,27 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Image honeyImage;
     
 
-    public MMF_Player honeyTimerPlayer;
+  
     [Header("Collision")] public static Action OnWaterEvent;
-    
+
+
+    public MMF_Player honeyTimerPlayer;
+    public static Action<bool> OnMenuOpenedEvent;
     private Coroutine honeyCoroutine;
+    
+    
+    
     private void OnEnable()
     {
         PlayerReferenceManager.OnStateChange += OnStateChange;
         PlayerStretch.onStretchStateChanged += OnStretchStateChanged;
-        InputManager.instance.controls.Gameplay.Return.started += ReturnOnstarted;
+        InputManager.instance.controls.Gameplay.Return.started += ReturnOnStarted;
        
     }
 
-    private void ReturnOnstarted(InputAction.CallbackContext obj)
+    private void ReturnOnStarted(InputAction.CallbackContext obj)
     {
-        MMAdditiveSceneLoadingManager.LoadScene("HubWorld");
+        OnMenuOpenedEvent?.Invoke(true);
     }
 
 
@@ -108,7 +114,7 @@ public class PlayerController : MonoBehaviour
     {
         PlayerReferenceManager.OnStateChange -= OnStateChange;
         PlayerStretch.onStretchStateChanged -= OnStretchStateChanged;
-        InputManager.instance.controls.Gameplay.Return.started -= ReturnOnstarted;
+        InputManager.instance.controls.Gameplay.Return.started -= ReturnOnStarted;
       
     }
 
@@ -124,10 +130,7 @@ public class PlayerController : MonoBehaviour
     {
         currentState = obj;
 
-        if (currentState == PlayerState.Locomotion)
-        {
-            Honeyfied(false);
-        }
+       
     }
 
     public void Sturdy(bool val)
@@ -147,18 +150,20 @@ public class PlayerController : MonoBehaviour
         if (honeyCoroutine != null)
         {
             StopCoroutine(honeyCoroutine);
+            
         }
+        
+        honeyCanvas.gameObject.SetActive(val);
         HoneyVisualiser.SetActive(val);
         isOnHoneyEvent?.Invoke(val);
         if (val)
         {
-            honeyCanvas.gameObject.SetActive(true);
-            honeyImage.fillAmount = 1;
-            DOVirtual.Float(1, 0, honeyCooldown, value =>  honeyImage.fillAmount = value );
-            honeyTimerPlayer.GetFeedbackOfType<MMF_MMSoundManagerSound>().PlaybackDuration =
-                new Vector2(honeyCooldown, honeyCooldown);
-            honeyTimerPlayer.PlayFeedbacks();
             honeyCoroutine = StartCoroutine(HoneyCooldown());
+        }
+
+        else
+        {
+            ResetHoneyState();
         }
         
     }
@@ -166,22 +171,39 @@ public class PlayerController : MonoBehaviour
     IEnumerator HoneyCooldown()
     {
         
-        yield return new WaitForSeconds(honeyCooldown);
+        
+        
+        
+        honeyImage.fillAmount = 1;
+        
+       
+      
         if (currentState == PlayerState.Stretching)
         {
             yield return new WaitUntil(() =>
                 PlayerReferenceManager.instance.currentState != PlayerState.Stretching);
-            Debug.Log("Waited for retraction");
         }
+        honeyTimerPlayer.GetFeedbackOfType<MMF_MMSoundManagerSound>().PlaybackDuration =
+            new Vector2(honeyCooldown, honeyCooldown);
+        honeyTimerPlayer.GetFeedbackOfType<MMF_MMSoundManagerSound>().SetFeedbackDuration(honeyCooldown);
+        honeyTimerPlayer.PlayFeedbacks();
+        DOVirtual.Float(1, 0.02f, honeyTimerPlayer.TotalDuration, value =>  honeyImage.fillAmount = value );
+        yield return new WaitUntil(() => !honeyTimerPlayer.HasFeedbackStillPlaying());
+        ResetHoneyState();
         
-        HoneyVisualiser.SetActive(false);
-        isOnHoneyEvent?.Invoke(false);
-        honeyImage.fillAmount = 0;
-        honeyCanvas.gameObject.SetActive(false);
         //Honeyfied(false);
     }
 
 
+    void ResetHoneyState()
+    {
+        HoneyVisualiser.SetActive(false);
+        isOnHoneyEvent?.Invoke(false);
+        honeyImage.fillAmount = 0;
+        honeyCanvas.gameObject.SetActive(false);
+        honeyTimerPlayer.GetFeedbackOfType<MMF_MMSoundManagerSound>().PlaybackDuration =
+            new Vector2(honeyCooldown, honeyCooldown);
+    }
     IEnumerator SturdyCooldown()
     {
         yield return new WaitForSeconds(sturdyCooldown);

@@ -88,7 +88,8 @@ public class PlayerMovement : MovementBase
     public float calculatedDrag;
     public MMF_Player walkSound;
     public MMF_Player honeySound;
-
+    public MMF_Player bouncePlayer;
+    
     protected override void OnEnable()
     {
         
@@ -97,7 +98,7 @@ public class PlayerMovement : MovementBase
         PlayerController.OnWaterEvent += OnWaterEvent;
     }
 
-    private void OnWaterEvent()
+    public void OnWaterEvent()
     {
         
         if (isClimbing)
@@ -183,7 +184,7 @@ public class PlayerMovement : MovementBase
     
     private void FixedUpdate()
     {
-        Debug.Log("Current State: " + PlayerReferenceManager.instance.currentState);
+       
         if (PlayerReferenceManager.instance.currentState != PlayerState.Locomotion)
             return;
         GroundCheck();
@@ -214,10 +215,9 @@ public class PlayerMovement : MovementBase
 
         input = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
 
-        Debug.Log("Input: " + input);
         moveDir = GetInputVector();
 
-        Debug.Log("MoveDir: " + moveDir);
+    
         //
         //moveDir.y = 0;
 
@@ -326,10 +326,7 @@ public class PlayerMovement : MovementBase
 
 
         var hz = currentVelocity - gravityVel;
-        Debug.Log("RB Velocity: " + currentVelocity);
-        Debug.Log("Gravity Velocity: " + gravityVel);
-        Debug.Log(" HZ Velocity: " + hz);
-
+      
         var _speed = isClimbing ? climbSpeed : speed;
         var targetVelocity = (moveDir) * (movementMultiplier * _speed);
 
@@ -343,11 +340,11 @@ public class PlayerMovement : MovementBase
         Vector3 velocityChange = targetVelocity - hz;
         
         
-        Debug.Log("VelocityChange: " + velocityChange);
+      
 
         velocityChange = Vector3.ClampMagnitude(velocityChange, maxSpeed);
 
-        Debug.Log("VelocityChangeClamped: " + velocityChange);
+  
 
         
 
@@ -386,7 +383,8 @@ public class PlayerMovement : MovementBase
         //ChangeGravity(Vector3.down, false);
         
         
-        Debug.Log("bouncing!");
+     
+        bouncePlayer.PlayFeedbacks();
         rb.AddForce( PlayerReferenceManager.instance.playerGravityDir * bounceHeight, ForceMode.Impulse);
         isBounced = true;
         
@@ -514,7 +512,6 @@ public class PlayerMovement : MovementBase
 
         if (setPos)
         {
-            Debug.Log("Moving Object");
             rb.DOMove(pos, climbTime).SetEase(Ease.InQuad);
         }
 
@@ -525,7 +522,7 @@ public class PlayerMovement : MovementBase
 
 
        
-        Debug.Log("Gravity Dir: " + rotateDir);
+       
 
         // Debug.Log(climbHit.normal);
         // gravityDirection = newDir;

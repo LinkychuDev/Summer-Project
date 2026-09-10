@@ -64,7 +64,7 @@ public class SO_GrassToolSettings : ScriptableObject
 
     public void CreateNewLayers()
     {
-        Debug.Log("Setting up initial tool settings");
+       
         layerBlocking = new float[8];
         for (int i = 0; i < layerBlocking.Length; i++)
         {

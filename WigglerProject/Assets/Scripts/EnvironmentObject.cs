@@ -40,6 +40,18 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
 
     public float groundOffset;
     public float groundRadius;
+    
+    public LayerMask collisionMask;
+    public float collisionRadius;
+    protected Collider[] _colliders;
+    public int maxCollisions = 1;
+
+    private FixedJoint _fixedJoint;
+    
+    public interface IGrabEvent
+    {
+        void GrabEvent(EnvironmentObject sender);
+    }
     protected virtual void Awake()
     {
         originalLayer = gameObject.layer;
@@ -52,25 +64,33 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
             originalParent = transform.parent;
         }
 
-        
-        honeyObject.SetActive(OnHoney);
+        _colliders = new Collider[maxCollisions];
+        if(honeyObject == null)
+            return;
+        honeyObject?.SetActive(OnHoney);
     }
 
    
 
 
-    private void FixedUpdate()
+    public virtual void FixedUpdate()
     {
-         /*isGrounded = Physics.CheckSphere((transform.position - (PlayerReferenceManager.instance.playerGravityDir * groundOffset)),
-            groundRadius, PlayerReferenceManager.instance.groundMask);
-
-        if (!isGrounded && useGravity)
+        if(!isGrabbed)
+            return;
+        var numCols = Physics.OverlapSphereNonAlloc(rb.position, collisionRadius, _colliders, collisionMask, QueryTriggerInteraction.Collide);
+        if ( numCols > 0)
         {
-            Vector3 gravityVector = Vector3.down * (gravity * Time.fixedDeltaTime);
-            rb.MovePosition(rb.position + (gravityVector* Time.fixedDeltaTime));
-        }*/
-        
-        
+            for (int i = 0; i < numCols; i++)
+            {
+              
+                if (_colliders[i].TryGetComponent(out IGrabEvent grabEvent))
+                {
+                        grabEvent.GrabEvent(this);
+                }
+                
+               
+            }
+        }
     }
 
     void CreateHoneyDecal()
@@ -85,7 +105,9 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
             honeyDecal.SetActive(true);
         }*/
         
-        honeyObject.SetActive(OnHoney);
+        if(honeyObject == null)
+            return;
+        honeyObject?.SetActive(OnHoney);
        
     }
     public void SetupHoney()
@@ -105,7 +127,7 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
             honeyDecal.SetActive(false);
         }
     }
-    public virtual void SetupGrab(Transform grabPoint)
+    public virtual void SetupGrab(Rigidbody grabPoint)
     {
         if(!canGrab)
             return;
@@ -115,10 +137,15 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         }
 
         rb.interpolation = RigidbodyInterpolation.None;
-        rb.isKinematic = true;
-        grabPointReference = grabPoint;
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+        rb.isKinematic = false;
+        /*grabPointReference = grabPoint;
         transform.parent = grabPointReference;
-        gameObject.layer = grabPoint.gameObject.layer;
+        gameObject.layer = grabPoint.gameObject.layer;*/
+
+        _fixedJoint = gameObject.AddComponent<FixedJoint>();
+        _fixedJoint.connectedBody = grabPoint;
+        _fixedJoint.connectedMassScale = 0.01f;
         isGrabbed = true;
         
     }
@@ -127,11 +154,14 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
 
         rb.interpolation = RigidbodyInterpolation.None;
         isGrabbed = false;
-        gameObject.layer = originalLayer;
+        /*gameObject.layer = originalLayer;
         transform.parent = originalParent;
-        grabPointReference = null;
+        grabPointReference = null;*/
+        
+        Destroy(_fixedJoint);
         rb.isKinematic = true;
         isGrabbed = false;
+        
 
     }
 

@@ -57,28 +57,15 @@ MonoBehaviour:
   zBounds: {x: -200, y: 100000}
   berryText: {fileID: 1342870330624832914}
   textPlayer: {fileID: 1211258314509090135}
-  berryPlayer: {fileID: 0}
-  giantBerriesList:
-  - sprite: {fileID: 0}
-    berryScript: {fileID: 0}
-    isCollected: 0
-  - sprite: {fileID: 0}
-    berryScript: {fileID: 0}
-    isCollected: 0
-  - sprite: {fileID: 0}
-    berryScript: {fileID: 0}
-    isCollected: 0
-  - sprite: {fileID: 0}
-    berryScript: {fileID: 0}
-    isCollected: 0
-  - sprite: {fileID: 0}
-    berryScript: {fileID: 0}
-    isCollected: 0
   totalAmountOfBerries: 0
-  berriesCollected: 0
   Achievements: 
   berryColor: {r: 0, g: 0, b: 0, a: 0.7764706}
   inGameTime: 0
+  GiantBerriesDict:
+    _serializedList: []
+  CollectedOrbs:
+    _serializedList: []
+  orbCount: 0
 --- !u!1 &1835863912179591773
 GameObject:
   m_ObjectHideFlags: 0
@@ -183,6 +170,67 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!1 &1908059286054803232
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4909758133841740968}
+  - component: {fileID: 3476864955415845118}
+  - component: {fileID: 2655342473047352926}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4909758133841740968
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1908059286054803232}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5607462032723210889}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3476864955415845118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1908059286054803232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 614edb33c38bcf949846d5675f29f9fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MoreMountains.Tools::MoreMountains.Tools.MMSoundManager
+  AutomaticallyUnparentOnAwake: 1
+  settingsSo: {fileID: 11400000, guid: 07ea3ff88e1ecb84d91f58aa804badc6, type: 2}
+  AudioSourcePoolSize: 10
+  PoolCanExpand: 1
+--- !u!114 &2655342473047352926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1908059286054803232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faf44bb3237842a4895e8f352a3a2d60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioManager
 --- !u!1 &2606215246613514711
 GameObject:
   m_ObjectHideFlags: 0
@@ -620,6 +668,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de5792a2d1b748242867a13999e833d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InputManager
+  isStretchHeldDown: 0
 --- !u!1 &3444549371050442158
 GameObject:
   m_ObjectHideFlags: 0
@@ -629,6 +678,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5607462032723210889}
+  - component: {fileID: 6707370414708568359}
   m_Layer: 0
   m_Name: Managers
   m_TagString: Untagged
@@ -655,8 +705,21 @@ Transform:
   - {fileID: 65565236129297106}
   - {fileID: 1304579178284590290}
   - {fileID: 4627836765664345413}
+  - {fileID: 4909758133841740968}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6707370414708568359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3444549371050442158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c97aa9c7c1f96b3458d5194d27ddb315, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DontDestroyOnLoad
 --- !u!1 &4837300421719846746
 GameObject:
   m_ObjectHideFlags: 0

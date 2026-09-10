@@ -32,7 +32,7 @@ public class DoorEnvironmentScript : EnvironmentObject
         doorRight.enabled = false;
     }
 
-    public override void SetupGrab(Transform grabPoint)
+    public override void SetupGrab(Rigidbody grabPoint)
     {
         if(!canGrab)
             return;

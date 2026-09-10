@@ -1,3 +1,4 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,6 +19,9 @@ public class DoorCanvasScript : MonoBehaviour
     private Color orbImageColor => orbImage.color;
     public Color unlockedColor = new Color(1, 1, 1);
     public Color notUnlockedColor;
+    
+    public float dotweenShakeScale = 0.5f;
+    public float dotweenTime = 0.2f;
     void Start()
     {
         Clear();
@@ -50,7 +54,6 @@ public class DoorCanvasScript : MonoBehaviour
 
         if (GameManager.instance.GiantBerriesDict.TryGetValue(levelInfo.SceneName, out var list))
         {
-            Debug.Log("list count: " + list.Count);
             for (int i = 0; i < berryImages.Length; i++)
             {
                 berryImages[i].color = list[i].isCollected ? berryCollectedColor : berryNotCollectedColor;
@@ -72,6 +75,8 @@ public class DoorCanvasScript : MonoBehaviour
 
         disabledImage.gameObject.SetActive(!isUnlockable);
         displayBackground.SetActive(true);
+        
+        displayBackground.transform.DOPunchScale(Vector3.one * dotweenShakeScale, dotweenTime);
     }   
 
     public void Clear()

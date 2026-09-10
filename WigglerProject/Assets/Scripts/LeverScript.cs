@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using MoreMountains.Feedbacks;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -28,7 +29,10 @@ public class LeverScript : EnvironmentObject
     [SerializeField] private Material activeMaterial;
     [SerializeField] Renderer rend;
     [SerializeField] Renderer leverOriginRenderer;
-    
+
+
+
+    public MMF_Player tickingTimer;
     //only in editor
     [SerializeField] private bool deactivate;
     
@@ -42,7 +46,7 @@ public class LeverScript : EnvironmentObject
 
     }
 
-    public override void SetupGrab(Transform grabPoint)
+    public override void SetupGrab(Rigidbody grabPoint)
     {
         base.SetupGrab(grabPoint);
         if (isRepeating)
@@ -125,8 +129,7 @@ public class LeverScript : EnvironmentObject
     {
         var distance = Vector3.Distance(rb.position, leverOrigin.transform.position);
          
-        Debug.Log($"Lever Distance: " + distance);
-       
+          
         if (distance > maxPullDistance)
         {
             if (!activated)
@@ -135,6 +138,13 @@ public class LeverScript : EnvironmentObject
                 activated = true;
                 resetTime = CalculatePullResetTime();
 
+                if (isRepeating)
+                {
+                    tickingTimer.GetFeedbackOfType<MMF_MMSoundManagerSound>().PlaybackDuration =
+                        new Vector2(resetTime, resetTime);
+                    //tickingTimer.GetFeedbackOfType<MMF_MMSoundManagerSound>().SetFeedbackDuration(resetTime);
+                    tickingTimer.PlayFeedbacks(transform.position);
+                }
 
             }
             
@@ -151,9 +161,9 @@ public class LeverScript : EnvironmentObject
             {
                 rb.useGravity = true;
                 activated = false;
-                Debug.Log("Activation");
-                OnLeverRetracted?.Invoke();
+              OnLeverRetracted?.Invoke();
                 resetTime = pullResetTime;
+                tickingTimer.StopFeedbacks();
             });
 
           

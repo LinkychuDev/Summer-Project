@@ -121,7 +121,7 @@ public class MovementBase : MonoBehaviour
        
         if (Physics.CheckSphere(groundCheck.position, groundRadius, PlayerReferenceManager.instance.groundMask, QueryTriggerInteraction.Ignore))
         {
-            Debug.Log("Ground");
+        
             
             if (Physics.Raycast(groundCheck.position, -transform.up, out slopeHit,  groundDistance, PlayerReferenceManager.instance.groundMask, QueryTriggerInteraction.Ignore))
             {
@@ -171,7 +171,7 @@ public class MovementBase : MonoBehaviour
            
         }
 
-        Debug.Log("Ground Check Fail");
+     
         isOnSlope = false;
         return false;
     }
@@ -198,15 +198,15 @@ public class MovementBase : MonoBehaviour
            
             //Debug.Log("Right: " + right);
             
-            Debug.Log("Climb Dir:  " + climbDir);
+            
            
             forward = Vector3.ProjectOnPlane(PlayerReferenceManager.instance.playerCam.transform.up, climbDir);
             
-            Debug.Log("Forward Dir:  " + forward);
+            
 
             right = Vector3.ProjectOnPlane(PlayerReferenceManager.instance.playerCam.transform.right, climbDir);
             
-            Debug.Log("Right Dir:  " + right);
+         
             
 
         }
@@ -222,7 +222,7 @@ public class MovementBase : MonoBehaviour
 
        
         
-        Debug.Log("Input Vector:  " + inputVector);
+     
         return inputVector.normalized;
     }
 
@@ -250,7 +250,7 @@ public class MovementBase : MonoBehaviour
         
         
         PlayerReferenceManager.instance.isOnSlope = isOnSlope;
-
+        PlayerReferenceManager.instance.isGrounded = isGrounded;
       
         if (PlayerReferenceManager.instance.currentState == PlayerState.Locomotion)
         {
@@ -302,7 +302,7 @@ public class MovementBase : MonoBehaviour
             }
             
             float signedValue = Vector3.Dot(gravityVelocity, transform.up);
-            Debug.Log("signed Value: " + signedValue);
+          
             
             if (!isOnSlope)
             {
@@ -317,7 +317,6 @@ public class MovementBase : MonoBehaviour
 
             else
             {
-                Debug.Log("0'd out movement");
                 if (signedValue < 0)
                 {
                     //vertVelocity = slopeHit.normal * groundVelocity;

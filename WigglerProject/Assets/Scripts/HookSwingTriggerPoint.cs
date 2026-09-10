@@ -31,7 +31,7 @@ public class HookSwingTriggerPoint : MonoBehaviour
                 return;
             if(!playerMovement.isGrounded)
                 return;
-            Debug.Log("Entering");
+         
             
             if(!canMove)
                 return;
@@ -45,7 +45,7 @@ public class HookSwingTriggerPoint : MonoBehaviour
             return;
         if (other.transform.TryGetComponent(out PlayerMovement playerMovement))
         {
-           Debug.Log("Exiting"); 
+      
            Deactivate(canMove);
         }
     }

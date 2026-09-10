@@ -13,13 +13,12 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - DR_GRADIENT_ON
-  - DR_OUTLINE_ON
   - DR_RIM_ON
   - _ALPHATEST_ON
   - _CELPRIMARYMODE_SINGLE
   - _DETAILMAPBLENDINGMODE_MULTIPLY
-  - _GRADIENTSPACE_WORLD
-  - _OUTLINESPACE_SCREEN
+  - _GRADIENTSPACE_LOCAL
+  - _OUTLINESPACE_OBJECT
   - _TEXTUREBLENDINGMODE_MULTIPLY
   m_InvalidKeywords:
   - _UNITYSHADOWMODE_NONE
@@ -142,10 +141,10 @@ Material:
     - _GlossyReflections: 0
     - _GradientAngle: 0
     - _GradientCenterX: 0
-    - _GradientCenterY: 0
+    - _GradientCenterY: -0.43
     - _GradientEnabled: 1
-    - _GradientSize: 7.22
-    - _GradientSpace: 0
+    - _GradientSize: 0.58
+    - _GradientSpace: 1
     - _LightContribution: 0
     - _LightFalloffSize: 0
     - _LightmapDirectionPitch: 0
@@ -153,16 +152,16 @@ Material:
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _OutlineDepthOffset: 0
-    - _OutlineEnabled: 1
+    - _OutlineEnabled: 0
     - _OutlineScale: 1
-    - _OutlineSpace: 0
+    - _OutlineSpace: 1
     - _OutlineWidth: 1
     - _OverrideLightmapDir: 0
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _RimEnabled: 1
-    - _SelfShadingSize: 0.396
+    - _SelfShadingSize: 0.241
     - _SelfShadingSizeExtra: 0.6
     - _ShadowEdgeSize: 0.05
     - _ShadowEdgeSizeExtra: 0.05
@@ -185,13 +184,13 @@ Material:
     - _XRMotionVectorsPass: 1
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 1, g: 0.6466435, b: 0.37254906, a: 0.73333335}
+    - _BaseColor: {r: 0.9481132, g: 0.6898288, b: 0.25938946, a: 0.73333335}
     - _Color: {r: 1, g: 0.64664346, b: 0.37254903, a: 0.73333335}
-    - _ColorDim: {r: 0.37254906, g: 0.71364224, b: 1, a: 0.73333335}
+    - _ColorDim: {r: 0.6556604, g: 0.6075277, b: 0.34329388, a: 0.73333335}
     - _ColorDimCurve: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
     - _ColorDimExtra: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
     - _ColorDimSteps: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
-    - _ColorGradient: {r: 2, g: 1.5074242, b: 0.46091616, a: 0.73333335}
+    - _ColorGradient: {r: 0.8186802, g: 0.14780091, b: 0.10812759, a: 0.73333335}
     - _DetailMapColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 1, g: 0.6117647, b: 0, a: 1}
     - _FlatRimColor: {r: 1, g: 0.38241652, b: 0.37254906, a: 0.73333335}

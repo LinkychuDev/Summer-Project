@@ -13,15 +13,14 @@ public class SpecialLeverScript : LeverScript
      
         var distance = Vector3.Distance(rb.position, leverOrigin.transform.position);
          
-        Debug.Log($"Lever Distance: " + distance);
-       
+    
         if (distance > maxPullDistance)
         {
             if (hasActivatedOnce)
             {
                 if (!activated)
                 {
-                    Debug.Log("Triggered");
+                    
                     OnLeverPulledEvent?.Invoke();
                     activated = true;
                 }

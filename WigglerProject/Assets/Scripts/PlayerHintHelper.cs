@@ -1,4 +1,5 @@
 ﻿using System;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,6 +32,9 @@ public class PlayerHintHelper : MonoBehaviour
     bool shouldRetract = false;
 
     private PlayerStretch.StretchState stretchState;
+
+    public float tweenValue = 1.2f;
+    public float tweenTime = 0.2f;
     
     
     private void Start()
@@ -59,7 +63,6 @@ public class PlayerHintHelper : MonoBehaviour
     {
         if (CanDisplayPrompt(out PlayerActionEvent playerHint))
         {
-            Debug.Log("Showing Object");
             //stop the timer from running infinitely
             if (!showingPrompt)
             {
@@ -80,7 +83,6 @@ public class PlayerHintHelper : MonoBehaviour
             timer = 0;
             showingPrompt = false;
             DisplayPromptEvent(PlayerActionEvent.NoAction);
-            Debug.Log("Not detecting prompts");
         }
     }
 
@@ -137,8 +139,11 @@ public class PlayerHintHelper : MonoBehaviour
         else
         {
             promptCanvas.gameObject.SetActive(true);
+            promptSprite.transform.DOPunchScale(Vector3.one * tweenValue, tweenTime);
             promptSprite.sprite = GetPromptSprite(obj);
         }
+        
+        
     }
 
     private Sprite GetPromptSprite(PlayerActionEvent playerActionEvent)

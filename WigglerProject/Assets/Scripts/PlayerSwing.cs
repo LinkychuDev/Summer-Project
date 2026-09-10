@@ -147,8 +147,7 @@ public class PlayerSwing : MonoBehaviour
         
          dotProduct = Vector3.Dot(direction, hookRigidBody.transform.forward);
         
-        Debug.Log("DotProduct: " + dotProduct);
-        //headSegment.isKinematic = true;
+         //headSegment.isKinematic = true;
         headSegment.transform.forward = hookRigidBody.transform.forward * Mathf.Sign(dotProduct);
       
         
@@ -327,7 +326,7 @@ public class PlayerSwing : MonoBehaviour
         if (hookReference == null)
             return;
         isSwinging = false;
-        Debug.Log("Triggered");
+       
         
         cachedSwingVelocity = hookRigidBody.linearVelocity;
 
@@ -364,7 +363,7 @@ public class PlayerSwing : MonoBehaviour
         var launchVelocityTail = hookRigidBody.transform.forward * (tailLaunchRatio * launchSpeed);
         
         
-        Debug.Log("Launch Velocity Head: " + launchVelocityHead);
+     
         
        Vector3 jumpVel = Vector3.up * upwardForce;
         
@@ -380,9 +379,7 @@ public class PlayerSwing : MonoBehaviour
         var finalLaunchVelocityTail = launchVelocityTail + bodySegment.transform.forward * tailLaunchRatio + (jumpVel * tailLaunchRatio);
         
         
-        Debug.Log("Final Launch Velocitty Head: " + finalLaunchVelocityHead);
-        
-        Debug.Log("Final Launch Velocitty Body: " + finalLaunchVelocityBody);
+ 
        
         headSegment.AddForce(finalLaunchVelocityHead * cachedSwingVelocity.magnitude * swingInput.magnitude , ForceMode.VelocityChange);
        bodySegment.AddForce(finalLaunchVelocityBody * cachedSwingVelocity.magnitude * swingInput.magnitude , ForceMode.VelocityChange);

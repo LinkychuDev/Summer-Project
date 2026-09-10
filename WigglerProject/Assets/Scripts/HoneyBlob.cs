@@ -23,18 +23,18 @@ public class HoneyBlob : MonoBehaviour
         if (other.TryGetComponent(out PlayerController playerController))
         {
             playerController.Honeyfied(true);
-            Debug.Log("Hit Player");
+           
         }
 
         else if (other.TryGetComponent(out EnvironmentObject environmentObject))
         {
             environmentObject.SetupHoney();
-            Debug.Log("Hit EnvironmentObject");
+       
         }
 
         else
         {
-            Debug.Log("Hit Ground");
+            
         }
         Destroy(gameObject);
     }

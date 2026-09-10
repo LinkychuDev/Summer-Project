@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using MoreMountains.Feedbacks;
 using UnityEngine;
 
 public class HoneyApplePowerup : MonoBehaviour
@@ -9,6 +10,8 @@ public class HoneyApplePowerup : MonoBehaviour
     [SerializeField] private float endYValue = 1f;
 
     [SerializeField] private float upDuration = 1f;
+
+    public MMF_Player appleBite;
     private void Start()
     {
         transform.DOLocalMove(transform.localPosition+transform.up * endYValue, upDuration).SetLoops(-1, LoopType.Yoyo);
@@ -22,6 +25,7 @@ public class HoneyApplePowerup : MonoBehaviour
         {
             player.Honeyfied(true);
             transform.DOShakeScale(shakeDuration);
+            appleBite.PlayFeedbacks();
 
         }
     }

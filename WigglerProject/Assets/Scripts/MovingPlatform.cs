@@ -131,6 +131,7 @@ public class MovingPlatform : MonoBehaviour
         
         if (waypointIndex == 0 && inverseDirection || waypointIndex == waypoints.Count - 1 && !inverseDirection)
         {
+        
             StartCoroutine(CooldownTime());
                 
         }
@@ -138,9 +139,9 @@ public class MovingPlatform : MonoBehaviour
 
         if (inverseDirection)
         {
-            
-            
-            waypointIndex = (waypointIndex - 1) % waypoints.Count;
+           
+            waypointIndex = ((waypointIndex - 1) % waypoints.Count);
+            Debug.Log("WaypointIndex2: " + waypointIndex);
         }
 
         else
@@ -148,9 +149,18 @@ public class MovingPlatform : MonoBehaviour
             
             waypointIndex = (waypointIndex + 1) % waypoints.Count;
         }
-        
-        
-        
+
+
+
+        if (waypointIndex < 0)
+        {
+            waypointIndex = waypoints.Count - 1;
+        }
+
+        else if (waypointIndex >= waypoints.Count)
+        {
+            waypointIndex = 0;
+        }
         currentWaypointPos = waypoints[waypointIndex];
         
         

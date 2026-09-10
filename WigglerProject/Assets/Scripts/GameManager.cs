@@ -216,14 +216,13 @@ public class GameManager : MonoBehaviour
             PlayerReferenceManager.instance.bodySegment.isKinematic = true;
             PlayerReferenceManager.instance.tailSegment.isKinematic = true;
 
-            Debug.Log("lastSpawnPositionCount" + lastSpawnPosition.Length);
-            Debug.Log("Player segment Count" + PlayerReferenceManager.instance.segments.Count);
+         
 
             lastSpawnPosition = new Vector3[PlayerReferenceManager.instance.segments.Count];
 
             var spawnPoint = LevelDefiner.instance.spawnPoint;
             
-            Debug.Log("LevelDefiner.instance:  " + LevelDefiner.instance.spawnPoint.position);
+     
 
 
 

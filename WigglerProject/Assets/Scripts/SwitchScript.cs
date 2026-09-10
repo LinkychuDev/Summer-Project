@@ -8,70 +8,90 @@ public class SwitchScript : MonoBehaviour
     [SerializeField] private bool isRepeating;
     public bool isActivated;
 
-    public EnvironmentObject obj;
+    public Renderer _renderer;
+    
+    public Material activatedMaterial;
+    public Material deactivatedMaterial;
+    //public EnvironmentObject obj;
 
     private Collider triggerCollider;
+    
+    BoxCollider boxCollider;
     public int stayCount;
+
+
+    private Vector3 halfExtents, center;
+
+    private int maxColliders = 10;
+    private Collider[] colliders;
+
+    public LayerMask interactionMask;
     void Start()
     {
         //onDeactivatedEvent?.Invoke();
+        boxCollider = GetComponent<BoxCollider>();
+        colliders = new Collider[maxColliders];
+        center = transform.TransformPoint(boxCollider.center);
+        halfExtents = Vector3.Scale(boxCollider.size, transform.lossyScale) * 0.5f;
+
     }
 
-    
 
-    private void OnTriggerStay(Collider other)
+    public void Activate()
     {
-        if (isActivated)
-            return;
-        if (other.TryGetComponent(out EnvironmentObject rb))
-        {
-           
-            isActivated = true;
-            obj = rb;
-            onActivatedEvent.Invoke();
+        isActivated = true;
+        onActivatedEvent.Invoke();
+    }
 
-            if (!isRepeating)
+    public void Deactivate()
+    {
+        isActivated = false;
+        onDeactivatedEvent.Invoke();
+    }
+    private void FixedUpdate()
+    {
+        int numberOfColliders =
+            Physics.OverlapBoxNonAlloc(center, halfExtents, colliders, transform.rotation, interactionMask);
+        if (numberOfColliders > 0)
+        {
+            if(isActivated)
+                return;
+            for (int i = 0; i < numberOfColliders; i++)
             {
-                rb.canGrab = false;
+                if (colliders[i].TryGetComponent(out EnvironmentObject rb))
+                {
+           
+                    Activate();
+
+                    if (!isRepeating)
+                    {
+                        rb.canGrab = false;
+                    }
+                }
+
+        
+                else if(colliders[i].TryGetComponent(out PlayerStretch stretch))
+                {
+                    if(stretch.stretchState != PlayerStretch.StretchState.None)
+                        return;
+                    Activate();
+                }
             }
+            
         }
 
-        
-        else if(other.TryGetComponent(out PlayerStretch stretch))
+        else
         {
-            if(obj != null)
+            if(!isActivated)
                 return;
-            if(stretch.stretchState != PlayerStretch.StretchState.None)
+            if(!isRepeating)
                 return;
-            isActivated = true;
-            onActivatedEvent.Invoke();
+            
+            Deactivate();
+            
         }
         
         
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if(!isActivated)
-            return;
-        if(!isRepeating)
-            return;
-        if (other.TryGetComponent(out EnvironmentObject rb))
-        {
-            obj = null;
-            isActivated = false;
-            onDeactivatedEvent.Invoke();
-        }
-
-        else if(other.TryGetComponent(out PlayerStretch stretch))
-        {
-            if(obj != null)
-                return;
-            if(stretch.stretchState != PlayerStretch.StretchState.None)
-                return;
-            isActivated = false;
-            onDeactivatedEvent.Invoke();
-        }
-       
+        
     }
 }

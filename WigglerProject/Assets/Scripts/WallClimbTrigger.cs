@@ -153,7 +153,7 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 			return;
 		if(PlayerReferenceManager.instance.currentState == PlayerState.Stretching)
 		{
-			Debug.Log("Is Stretching and in contact");
+			
 			return;
 		}
 
@@ -165,7 +165,7 @@ public class WallClimbTrigger : CollisionBlock, IPlayerHint
 		
 		
 
-		Debug.Log("Exiting Collider");
+		
 		WallContactPos = wallCollider.ClosestPointOnBounds(controller.transform.position);
 
 		

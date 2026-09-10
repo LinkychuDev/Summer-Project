@@ -70,7 +70,7 @@ public class PlayerStretch: MovementBase
 
     private PlayerSwing swing;
 
-
+    private PlayerGrab grab;
     public float currentStretchDistance;
     //private bool wasStartingStretchGrounded;
 
@@ -111,7 +111,6 @@ public class PlayerStretch: MovementBase
     float holdDuration;
 
     public MMF_Player stretchWindUp, stretchWindDown;
-    private MMF_MMSoundManagerSoundControl windUpControl;
     private MMF_MMSoundManagerSound windUpSound;
 
     public MMF_Player bashEffect, stickEffect;
@@ -173,12 +172,13 @@ public class PlayerStretch: MovementBase
         bodyVisual = segments[1].visual;
         tailVisual = segments[2].visual;
 
+        grab = GetComponent<PlayerGrab>();
 
         UpdateStretchState(StretchState.None);
         detectionRadius = headSegment.GetComponent<SphereCollider>().radius + detectionOffset;
 
         windUpSound = stretchWindUp.GetFeedbackOfType<MMF_MMSoundManagerSound>();
-        windUpControl = stretchWindUp.GetFeedbackOfType<MMF_MMSoundManagerSoundControl>();
+      
         stretchWindDown.GetFeedbackOfType<MMF_MMSoundManagerSound>().PlaybackDuration =
             new Vector2(stretchRetractTime, stretchRetractTime);
         /*collisionRadius = collisionRadiusOffset + headSegment.GetComponent<SphereCollider>().radius;
@@ -197,46 +197,10 @@ public class PlayerStretch: MovementBase
             return;
         input = InputManager.instance.controls.Gameplay.Move.ReadValue<Vector2>();
         moveDir = GetInputVector();
-        if(stretchState == StretchState.Retracting)
-            return;
-        ImplementSounds();
+       
     }
 
-    void ImplementSounds()
-    {
-        if (moveDir.magnitude > 0)
-        {
-            if (windUpSound.IsPlaying)
-            {
-                if (isSoundPaused)
-                {
-                    if (activatedMaxHead)
-                    {
-                        windUpControl.ControlMode = MMSoundManagerSoundControlEventTypes.Pause;
-                    }
-
-                    else
-                    {
-                        windUpControl.ControlMode = MMSoundManagerSoundControlEventTypes.Resume;
-                        isSoundPaused = false;
-                    }
-                }
-            }
-
-
-        }
-
-        else
-        {
-            if (windUpSound.IsPlaying)
-            {
-                if(isSoundPaused)
-                    return;
-                windUpControl.ControlMode = MMSoundManagerSoundControlEventTypes.Resume;
-                isSoundPaused = true;
-            }
-        }
-    }
+    
 
     void FixedUpdate()
     {
@@ -326,7 +290,7 @@ public class PlayerStretch: MovementBase
         if (Physics.Raycast(headSegment.position, headSegment.transform.forward,  out RaycastHit hit, detectionRadius, PlayerReferenceManager.instance.playerCollisionMask, QueryTriggerInteraction.Ignore))
         {
             var other = hit.transform;
-            Debug.Log("Collided Object: " + other.gameObject.name);
+        
 
             
             
@@ -424,7 +388,7 @@ public class PlayerStretch: MovementBase
         
 
 
-        Debug.Log("OnPlayerStretchedEvent");
+      
        
         //bodySegment.MovePosition(headSegment.position - (headSegment.transform.forward *bodyOffset));
         // tailSegment.MovePosition(bodySegment.position - (bodySegment.transform.forward * tailOffset));
@@ -438,8 +402,9 @@ public class PlayerStretch: MovementBase
         
         PlayerReferenceManager.instance.SetState(PlayerState.Stretching);
         UpdateStretchState(StretchState.Stretching);
-        windUpControl.ControlMode = MMSoundManagerSoundControlEventTypes.Free;
         stretchWindUp.PlayFeedbacks();
+       
+       
         //cachedStretchPositions.Add(headSegment.transform);
 
     }
@@ -450,7 +415,7 @@ public class PlayerStretch: MovementBase
     void StretchEvent()
     {
 
-        Debug.Log("Event Called");
+       
         //take stretching position
 
 
@@ -460,10 +425,10 @@ public class PlayerStretch: MovementBase
 
         var vel = Vector3.Project(currentVelocity, PlayerReferenceManager.instance.playerGravityDir);
         
-        Debug.Log("Stretch Vel: " + vel);
+    
         var hz = currentVelocity - vel;
         
-        Debug.Log("Stretch HZ: " + hz);
+        
 
         Vector3 targetVelocity = moveDir * (speed * input.sqrMagnitude * sturdyRatio);
         
@@ -608,7 +573,7 @@ public class PlayerStretch: MovementBase
     {
         if (!IsStretching())
             return;
-        Debug.Log(stretchState);
+      
 
         if (stretchState == StretchState.Stuck)
         {
@@ -666,7 +631,6 @@ public class PlayerStretch: MovementBase
 
        
         
-        Debug.Log("Input Vector:  " + inputVector);
         return inputVector.normalized;
     }
 
@@ -681,7 +645,6 @@ public class PlayerStretch: MovementBase
         yield return new WaitForEndOfFrame();
         isSoundPaused = false;
         activatedMaxHead = false;
-        windUpControl.ControlMode = MMSoundManagerSoundControlEventTypes.Free;
         Debug.Log(stretchState);
         //yield return new WaitUntil(() => PlayerPlayerReferenceManager.instance.state == PlayerState.Stretching);
         UpdateStretchState(StretchState.Retracting);
@@ -826,7 +789,11 @@ public class PlayerStretch: MovementBase
 
         if (stretchState == StretchState.Stuck)
         {
-            PlayerController.OnReleaseEvent?.Invoke();
+            if (grab.targetObject != null)
+            {
+                PlayerController.OnReleaseEvent?.Invoke();
+            }
+           
         }
         
         UpdateStretchState(StretchState.None);

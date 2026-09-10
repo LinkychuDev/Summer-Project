@@ -56,7 +56,7 @@ public class BounceTest : MonoBehaviour
             return;
         if(!(other.TryGetComponent(out PlayerMovement player)))
             return;
-        Debug.Log("Bounce");
+      
         
        // if(!PlayerMovement.isGrounded)
          //   return;

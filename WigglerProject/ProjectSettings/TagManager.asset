@@ -8,6 +8,7 @@ TagManager:
   - Honey
   - Berry
   - Water
+  - FxTemporaire
   layers:
   - Default
   - TransparentFX
@@ -24,7 +25,7 @@ TagManager:
   - Silk
   - Honey
   - Leaves
-  - 
+  - Seed
   - 
   - 
   - 

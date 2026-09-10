@@ -11,7 +11,11 @@ public enum CurrentDevice
 }
 
 
-
+public enum GameState
+{
+    GameplayState,
+    UIState
+}
 public class InputManager : MonoBehaviour
 {
     public static InputManager instance {get; private set;}
@@ -23,7 +27,7 @@ public class InputManager : MonoBehaviour
 
     public static Action<CurrentDevice> OnInputChanged;
 
-    
+ 
     public CurrentDevice currentDevice {get; private set;}
     private void Awake()
     {
@@ -105,14 +109,12 @@ public class InputManager : MonoBehaviour
            
             //Debug.Log("Right: " + right);
             
-            Debug.Log("Climb Dir:  " + climbDir);
+          
             
             
-            Debug.Log("Forward Dir:  " + forward);
+       
 
             right = Vector3.Cross(climbDir, forward);
-            
-            Debug.Log("Right Dir:  " + right);
 
             right = -Vector3.ProjectOnPlane(right, climbDir);
             forward = -Vector3.ProjectOnPlane(forward, climbDir);
@@ -134,4 +136,19 @@ public class InputManager : MonoBehaviour
         return inputVector.normalized;
     }
 
+
+    public void ChangeGameState(GameState gameState)
+    {
+        switch (gameState)
+        {
+            case GameState.GameplayState:
+                controls.Gameplay.Enable();
+                controls.UI.Disable();
+                break;
+            case GameState.UIState:
+                controls.UI.Enable();
+                controls.Gameplay.Disable();
+                break;
+        }
+    }
 }

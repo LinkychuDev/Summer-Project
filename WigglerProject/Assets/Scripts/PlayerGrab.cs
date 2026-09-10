@@ -10,7 +10,7 @@ public class PlayerGrab : MonoBehaviour
     
     public Rigidbody headSegment;
     
-    EnvironmentObject targetObject;
+    public EnvironmentObject targetObject;
 
     private float collisionRadius;
     
@@ -49,6 +49,7 @@ public class PlayerGrab : MonoBehaviour
 
     private void OnReleaseEvent()
     {
+       
         targetObject.ResetGrab();
         targetObject = null;
     }
@@ -56,7 +57,7 @@ public class PlayerGrab : MonoBehaviour
     private void OnGrabEvent(EnvironmentObject obj)
     {
         targetObject = obj;
-        targetObject.SetupGrab(grabPoint);
+        targetObject.SetupGrab(headSegment);
     }
 
     private void OnHoneyStateChanged(bool obj)

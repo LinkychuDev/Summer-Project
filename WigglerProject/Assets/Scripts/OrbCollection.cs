@@ -9,6 +9,8 @@ public class OrbCollection : MonoBehaviour, IBreakable, IPlayerHint
 {
     public MMF_Player orbSequence;
     public PlayableDirector playableDirector;
+    public MMF_Player bgmPlayer;
+    public MMF_Player teleportTrack;
    
     public void Break()
     {
@@ -21,6 +23,10 @@ public class OrbCollection : MonoBehaviour, IBreakable, IPlayerHint
     {
         yield return new WaitUntil(() =>
             PlayerReferenceManager.instance.playerStretch.stretchState == PlayerStretch.StretchState.None || PlayerReferenceManager.instance.currentState == PlayerState.Locomotion);
+        
+        bgmPlayer.StopFeedbacks();
+        yield return null;
+        teleportTrack.PlayFeedbacks();
         GameManager.instance.StartSpecialCutscene();
         yield return null;
         playableDirector.Play();
