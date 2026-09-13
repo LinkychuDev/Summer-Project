@@ -18,6 +18,12 @@ public class MenuScript : MonoBehaviour
         eventSystem = EventSystem.current;
     }
 
+
+    public void SetFirstSelected(GameObject button)
+    {
+        eventSystem.firstSelectedGameObject =button;
+        eventSystem.SetSelectedGameObject(button);
+    }
     public void OpenMenu()
     {
         //displayBackground.transform.DOPunchScale((Vector3.one * menuScale), menuTime);

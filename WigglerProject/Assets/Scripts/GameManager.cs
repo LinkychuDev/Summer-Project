@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
+using DG.Tweening;
 using MoreMountains.Feedbacks;
 using MoreMountains.Tools;
 using TMPro;
@@ -83,9 +84,10 @@ public class GameManager : MonoBehaviour
     public List<GameFlags> Achievements = new List<GameFlags>();
     public Color berryColor;
     public float inGameTime;
-    
-    
-    
+
+
+    public Image deathGameCanvas;
+    public float resetPenalty;
     public SerializedDictionary<string, List<GiantBerryData>> GiantBerriesDict = new SerializedDictionary<string, List<GiantBerryData>>();
     public SerializedDictionary<string, int> CollectedOrbs = new SerializedDictionary<string, int>();
     public int orbCount;
@@ -200,7 +202,7 @@ public class GameManager : MonoBehaviour
 
         if (IsOutOfBounds())
         {
-            ResetPlayerPosition();
+            StartCoroutine(ResetPlayerPosition());
         }
         
         
@@ -216,7 +218,7 @@ public class GameManager : MonoBehaviour
             PlayerReferenceManager.instance.bodySegment.isKinematic = true;
             PlayerReferenceManager.instance.tailSegment.isKinematic = true;
 
-         
+
 
             lastSpawnPosition = new Vector3[PlayerReferenceManager.instance.segments.Count];
 
@@ -225,7 +227,7 @@ public class GameManager : MonoBehaviour
      
 
 
-
+           
 
 
 
@@ -238,6 +240,10 @@ public class GameManager : MonoBehaviour
 
             PlayerReferenceManager.instance.transform.position = lastSpawnPosition[0];
 
+
+           
+            
+            
             PlayerReferenceManager.instance.headSegment.linearVelocity = Vector3.zero;
             PlayerReferenceManager.instance.headSegment.angularVelocity = Vector3.zero;
 
@@ -292,12 +298,56 @@ public class GameManager : MonoBehaviour
         lastSpawnPosition = positions;
     }
 
-    public void ResetPlayerPosition()
+    public IEnumerator ResetPlayerPosition()
     {
+
+
+        
+        PlayerReferenceManager.instance.headSegment.isKinematic = true;
+        PlayerReferenceManager.instance.bodySegment.isKinematic = true;
+        PlayerReferenceManager.instance.tailSegment.isKinematic = true;
+        
+        PlayerReferenceManager.instance.headSegment.linearVelocity = Vector3.zero;
+        PlayerReferenceManager.instance.headSegment.angularVelocity = Vector3.zero;
+
+
+        PlayerReferenceManager.instance.headSegment.transform.rotation = Quaternion.identity;
+        PlayerReferenceManager.instance.bodySegment.transform.rotation = Quaternion.identity;
+        PlayerReferenceManager.instance.tailSegment.transform.rotation = Quaternion.identity;
+
+        PlayerReferenceManager.instance.bodySegment.linearVelocity = Vector3.zero;
+        PlayerReferenceManager.instance.bodySegment.angularVelocity = Vector3.zero;
+
+        PlayerReferenceManager.instance.tailSegment.linearVelocity = Vector3.zero;
+        PlayerReferenceManager.instance.tailSegment.angularVelocity = Vector3.zero;
+        
+        
+        deathGameCanvas.gameObject.SetActive(true);
+        var tween = DOVirtual.Float(0, 1, resetPenalty / 2, x => deathGameCanvas.fillAmount = x).SetUpdate(true);
+        yield return new DOTweenCYInstruction.WaitForCompletion(tween);
+
+
+
+        deathGameCanvas.fillAmount = 1;
+        
+        
         for (int i = 0; i < 3; i++)
         {
-            PlayerReferenceManager.instance.segments[i].rb.position = lastSpawnPosition[i];
+            PlayerReferenceManager.instance.segments[i].rb.transform.position = lastSpawnPosition[i];
         }
+        
+        
+        yield return new WaitForSecondsRealtime(1f);
+        var tween2 = DOVirtual.Float(1, 0, resetPenalty / 2, x => deathGameCanvas.fillAmount = x).SetUpdate(true);
+        
+        
+        
+       
+        yield return new DOTweenCYInstruction.WaitForCompletion(tween2);
+        PlayerReferenceManager.instance.headSegment.isKinematic = false;
+        PlayerReferenceManager.instance.bodySegment.isKinematic = false;
+        PlayerReferenceManager.instance.tailSegment.isKinematic = false;
+        deathGameCanvas.gameObject.SetActive(false);
     }
 
     bool IsOutOfBounds()

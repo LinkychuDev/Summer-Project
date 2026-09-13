@@ -26,7 +26,8 @@ public enum PlayerActionEvent
     StretchAction,
     ReleaseAction,
     StickAction,
-    PullAction
+    PullAction,
+    SwingAction
 }
 
 public class PlayerController : MonoBehaviour
@@ -80,7 +81,7 @@ public class PlayerController : MonoBehaviour
     public MMF_Player honeyTimerPlayer;
     public static Action<bool> OnMenuOpenedEvent;
     private Coroutine honeyCoroutine;
-    
+
     
     
     private void OnEnable()
@@ -99,15 +100,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnStretchStateChanged(PlayerStretch.StretchState obj)
     {
-        if (obj == PlayerStretch.StretchState.Stuck)
-        {
-            headVisual.localScale = scaleEffect;
-        }
-
-        else
-        {
-            headVisual.localScale = previousScale;
-        }
+        
     }
 
     private void OnDisable()

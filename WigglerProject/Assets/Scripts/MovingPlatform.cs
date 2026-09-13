@@ -15,7 +15,7 @@ public class MovingPlatform : MonoBehaviour
 
     [SerializeField] private SplineContainer splineContainer;
 
-    private Vector3 currentWaypointPos;
+    public Vector3 currentWaypointPos;
 
     private bool isWaiting;
 
@@ -58,14 +58,17 @@ public class MovingPlatform : MonoBehaviour
         }
 
         currentWaypointPos = waypoints[0];
+
+
+        StartCoroutine(ShouldFreeze());
     }
 
 
-    private void Update()
+    IEnumerator ShouldFreeze()
     {
-        if (shouldFreezeWhenStretching)
+        while (shouldFreezeWhenStretching)
         {
-            if (trigger.overlappingRigidbodies.Contains(PlayerReferenceManager.instance.headSegment))
+            if (trigger.HasPlayer)
             {
                 if (PlayerReferenceManager.instance.playerStretch.stretchState != PlayerStretch.StretchState.None)
                 {
@@ -82,7 +85,15 @@ public class MovingPlatform : MonoBehaviour
             {
                 freezePlayer = false;
             }
+
+            yield return null;
         }
+    }
+
+
+    private void Update()
+    {
+        
     }
 
     private void FixedUpdate()
@@ -148,11 +159,12 @@ public class MovingPlatform : MonoBehaviour
         {
             
             waypointIndex = (waypointIndex + 1) % waypoints.Count;
+            Debug.Log("WaypointIndexF: " + waypointIndex);
         }
 
 
 
-        if (waypointIndex < 0)
+        /*if (waypointIndex < 0)
         {
             waypointIndex = waypoints.Count - 1;
         }
@@ -160,7 +172,7 @@ public class MovingPlatform : MonoBehaviour
         else if (waypointIndex >= waypoints.Count)
         {
             waypointIndex = 0;
-        }
+        }*/
         currentWaypointPos = waypoints[waypointIndex];
         
         

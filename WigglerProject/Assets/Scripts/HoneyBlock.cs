@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class HoneyBlock : MonoBehaviour, IStickable
+public class HoneyBlock : StickableObject
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

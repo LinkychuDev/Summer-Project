@@ -1,3 +1,4 @@
+using MoreMountains.Feedbacks;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -20,9 +21,7 @@ public class SpecialLeverScript : LeverScript
             {
                 if (!activated)
                 {
-                    
-                    OnLeverPulledEvent?.Invoke();
-                    activated = true;
+                    base.RetractedEvent();
                 }
             }
 
@@ -30,8 +29,10 @@ public class SpecialLeverScript : LeverScript
             {
                 OnTimeStartEvent?.Invoke();
                 hasActivatedOnce = true;
-                activated = true;
-               
+                tickingTimer.GetFeedbackOfType<MMF_MMSoundManagerSound>().PlaybackDuration =
+                    new Vector2(resetTime, resetTime);
+                tickingTimer.PlayFeedbacks(transform.position);
+
             }
 
         }

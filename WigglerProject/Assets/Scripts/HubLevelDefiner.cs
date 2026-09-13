@@ -10,6 +10,7 @@ public class HubLevelDefiner : LevelDefiner
     private int orbsNeeded = 0;
     public float resetWaitTime = 1f;
     public OrbPartHud orbPartHud;
+    
     public void CollectOrbPart(int id)
     {
         orbsNeeded++;

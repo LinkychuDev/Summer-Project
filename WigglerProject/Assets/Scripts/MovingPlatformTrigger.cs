@@ -19,42 +19,60 @@ public class MovingPlatformTrigger : MonoBehaviour
    private Quaternion rotation;
    
    Collider[] colliders = new Collider[10];
+
+   public bool HasPlayer;
    private void Start()
    {
-      
+      boxCollider = GetComponent<BoxCollider>();
+      center = transform.TransformPoint(boxCollider.center);
+      halfExtents = Vector3.Scale(boxCollider.size, transform.lossyScale) * 0.5f;
    }
 
-  
 
-   private void OnTriggerEnter(Collider other)
+   private void FixedUpdate()
    {
-      if (other.TryGetComponent(out PlayerStretch playerController))
+      int count = Physics.OverlapBoxNonAlloc(transform.position, halfExtents, colliders, transform.rotation, platformLayerMask);
+      HasPlayer = false;
+
+      if (overlappingRigidbodies.Count > 0)
       {
-         if(!CanMoveWithPlatform(playerController))
-            return;
-         playerController.rb.interpolation = RigidbodyInterpolation.None;
+         foreach (var other in overlappingRigidbodies)
+         {
+            other.interpolation = RigidbodyInterpolation.Interpolate;
+         }
+
+         overlappingRigidbodies.Clear();
       }
-      if(!overlappingRigidbodies.Add(other.attachedRigidbody))
-         return;
+
+      for (int i = 0; i < count; i++)
+      {
+         if (colliders[i].TryGetComponent(out Rigidbody rb))
+         {
+            rb.interpolation = RigidbodyInterpolation.None;
+
+
+            if (rb.gameObject.CompareTag("Player"))
+            {
+               HasPlayer = true;
+            }
+            overlappingRigidbodies.Add(rb);
+           
+           
+         }
+      }
    }
 
-   private void OnTriggerExit(Collider other)
-   {
-      if (other.TryGetComponent(out PlayerStretch playerController))
-      {
-         if(!CanMoveWithPlatform(playerController))
-            return;
-         playerController.rb.interpolation = RigidbodyInterpolation.Interpolate;
-      }
-      overlappingRigidbodies.Remove(other.attachedRigidbody);
-   }
-   
+ 
 
 
  
 
    private bool CanMoveWithPlatform(PlayerStretch playerController)
    {
-      return playerController.stretchState == PlayerStretch.StretchState.None || !playerController.shouldStretchForward;
+      bool canMove =  playerController.stretchState == PlayerStretch.StretchState.None || !playerController.shouldStretchForward || playerController.stretchState != PlayerStretch.StretchState.Stuck;
+
+      Debug.Log("CanMoveWithPlatform:  " + canMove);
+      
+      return canMove;
    }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HoneySwingTest : MonoBehaviour
+public class HoneySwingTest : StickableObject, IPlayerHint
 {
     public Rigidbody swingAnchor;
     public Rigidbody hookRigidbody;
@@ -55,5 +55,6 @@ public class HoneySwingTest : MonoBehaviour
     {
         gameObject.GetComponent<Collider>().enabled = true;
     }
-   
+
+    public PlayerActionEvent PlayerActionEvent { get; } = PlayerActionEvent.SwingAction;
 }

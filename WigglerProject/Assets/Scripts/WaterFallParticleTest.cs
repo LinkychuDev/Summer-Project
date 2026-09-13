@@ -21,7 +21,7 @@ public class WaterFallParticleTest : MonoBehaviour
     private void Awake()
     {
         particles = GetComponent<ParticleSystem>();
-        var list = GameObject.FindObjectsByType<Collider>(FindObjectsSortMode.None)
+        var list = GameObject.FindObjectsByType<Collider>(FindObjectsInactive.Include, FindObjectsSortMode.None)
             .Where(x => x.TryGetComponent(out IWettable wettable));
 
         foreach (var wettable in list)

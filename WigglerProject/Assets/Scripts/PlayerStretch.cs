@@ -115,6 +115,8 @@ public class PlayerStretch: MovementBase
 
     public MMF_Player bashEffect, stickEffect;
   
+    public MMF_Player headBop;
+    
     protected override void OnEnable()
     {
         base.OnEnable();
@@ -257,7 +259,8 @@ public class PlayerStretch: MovementBase
                 if (other.gameObject.TryGetComponent(out HoneySwingTest honeyTest))
                 {
                     //honeyTest.DisableCollisions();
-                   
+                   if(!isOnHoney || !honeyTest.CanStick())
+                       return;
 
                     PlayerReferenceManager.instance.SetState(PlayerState.Swinging);
 
@@ -282,28 +285,48 @@ public class PlayerStretch: MovementBase
 
     void CollisionDetection()
     {
-        if(stretchState == StretchState.Retracting)
+        if(!IsStretching())
             return;
-
+        
+        bool shouldPlayEffect = false;
         shouldStretchForward = false;
         
         if (Physics.Raycast(headSegment.position, headSegment.transform.forward,  out RaycastHit hit, detectionRadius, PlayerReferenceManager.instance.playerCollisionMask, QueryTriggerInteraction.Ignore))
         {
             var other = hit.transform;
-        
-
             
+           
             
-            if (isOnHoney)
+            if (other.transform.TryGetComponent(out EnvironmentObject environmentObject))
+            {
+                if (isOnHoney || environmentObject.OnHoney)
+                {
+                    UpdateStretchState(StretchState.Stuck);
+                    stickEffect.PlayFeedbacks(environmentObject.transform.position);
+                    PlayerController.OnGrabEvent?.Invoke(environmentObject);
+                    shouldPlayEffect = true;
+                }
+            }
+            
+            else if (isOnHoney)
             {
                 if (other.gameObject.isStatic)
                 {
                     shouldStretchForward = true;
+                    shouldPlayEffect = true;
                 }
+                
             }
 
             else
             {
+                if (isMetal)
+                {
+                    if (other.transform.TryGetComponent(out IMetalBreakable metalBreak))
+                    {
+                        metalBreak.MetalBreak();
+                    }
+                }
                 
                 if (other.TryGetComponent(out IStretchBashable bashable))
                 {
@@ -311,11 +334,21 @@ public class PlayerStretch: MovementBase
                     bashable.StretchBash();
                 }
                 
-                if (other.transform.TryGetComponent(out IStickable stickable))
+                if (other.gameObject.TryGetComponent(out IBreakable breakable))
                 {
+                    bashEffect.PlayFeedbacks();
+                    breakable.Break();
+                }
+                
+                
+                if (other.transform.TryGetComponent(out StickableObject stickable))
+                {
+                    if((!stickable.CanStick()) || !isOnHoney)
+                        return;
                     Debug.Log(other.name);
                     UpdateStretchState(StretchState.Stuck);
                     stickEffect.PlayFeedbacks();
+                    shouldPlayEffect = true;
                     shouldStretchForward = true;
                    // PlayerReferenceManager.instance.SetState(PlayerState.Stuck);
                 }
@@ -324,12 +357,22 @@ public class PlayerStretch: MovementBase
                 {
                     UpdateStretchState(StretchState.Stuck);
                     shouldStretchForward = true;
+                    shouldPlayEffect = true;
                 }
             }
             
+            
+            
+            
+            
 
         }
-        
+
+
+        if (shouldPlayEffect)
+        {
+            headBop.PlayFeedbacks();
+        }
         
     }
 
@@ -364,15 +407,7 @@ public class PlayerStretch: MovementBase
 
         return false;
     }
-
-    void ShouldStretchForward(bool shouldStretch)
-    {
-        if (shouldStretch)
-        {
-            UpdateStretchState(StretchState.Stuck);
-
-        }
-    }
+    
 
     void OnPlayerStretchedEvent()
     {
@@ -532,42 +567,7 @@ public class PlayerStretch: MovementBase
     }
     
     
-    private void OnCollisionEnter(Collision other)
-    {
-        if(!IsStretching())
-            return;
-
-        if (isMetal)
-        {
-            if (other.transform.TryGetComponent(out IMetalBreakable breakable))
-            {
-                breakable.MetalBreak();
-            }
-        }
-
-        else
-        {
-            if (other.gameObject.TryGetComponent(out IBreakable breakable))
-            {
-                bashEffect.PlayFeedbacks();
-                breakable.Break();
-            }
-
-        }
-
-        
-        if (other.transform.TryGetComponent(out EnvironmentObject environmentObject))
-        {
-            if (isOnHoney || environmentObject.OnHoney)
-            {
-                Debug.Log(environmentObject.name);
-                UpdateStretchState(StretchState.Stuck);
-                stickEffect.PlayFeedbacks(environmentObject.transform.position);
-                PlayerController.OnGrabEvent?.Invoke(environmentObject);
-            }
-        }
-    }
-
+  
 
     void OnPlayerRetracted()
     {

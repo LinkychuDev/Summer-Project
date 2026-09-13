@@ -109,8 +109,9 @@ public class PlayerSwing : MonoBehaviour
     private Rigidbody hookRigidBody;
 
     public float dotProduct;
-   
 
+
+    public float swingVelocityTime = 5f;
     private void Start()
     {
         headSegment = PlayerReferenceManager.instance.headSegment;
@@ -227,10 +228,10 @@ public class PlayerSwing : MonoBehaviour
             //headSegment.isKinematic = f;
 
 
-            
-            
-           
-            
+
+
+
+            StartCoroutine(SwingTimer());
             //bodySegment.AddForce(swingSpeed * , ForceMode.VelocityChange);
             isHeldDown = true;
             isSwinging = true;
@@ -252,6 +253,15 @@ public class PlayerSwing : MonoBehaviour
         }
 
         
+    }
+
+    IEnumerator SwingTimer()
+    {
+        while (isSwinging && isHeldDown && !PlayerReferenceManager.instance.hasSwungForAwhile)
+        {
+            yield return new WaitForSeconds(swingVelocityTime);
+            PlayerReferenceManager.instance.hasSwungForAwhile = true;
+        }
     }
 
     void FixedUpdate()
@@ -327,7 +337,7 @@ public class PlayerSwing : MonoBehaviour
             return;
         isSwinging = false;
        
-        
+        PlayerReferenceManager.instance.hasSwungForAwhile = false;
         cachedSwingVelocity = hookRigidBody.linearVelocity;
 
         headClose.localPosition = new Vector3(headClosePos.x, headClosePos.y, headClosePos.z);

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBreakable
+public class EnvironmentObject : StickableObject, IGrabbable, IMetalBreakable
 {
     public bool OnHoney = false;
     private int originalLayer;
@@ -47,7 +47,14 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
     public int maxCollisions = 1;
 
     private FixedJoint _fixedJoint;
-    
+
+    public override bool CanStick()
+    {
+        return OnHoney;
+
+
+    }
+
     public interface IGrabEvent
     {
         void GrabEvent(EnvironmentObject sender);
@@ -139,13 +146,20 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         rb.interpolation = RigidbodyInterpolation.None;
         rb.constraints = RigidbodyConstraints.FreezeRotation;
         rb.isKinematic = false;
+
+        //int grabLayer = grabPoint.gameObject.layer;
+        //rb.excludeLayers = 1 << grabLayer;       
+        Physics.IgnoreLayerCollision(gameObject.layer, grabPoint.gameObject.layer, true);
+        
         /*grabPointReference = grabPoint;
-        transform.parent = grabPointReference;
-        gameObject.layer = grabPoint.gameObject.layer;*/
+                transform.parent = grabPointReference;
+                gameObject.layer = grabPoint.gameObject.layer;*/
 
         _fixedJoint = gameObject.AddComponent<FixedJoint>();
         _fixedJoint.connectedBody = grabPoint;
         _fixedJoint.connectedMassScale = 0.01f;
+        _fixedJoint.enableCollision = false;
+        _fixedJoint.transform.forward = grabPoint.transform.forward;
         isGrabbed = true;
         
     }
@@ -157,11 +171,11 @@ public class EnvironmentObject : MonoBehaviour, IGrabbable, IStickable, IMetalBr
         /*gameObject.layer = originalLayer;
         transform.parent = originalParent;
         grabPointReference = null;*/
-        
+        rb.excludeLayers = 0;
         Destroy(_fixedJoint);
         rb.isKinematic = true;
         isGrabbed = false;
-        
+        Physics.IgnoreLayerCollision(gameObject.layer, PlayerReferenceManager.instance.headSegment.gameObject.layer, true);
 
     }
 

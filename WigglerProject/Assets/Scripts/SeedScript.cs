@@ -35,14 +35,9 @@ public class SeedScript : EnvironmentObject, IWettable
               
                 if (_colliders[i].TryGetComponent(out IGrabEvent grabEvent))
                 {
-                    if (isWet)
-                    {
-                        planted = true;
-                        _collider.enabled = false;
-                        grabEvent.GrabEvent(this);
-                         
-                       
-                    }
+                    planted = true;
+                    _collider.enabled = false;
+                    grabEvent.GrabEvent(this);
                 }
                 
                

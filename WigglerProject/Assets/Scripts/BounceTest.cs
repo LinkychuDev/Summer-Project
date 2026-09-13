@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MoreMountains.Feedbacks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,6 +16,9 @@ public class BounceTest : MonoBehaviour
     [SerializeField] Material deadGrassMaterial;
     [SerializeField] private Material aliveGrassMaterial;
 
+    
+    
+    public MMF_Player bouncePlayer;
     void Start()
     {
         Setup();
@@ -60,6 +64,8 @@ public class BounceTest : MonoBehaviour
         
        // if(!PlayerMovement.isGrounded)
          //   return;
+         
+         bouncePlayer.PlayFeedbacks();
         player.Bounce(bounceHeight);
     }
 

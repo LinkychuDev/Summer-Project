@@ -3,13 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 
-public interface IStickable
-{
-    public bool CanStick()
-    {
-        return true;
-    }
-}
+
 public class HoneyTest : MonoBehaviour
 {
     public enum Direction
@@ -44,7 +38,7 @@ public class HoneyTest : MonoBehaviour
             return;
         if(other.attachedRigidbody.isKinematic)
             return;
-        if(!(other.TryGetComponent(out IStickable stickable)))
+        if(!(other.TryGetComponent(out StickableObject stickable)))
             return;
         if(!isActive)
             return;

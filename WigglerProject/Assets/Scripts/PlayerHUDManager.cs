@@ -10,7 +10,7 @@ public class PlayerControlsHUD
 }
 public class PlayerHUDManager : MonoBehaviour
 {
-    public PlayerControlsHUD locomotionHUD, stretchHUD, swingHUD;
+    public PlayerControlsHUD locomotionHUD, stretchHUD, swingHUD, launchHUD;
     public PlayerState currentPlayerState;
     private CurrentDevice currentDevice;
 
@@ -58,7 +58,16 @@ public class PlayerHUDManager : MonoBehaviour
                 ShowHUD(stretchHUD, currentDevice);
                 break;
             case PlayerState.Swinging:
-                ShowHUD(swingHUD, currentDevice);
+                if (PlayerReferenceManager.instance.hasSwungForAwhile)
+                {
+                    ShowHUD(launchHUD, currentDevice);
+                }
+
+                else
+                {
+                    ShowHUD(swingHUD, currentDevice);
+                }
+                
                 break;
             case PlayerState.Launching:
                 ShowHUD(locomotionHUD, currentDevice);

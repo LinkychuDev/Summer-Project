@@ -82,7 +82,7 @@ public class CachedPosition
 
 
 
-public class PlayerReferenceManager : MonoBehaviour, IStickable
+public class PlayerReferenceManager : MonoBehaviour
 {
 
     public LayerMask groundMask;
@@ -124,7 +124,7 @@ public class PlayerReferenceManager : MonoBehaviour, IStickable
     public bool isOnCoyoteTime;
     public bool useCoyoteTime;
 
-
+    public bool hasSwungForAwhile;
     public GameObject[] groundedCircle;
 
     public float groundedCircleMaxDistance;

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7726027641657627165}
   - component: {fileID: 1652551159915206310}
   - component: {fileID: 1342069476114587559}
+  - component: {fileID: 7493566823090185514}
   m_Layer: 0
   m_Name: Switch
   m_TagString: Untagged
@@ -181,4 +182,23 @@ MonoBehaviour:
         m_CallState: 2
   isRepeating: 1
   isActivated: 0
-  obj: {fileID: 0}
+  _renderer: {fileID: 7726027641657627165}
+  activatedMaterial: {fileID: 2100000, guid: 7082c0ea35bca314ca4baec9c05b9342, type: 2}
+  deactivatedMaterial: {fileID: 2100000, guid: 26d25a98e99584d4bae5ecf11af4d47d, type: 2}
+  stayCount: 2
+  interactionMask:
+    serializedVersion: 2
+    m_Bits: 33344
+--- !u!114 &7493566823090185514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1289083044816152949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73a15adb33f43f84e8dcb7cd1b6b3b87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShaderInteractor
+  radius: 3

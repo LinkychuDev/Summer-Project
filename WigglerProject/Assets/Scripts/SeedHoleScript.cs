@@ -30,15 +30,19 @@ public class SeedHoleScript : MonoBehaviour, EnvironmentObject.IGrabEvent
     public void GrabEvent(EnvironmentObject sender)
     {
         //sender.ResetGrab();
-      
+        SeedScript seed = sender as SeedScript;
+        
+        
         PlayerController.OnReleaseEvent?.Invoke();
-        StartCoroutine(ResetThings(sender.transform));
+        StartCoroutine(ResetThings(seed));
     }
 
-    private IEnumerator ResetThings(Transform sender)
+    private IEnumerator ResetThings(SeedScript sender)
     {
         yield return new WaitForFixedUpdate();
-        sender.position = transform.position;
+        sender.transform.position = transform.position;
+
+        yield return new WaitUntil(() => sender.isWet);
         SpawnPlant();
     }
 }

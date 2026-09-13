@@ -142,10 +142,14 @@ public class InputManager : MonoBehaviour
         switch (gameState)
         {
             case GameState.GameplayState:
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
                 controls.Gameplay.Enable();
                 controls.UI.Disable();
                 break;
             case GameState.UIState:
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
                 controls.UI.Enable();
                 controls.Gameplay.Disable();
                 break;

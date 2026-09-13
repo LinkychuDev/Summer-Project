@@ -513,6 +513,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25d4f00205b84446a3b82557870a25e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HoneySwingTest
+  canStick: 1
   swingAnchor: {fileID: 6591429041355852742}
   hookRigidbody: {fileID: 7676207489954342446}
   originPosition: {x: 0.0135746, y: -5.5494, z: -0.02697754}

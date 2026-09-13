@@ -17,12 +17,12 @@ public class SwitchScript : MonoBehaviour
     private Collider triggerCollider;
     
     BoxCollider boxCollider;
-    public int stayCount;
+   
 
 
     private Vector3 halfExtents, center;
 
-    private int maxColliders = 10;
+    public int maxColliders = 10;
     private Collider[] colliders;
 
     public LayerMask interactionMask;
@@ -40,12 +40,14 @@ public class SwitchScript : MonoBehaviour
     public void Activate()
     {
         isActivated = true;
+        _renderer.material = activatedMaterial;
         onActivatedEvent.Invoke();
     }
 
     public void Deactivate()
     {
         isActivated = false;
+        _renderer.material = deactivatedMaterial;
         onDeactivatedEvent.Invoke();
     }
     private void FixedUpdate()

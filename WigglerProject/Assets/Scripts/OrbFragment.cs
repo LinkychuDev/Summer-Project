@@ -18,9 +18,9 @@ public class OrbFragment : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
+ 
     private void Start()
     {
-        transform.DOLocalMoveY(updateInterval, timeDelay).SetLoops(-1).SetEase(Ease.Linear);
+        //transform.DOMove(transform.position + (transform.up *updateInterval), timeDelay).SetLoops(-1).SetEase(Ease.Linear);
     }
 }

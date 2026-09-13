@@ -7,7 +7,7 @@ public class KillPlaneTest: CollisionBlock
      {
           if (other.TryGetComponent(out PlayerController playerController))
           {
-               GameManager.instance.ResetPlayerPosition();
+               GameManager.instance.StartCoroutine(GameManager.instance.ResetPlayerPosition());
           }
      }
 }

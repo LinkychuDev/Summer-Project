@@ -1,0 +1,153 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &1685498782369327743
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3035778561322460286, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c2828e1b3cc2acb4081dc6faa4e538e3, type: 2}
+    - target: {fileID: 4821421182461046914, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4821421182461046914, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4821421182461046914, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 5.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 4821421182461046914, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4821421182461046914, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4821421182461046914, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4821421182461046914, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4821421182461046914, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4821421182461046914, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4821421182461046914, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024025245596715751, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c2828e1b3cc2acb4081dc6faa4e538e3, type: 2}
+    - target: {fileID: 7766295505107060524, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: m_Name
+      value: Lever Timed Non-Special Variant 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 1531922199230505708, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+    - {fileID: 1256410893634520543, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 9059857221566664006, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1644231234103210781}
+  m_SourcePrefab: {fileID: 100100000, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+--- !u!23 &4415032531437817345 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3035778561322460286, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+  m_PrefabInstance: {fileID: 1685498782369327743}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5138314758941317282 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5776691409203639005, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+  m_PrefabInstance: {fileID: 1685498782369327743}
+  m_PrefabAsset: {fileID: 0}
+--- !u!120 &5391227686046368975 stripped
+LineRenderer:
+  m_CorrespondingSourceObject: {fileID: 6752414483252096688, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+  m_PrefabInstance: {fileID: 1685498782369327743}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &5970915906826084504 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5024025245596715751, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+  m_PrefabInstance: {fileID: 1685498782369327743}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7193853311889067467 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8408690333274105780, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+  m_PrefabInstance: {fileID: 1685498782369327743}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da43522623d4704e979466dc7650b65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MoreMountains.Tools::MoreMountains.Feedbacks.MMF_Player
+--- !u!1 &7700887160068974393 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9059857221566664006, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+  m_PrefabInstance: {fileID: 1685498782369327743}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1644231234103210781
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7700887160068974393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b2c2f026ac1ed745b5e9eab017790eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeverScript
+  OnHoney: 1
+  honeyObject: {fileID: 0}
+  honeyCooldown: 0
+  canGrab: 1
+  isBreakable: 0
+  useGravity: 1
+  isGrounded: 0
+  groundOffset: 0
+  groundRadius: 0
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 0
+  collisionRadius: 0
+  maxCollisions: 1
+  OnLeverPulledEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnLeverRetracted:
+    m_PersistentCalls:
+      m_Calls: []
+  isRepeating: 1
+  pullDistance: 0
+  leverOrigin: {fileID: 5138314758941317282}
+  activated: 0
+  resetTime: 0
+  pullLineRenderer: {fileID: 5391227686046368975}
+  pullResetTime: 3
+  deactiveMaterial: {fileID: 2100000, guid: c2828e1b3cc2acb4081dc6faa4e538e3, type: 2}
+  activeMaterial: {fileID: 2100000, guid: e3f5e6a47a5c5db4d9563660d2ecbe19, type: 2}
+  rend: {fileID: 4415032531437817345}
+  leverOriginRenderer: {fileID: 5970915906826084504}
+  tickingTimer: {fileID: 7193853311889067467}
+  deactivate: 1

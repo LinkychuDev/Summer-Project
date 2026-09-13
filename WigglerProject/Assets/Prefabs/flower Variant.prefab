@@ -134,6 +134,7 @@ MonoBehaviour:
   grassRenderer: {fileID: 2093225173186015034}
   deadGrassMaterial: {fileID: 2100000, guid: 568a013687027a244be80711f7ddcc22, type: 2}
   aliveGrassMaterial: {fileID: 2100000, guid: 4facc934a290f01419c25dc45935a642, type: 2}
+  bouncePlayer: {fileID: 0}
   waterThreshold: 20
   currentWaterAmount: 20
   waterTest: {fileID: 0}
