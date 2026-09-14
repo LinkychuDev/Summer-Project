@@ -181,6 +181,8 @@ public class PlayerController : MonoBehaviour
         honeyTimerPlayer.GetFeedbackOfType<MMF_MMSoundManagerSound>().SetFeedbackDuration(honeyCooldown);
         honeyTimerPlayer.PlayFeedbacks();
         DOVirtual.Float(1, 0.02f, honeyTimerPlayer.TotalDuration, value =>  honeyImage.fillAmount = value );
+
+        yield return new WaitForSeconds(honeyCooldown);
         yield return new WaitUntil(() => !honeyTimerPlayer.HasFeedbackStillPlaying());
         ResetHoneyState();
         

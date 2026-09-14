@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2176564159870828594}
   - component: {fileID: 3658883441589376389}
   - component: {fileID: 4965472223426671194}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: HoneyApple
   m_TagString: Apple
   m_Icon: {fileID: 0}
@@ -485,6 +485,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: bae12b4ed6f205c4dbc254bd7738ab34, type: 3}
       propertyPath: m_Name
       value: goldenApple
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: bae12b4ed6f205c4dbc254bd7738ab34, type: 3}
+      propertyPath: m_Layer
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

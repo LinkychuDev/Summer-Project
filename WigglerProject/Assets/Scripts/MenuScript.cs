@@ -34,6 +34,6 @@ public class MenuScript : MonoBehaviour
     public void CloseMenu()
     {
         eventSystem.SetSelectedGameObject(null);
-        displayBackground.transform.DOPunchScale((Vector3.one), menuTime);
+       // displayBackground.transform.DOPunchScale((Vector3.one), menuTime);
     }
 }

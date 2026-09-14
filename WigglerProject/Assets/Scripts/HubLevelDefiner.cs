@@ -21,14 +21,24 @@ public class HubLevelDefiner : LevelDefiner
     IEnumerator OrbPartSequence()
     {
 
-        yield return new WaitForFixedUpdate();
-        PlayerReferenceManager.instance.SpawnPlayerAtPosition(warpHubPosition.position);
-        PlayerReferenceManager.instance.headSegment.isKinematic = true;
-        yield return new WaitForSeconds(resetWaitTime);
-        PlayerReferenceManager.instance.headSegment.isKinematic = false;
         if (orbsNeeded >= orbsPartsNeeded)
         {
             OnOrbPartsCollected?.Invoke();
         }
+        
+        
+        yield return new WaitForFixedUpdate();
+       
+        PlayerReferenceManager.instance.headSegment.isKinematic = true;
+        PlayerReferenceManager.instance.bodySegment.isKinematic = true;
+        PlayerReferenceManager.instance.tailSegment.isKinematic = true;
+        yield return new WaitForFixedUpdate();
+        PlayerReferenceManager.instance.SpawnPlayerAtPosition(warpHubPosition.position);
+        
+        yield return new WaitForSeconds(resetWaitTime);
+        PlayerReferenceManager.instance.headSegment.isKinematic = false;
+        PlayerReferenceManager.instance.bodySegment.isKinematic = false;
+        PlayerReferenceManager.instance.tailSegment.isKinematic = false;
+       
     }
 }

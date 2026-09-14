@@ -14,10 +14,25 @@ public class PlayerHUDManager : MonoBehaviour
     public PlayerState currentPlayerState;
     private CurrentDevice currentDevice;
 
+    private PlayerControlsHUD currentControlHUD;
     private void OnEnable()
     {
         PlayerReferenceManager.OnStateChange += OnStateChange;
         InputManager.OnInputChanged += OnInputChanged;
+        PlayerController.OnMenuOpenedEvent += OnMenuOpenedEvent;
+    }
+
+    private void OnMenuOpenedEvent(bool obj)
+    {
+        if (obj)
+        {
+            HideHUD();
+        }
+
+        else
+        {
+            ShowHUD(currentControlHUD, currentDevice);
+        }
     }
 
     private void OnInputChanged(CurrentDevice obj)
@@ -30,6 +45,7 @@ public class PlayerHUDManager : MonoBehaviour
     {
         PlayerReferenceManager.OnStateChange -= OnStateChange;
         InputManager.OnInputChanged -= OnInputChanged;
+        PlayerController.OnMenuOpenedEvent -= OnMenuOpenedEvent;
     }
 
     private void OnStateChange(PlayerState obj)
@@ -90,6 +106,8 @@ public class PlayerHUDManager : MonoBehaviour
             hud.hudCanvasGameplay.SetActive(false);
             hud.hudCanvasKeyboard.SetActive(true);
         }
+        
+        currentControlHUD = hud;
     }
     
 

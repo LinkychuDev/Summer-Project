@@ -27,6 +27,7 @@ public class HookSwingTriggerPoint : MonoBehaviour
         
         if (other.transform.TryGetComponent(out PlayerMovement playerMovement))
         { 
+            Debug.Log("PlayerMovement entered");
             if(PlayerReferenceManager.instance.currentState == PlayerState.Swinging)
                 return;
             if(!playerMovement.isGrounded)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using MoreMountains.Feedbacks;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -14,6 +15,8 @@ public class WindBlow : MonoBehaviour
     private BoxCollider boxCollider;
     public GameObject particles;
 
+
+    public MMF_Player windPlayer;
     public Vector2 offsetRange = new Vector2(0, 2);
 
     private void Awake()
@@ -23,12 +26,14 @@ public class WindBlow : MonoBehaviour
 
     public void TurnOn()
     {
+        windPlayer.PlayFeedbacks(transform.position);
         boxCollider.enabled = true;
         particles.SetActive(true);
     }
 
     public void TurnOff()
     {
+        windPlayer.StopFeedbacks(transform.position);
         boxCollider.enabled = false;
         particles.SetActive(false);
     }
@@ -57,7 +62,7 @@ public class WindBlow : MonoBehaviour
                 }
                 
                 
-                rb.AddForce(windForce * transform.forward, ForceMode.VelocityChange);
+                rb.AddForce(windForce * transform.forward, ForceMode.Acceleration);
             }
         }
     }

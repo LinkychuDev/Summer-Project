@@ -10,12 +10,11 @@ public class LevelInfoSO : ScriptableObject
     public int orbCount = 1;
     public int berryCount = 1;
     public bool isCompleted = false;
-    public SceneAsset sceneAsset;
     public string SceneName;
 
+
+    public GameFlags berryFlag;
     public int OrbRequirement;
-    private void OnValidate()
-    {
-        SceneName = sceneAsset.name;
-    }
+    
 }
+	

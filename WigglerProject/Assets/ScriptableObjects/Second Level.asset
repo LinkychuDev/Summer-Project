@@ -18,4 +18,5 @@ MonoBehaviour:
   isCompleted: 0
   sceneAsset: {fileID: 102900000, guid: 9159bb6d1892b1a45a34546129ec9b70, type: 3}
   SceneName: Second Level
+  berryFlag: 6
   OrbRequirement: 1

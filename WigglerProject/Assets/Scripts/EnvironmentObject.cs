@@ -47,6 +47,8 @@ public class EnvironmentObject : StickableObject, IGrabbable, IMetalBreakable
     public int maxCollisions = 1;
 
     private FixedJoint _fixedJoint;
+    
+    
 
     public override bool CanStick()
     {
@@ -147,9 +149,9 @@ public class EnvironmentObject : StickableObject, IGrabbable, IMetalBreakable
         rb.constraints = RigidbodyConstraints.FreezeRotation;
         rb.isKinematic = false;
 
-        //int grabLayer = grabPoint.gameObject.layer;
-        //rb.excludeLayers = 1 << grabLayer;       
-        Physics.IgnoreLayerCollision(gameObject.layer, grabPoint.gameObject.layer, true);
+        int grabLayer = grabPoint.gameObject.layer;
+        rb.excludeLayers = 1 << grabLayer;       
+        
         
         /*grabPointReference = grabPoint;
                 transform.parent = grabPointReference;
@@ -175,7 +177,7 @@ public class EnvironmentObject : StickableObject, IGrabbable, IMetalBreakable
         Destroy(_fixedJoint);
         rb.isKinematic = true;
         isGrabbed = false;
-        Physics.IgnoreLayerCollision(gameObject.layer, PlayerReferenceManager.instance.headSegment.gameObject.layer, true);
+        //Physics.IgnoreLayerCollision(gameObject.layer, PlayerReferenceManager.instance.headSegment.gameObject.layer, false);
 
     }
 

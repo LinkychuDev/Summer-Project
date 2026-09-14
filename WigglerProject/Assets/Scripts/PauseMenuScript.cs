@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using MoreMountains.Feedbacks;
 using MoreMountains.Tools;
@@ -15,6 +16,9 @@ public class ControlsImageDisplay
    public GameObject diplayImage;
   
 }
+
+
+
 public class PauseMenuScript : MenuScript
 {
    public float hoverTime;
@@ -39,9 +43,17 @@ public class PauseMenuScript : MenuScript
    
    bool isControlsOpen = false;
    private float navInput;
+
+   public MMF_Player hoverEffect;
    
+   public MMF_Player selectedEffect;
    [Header("Options")]
    public Slider masterSlider, musicSlider, sfxSlider, uiSlider;
+
+   private Vector3 originalScaleCache;
+
+   public Dictionary<GameObject, Vector3> buttonsInformation = new Dictionary<GameObject, Vector3>();
+  
    private void OnEnable()
    {
       PlayerController.OnMenuOpenedEvent += OnMenuOpenedEvent;
@@ -60,6 +72,7 @@ public class PauseMenuScript : MenuScript
       if(!controlsMenu.activeInHierarchy)
          return;
       currentSelectedControlsMenu = (currentSelectedControlsMenu + dir)  % controlsDisplay.Length;
+      
       NextControlsMenu();
    }
 
@@ -76,6 +89,8 @@ public class PauseMenuScript : MenuScript
    }
 
 
+   
+   
    public override void Start()
    {
       base.Start();
@@ -93,11 +108,13 @@ public class PauseMenuScript : MenuScript
          normalMenu.SetActive(true);
          options.SetActive(false);
          controlsMenu.SetActive(false);
-         gameCanvas.SetActive(false);
          berryCanvas.gameObject.SetActive(false);
          ReturnToHubButton.gameObject.SetActive(SceneManager.GetActiveScene().name != "HubWorld");
         _backgroundMusicPlayer.StopMusic();
-         
+        foreach (var kvp in buttonsInformation)
+        {
+           kvp.Key.transform.localScale = kvp.Value;
+        }
          OpenMenu();
       }
 
@@ -110,7 +127,6 @@ public class PauseMenuScript : MenuScript
          options.SetActive(false);
          normalMenu.SetActive(false);
          controlsMenu.SetActive(false);
-         gameCanvas.SetActive(true);
          berryCanvas.gameObject.SetActive(true);
          Time.timeScale = 1;
          _backgroundMusicPlayer.PlayMusic();
@@ -119,13 +135,25 @@ public class PauseMenuScript : MenuScript
 
    public void OnHover(Transform t)
    {
-      t.localScale = new Vector3(hoverScale, hoverScale, hoverScale);
+
+      if (!buttonsInformation.ContainsKey(t.gameObject))
+      {
+         buttonsInformation.Add(t.gameObject, t.localScale);
+      }
+      
+      t.localScale = buttonsInformation[t.gameObject];
+      t.localScale += new Vector3(hoverScale, hoverScale, hoverScale);
       Debug.Log("Hovered");
+      hoverEffect.PlayFeedbacks();
    }
 
    public void OnHoverExit(Transform t)
    {
-      t.localScale = Vector3.one;
+      if (buttonsInformation.TryGetValue(t.gameObject, out var value))
+      {
+         t.localScale = value;
+      }
+     
    }
 
    public void ReturnToHub()
@@ -158,6 +186,15 @@ public class PauseMenuScript : MenuScript
          SetFirstSelected(masterSlider.gameObject);
         
          
+   }
+
+   public void Select(Transform t)
+   {
+      if (buttonsInformation.TryGetValue(t.gameObject, out var value))
+      {
+         t.localScale = value;
+      }
+      selectedEffect.PlayFeedbacks();
    }
 
 

@@ -12,11 +12,12 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - DR_GRADIENT_ON
   - DR_OUTLINE_ON
   - DR_RIM_ON
   - _CELPRIMARYMODE_SINGLE
   - _DETAILMAPBLENDINGMODE_MULTIPLY
-  - _GRADIENTSPACE_WORLD
+  - _GRADIENTSPACE_LOCAL
   - _OUTLINESPACE_SCREEN
   - _TEXTUREBLENDINGMODE_MULTIPLY
   m_InvalidKeywords:
@@ -137,10 +138,10 @@ Material:
     - _GlossyReflections: 0
     - _GradientAngle: 0
     - _GradientCenterX: 0
-    - _GradientCenterY: 0
-    - _GradientEnabled: 0
-    - _GradientSize: 10
-    - _GradientSpace: 0
+    - _GradientCenterY: 1
+    - _GradientEnabled: 1
+    - _GradientSize: 13.46
+    - _GradientSpace: 1
     - _LightContribution: 0
     - _LightFalloffSize: 0
     - _LightmapDirectionPitch: 0
@@ -180,13 +181,13 @@ Material:
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.6844871, g: 0.7717285, b: 0.86522907, a: 1}
+    - _BaseColor: {r: 0.43340603, g: 0.7122642, b: 0.63341177, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorDim: {r: 1, g: 1, b: 1, a: 1}
     - _ColorDimCurve: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
     - _ColorDimExtra: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
     - _ColorDimSteps: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
-    - _ColorGradient: {r: 0.85023, g: 0.85034, b: 0.85045, a: 0.85056}
+    - _ColorGradient: {r: 0.9103774, g: 0.8809837, b: 0.34353864, a: 1}
     - _DetailMapColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _FlatRimColor: {r: 0.3962264, g: 0.15512636, b: 0.3695933, a: 1}

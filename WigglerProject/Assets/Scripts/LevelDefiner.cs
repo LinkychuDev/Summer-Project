@@ -44,6 +44,8 @@ public class LevelDefiner : MonoBehaviour
 
         }
         yield return null;
+        
+        
         GameManager.instance.LevelBoot();
 
         yield return null;

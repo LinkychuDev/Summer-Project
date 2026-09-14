@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using RotaryHeart.Lib.PhysicsExtension;
 using UnityEngine;
+using UnityEngine.Playables;
+using UnityEngine.Splines;
 
 public class SeedHoleScript : MonoBehaviour, EnvironmentObject.IGrabEvent
 {
@@ -15,14 +17,20 @@ public class SeedHoleScript : MonoBehaviour, EnvironmentObject.IGrabEvent
     Collider[] colliders = new Collider[1];
     
     bool hasSpawned = false;
+    
+    public PlayableDirector playableDirector;
 
+    
+    public SplineInstantiate splineInstantiate;
     private void Awake()
     {
-        
+        splineInstantiate.enabled = false;
     }
     
     public void SpawnPlant()
     {
+
+        splineInstantiate.enabled = true;
         magicPlant.gameObject.SetActive(true);
         hasSpawned = true;
     }
@@ -44,5 +52,6 @@ public class SeedHoleScript : MonoBehaviour, EnvironmentObject.IGrabEvent
 
         yield return new WaitUntil(() => sender.isWet);
         SpawnPlant();
+        playableDirector.Play();
     }
 }

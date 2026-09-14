@@ -116,7 +116,11 @@ public class PlayerStretch: MovementBase
     public MMF_Player bashEffect, stickEffect;
   
     public MMF_Player headBop;
-    
+
+
+    private bool hasAlreadyPlayedStickOnce;
+    public float detectionDistance = 0.35f;
+
     protected override void OnEnable()
     {
         base.OnEnable();
@@ -256,17 +260,35 @@ public class PlayerStretch: MovementBase
         {
             if (other.CompareTag("Honey"))
             {
+               
                 if (other.gameObject.TryGetComponent(out HoneySwingTest honeyTest))
                 {
                     //honeyTest.DisableCollisions();
-                   if(!isOnHoney || !honeyTest.CanStick())
-                       return;
+                   if(!isOnHoney)
+                   {
+                       
+                       Debug.Log(gameObject.name + " can stick: " + honeyTest.CanStick());
+                       if (honeyTest.CanStick())
+                       {
+                           
+                       }
 
+                       else
+                       {
+                           return;
+                       }
+                      
+                   }
+                    
+                   
+                    
                     PlayerReferenceManager.instance.SetState(PlayerState.Swinging);
 
                     //replace with events
                     swing.StartSwing(honeyTest);
                 }
+
+               
             }
 
             else
@@ -291,7 +313,7 @@ public class PlayerStretch: MovementBase
         bool shouldPlayEffect = false;
         shouldStretchForward = false;
         
-        if (Physics.Raycast(headSegment.position, headSegment.transform.forward,  out RaycastHit hit, detectionRadius, PlayerReferenceManager.instance.playerCollisionMask, QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(headSegment.transform.position, headSegment.transform.forward,  out RaycastHit hit, detectionRadius))
         {
             var other = hit.transform;
             
@@ -307,19 +329,11 @@ public class PlayerStretch: MovementBase
                     shouldPlayEffect = true;
                 }
             }
-            
-            else if (isOnHoney)
-            {
-                if (other.gameObject.isStatic)
-                {
-                    shouldStretchForward = true;
-                    shouldPlayEffect = true;
-                }
-                
-            }
 
             else
             {
+               
+
                 if (isMetal)
                 {
                     if (other.transform.TryGetComponent(out IMetalBreakable metalBreak))
@@ -347,7 +361,7 @@ public class PlayerStretch: MovementBase
                         return;
                     Debug.Log(other.name);
                     UpdateStretchState(StretchState.Stuck);
-                    stickEffect.PlayFeedbacks();
+                   // stickEffect.PlayFeedbacks();
                     shouldPlayEffect = true;
                     shouldStretchForward = true;
                    // PlayerReferenceManager.instance.SetState(PlayerState.Stuck);
@@ -359,6 +373,17 @@ public class PlayerStretch: MovementBase
                     shouldStretchForward = true;
                     shouldPlayEffect = true;
                 }
+                
+                else if (isOnHoney)
+                {
+                    if (other.gameObject.CompareTag("PillarObject"))
+                    {
+                        shouldStretchForward = true;
+                        UpdateStretchState(StretchState.Stuck);
+                        shouldPlayEffect = true;
+                    }
+
+                }
             }
             
             
@@ -367,11 +392,16 @@ public class PlayerStretch: MovementBase
             
 
         }
+        
 
 
         if (shouldPlayEffect)
         {
+            if(hasAlreadyPlayedStickOnce)
+                return;
+            stickEffect.PlayFeedbacks();
             headBop.PlayFeedbacks();
+            hasAlreadyPlayedStickOnce = true;
         }
         
     }
@@ -804,8 +834,8 @@ public class PlayerStretch: MovementBase
         
         PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
         shouldStretchForward = false;
-
-
+        hasAlreadyPlayedStickOnce =   false;
+        
 
         //yield return null;
 

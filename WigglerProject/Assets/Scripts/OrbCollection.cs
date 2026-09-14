@@ -5,18 +5,20 @@ using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 
-public class OrbCollection : MonoBehaviour, IBreakable, IPlayerHint
+public class OrbCollection : MonoBehaviour
 {
     public MMF_Player orbSequence;
     public PlayableDirector playableDirector;
-    public MMF_Player bgmPlayer;
     public MMF_Player teleportTrack;
-   
-    public void Break()
+    
+    public void OnTriggerEnter(Collider other)
     {
-        GameManager.instance.CollectOrb(LevelDefiner.instance.sceneName);
-        StartCoroutine(Activate());
-       
+        if (other.TryGetComponent(out PlayerMovement playerMovement))
+        {
+            GameManager.instance.CollectOrb(LevelDefiner.instance.sceneName);
+            StartCoroutine(Activate());
+        }
+
     }
 
     IEnumerator Activate()
@@ -24,7 +26,7 @@ public class OrbCollection : MonoBehaviour, IBreakable, IPlayerHint
         yield return new WaitUntil(() =>
             PlayerReferenceManager.instance.playerStretch.stretchState == PlayerStretch.StretchState.None || PlayerReferenceManager.instance.currentState == PlayerState.Locomotion);
         
-        bgmPlayer.StopFeedbacks();
+        FindFirstObjectByType<BackgroundMusicPlayer>().StopMusic();
         yield return null;
         teleportTrack.PlayFeedbacks();
         GameManager.instance.StartSpecialCutscene();

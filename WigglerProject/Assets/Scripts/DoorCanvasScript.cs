@@ -22,6 +22,11 @@ public class DoorCanvasScript : MonoBehaviour
     
     public float dotweenShakeScale = 0.5f;
     public float dotweenTime = 0.2f;
+
+
+    public Image doorCanvasBackground;
+    public Color notAllCollectedColor;
+    public Color allBerriesCollectedColor;
     void Start()
     {
         Clear();
@@ -73,6 +78,16 @@ public class DoorCanvasScript : MonoBehaviour
         }
 
 
+
+        if (GameManager.GameEvents.IsEventCompleted(levelInfo.berryFlag))
+        {
+            doorCanvasBackground.color = berryCollectedColor;
+        }
+
+        else
+        {
+            doorCanvasBackground.color = notUnlockedColor;
+        }
         disabledImage.gameObject.SetActive(!isUnlockable);
         displayBackground.SetActive(true);
         

@@ -373,6 +373,7 @@ public class PlayerReferenceManager : MonoBehaviour
 
     public void SpawnPlayerAtPosition(Vector3 position)
     {
+        PlayerReferenceManager.instance.SetState(PlayerState.Locomotion);
         headSegment.position = position;
         bodySegment.position = position - (headSegment.transform.forward * bodyOffset);
         tailSegment.position = position - (headSegment.transform.forward * (bodyOffset + tailOffset));

@@ -9,6 +9,7 @@ TagManager:
   - Berry
   - Water
   - FxTemporaire
+  - PillarObject
   layers:
   - Default
   - TransparentFX
@@ -26,7 +27,7 @@ TagManager:
   - Honey
   - Leaves
   - Seed
-  - 
+  - Apples
   - 
   - 
   - 

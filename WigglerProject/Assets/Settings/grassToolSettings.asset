@@ -29,7 +29,7 @@ MonoBehaviour:
   AdjustedColor: {r: 1, g: 1, b: 1, a: 1}
   paintBlockMask:
     serializedVersion: 2
-    m_Bits: 4087
+    m_Bits: 131063
   hitMask:
     serializedVersion: 2
     m_Bits: 8
@@ -42,4 +42,4 @@ MonoBehaviour:
   density: 1
   normalLimit: 0.4
   grassAmountToGenerate: 100000
-  generationDensity: 0.632
+  generationDensity: 0.854

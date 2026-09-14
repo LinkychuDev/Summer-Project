@@ -78,14 +78,14 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI berryText;
     public MMF_Player textPlayer;
 
-   
+    public MMF_Player deathAudio;
    
     public int totalAmountOfBerries;
     public List<GameFlags> Achievements = new List<GameFlags>();
     public Color berryColor;
     public float inGameTime;
 
-
+    public MMF_Player giantBerryCollectedSFX;
     public Image deathGameCanvas;
     public float resetPenalty;
     public SerializedDictionary<string, List<GiantBerryData>> GiantBerriesDict = new SerializedDictionary<string, List<GiantBerryData>>();
@@ -114,6 +114,7 @@ public class GameManager : MonoBehaviour
 
     public void LevelBoot()
     {
+        SetInputMode();
         ShowBounds();
         ShowFPS();
         StartCoroutine(SpawnPlayer());
@@ -121,6 +122,11 @@ public class GameManager : MonoBehaviour
        
     }
 
+
+    void SetInputMode()
+    {
+        InputManager.instance.ChangeGameState(GameState.GameplayState);
+    }
 
 
 
@@ -302,6 +308,8 @@ public class GameManager : MonoBehaviour
     {
 
 
+        deathAudio.PlayFeedbacks();
+        yield return new WaitForFixedUpdate();
         
         PlayerReferenceManager.instance.headSegment.isKinematic = true;
         PlayerReferenceManager.instance.bodySegment.isKinematic = true;

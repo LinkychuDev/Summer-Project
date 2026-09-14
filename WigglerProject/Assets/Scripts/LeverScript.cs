@@ -42,6 +42,12 @@ public class LeverScript : EnvironmentObject
         originalPosition = transform.position;
         resetTime = pullResetTime;
         rb.useGravity = false;
+
+        if (deactivate)
+        {
+            DeactivateLever();
+        }
+        
         
 
     }

@@ -17,6 +17,7 @@ public class GiantBerryScript : BerryScript
     {
         if (other.TryGetComponent(out PlayerController player))
         {
+            GameManager.instance.giantBerryCollectedSFX.PlayFeedbacks();
             CollectEvent();
             GameManager.instance.AddPoints(PointToGive);     
             LevelDefiner.instance.UpdateGiantBerryCount(berryId);

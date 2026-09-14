@@ -52,6 +52,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7473235221527581818, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: managedReferences[1750661230572339201].MaxVolume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7473235221527581818, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
+      propertyPath: managedReferences[1750661230572339201].MinVolume
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7766295505107060524, guid: a6a4fbf10f9b9794bbd58de98af80801, type: 3}
       propertyPath: m_Name
       value: Lever Timed

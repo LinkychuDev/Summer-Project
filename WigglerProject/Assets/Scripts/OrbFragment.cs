@@ -1,6 +1,7 @@
 ﻿using System;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Playables;
 
 public class OrbFragment : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class OrbFragment : MonoBehaviour
     
     [SerializeField] private float updateInterval = 0.5f;
     [SerializeField] private float timeDelay = 0.2f;
-
+  
     public int orbId;
     public void OnTriggerEnter(Collider other)
     {

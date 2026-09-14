@@ -15,7 +15,13 @@ public class HoneySwingTest : StickableObject, IPlayerHint
 
   
     public LineRenderer lineRenderer;
-   
+
+
+
+    public override bool CanStick()
+    {
+        return canStick;
+    }
     public void OnValidate()
     {
         distance = Vector3.Distance(transform.position, swingAnchor.transform.position);

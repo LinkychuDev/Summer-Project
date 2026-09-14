@@ -16,6 +16,6 @@ MonoBehaviour:
   orbCount: 1
   berryCount: 300
   isCompleted: 0
-  sceneAsset: {fileID: 102900000, guid: e7c28a3bf123e0d4f8e6d591cc84705d, type: 3}
   SceneName: Third Level
+  berryFlag: 7
   OrbRequirement: 2
